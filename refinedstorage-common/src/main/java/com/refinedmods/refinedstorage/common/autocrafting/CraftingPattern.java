@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -10,12 +11,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class CraftingPattern implements Pattern {
     private final UUID id;
-    private final List<List<PlatformResourceKey>> inputs;
+    private final List<Ingredient> ingredients;
     private final ResourceAmount output;
-    private final List<ResourceAmount> byproducts;
+    private final List<ResourceAmount> outputs;
     private final Set<ResourceKey> inputResources;
     private final Set<ResourceKey> outputResources;
 
@@ -24,11 +26,11 @@ class CraftingPattern implements Pattern {
                     final ResourceAmount output,
                     final List<ResourceAmount> byproducts) {
         this.id = id;
-        this.inputs = inputs;
         this.output = output;
         this.inputResources = inputs.stream().flatMap(List::stream).collect(Collectors.toSet());
         this.outputResources = Set.of(output.resource());
-        this.byproducts = byproducts;
+        this.ingredients = inputs.stream().map(i -> new Ingredient(1, i)).toList();
+        this.outputs = Stream.concat(Stream.of(output), byproducts.stream()).toList();
     }
 
     @Override
@@ -41,8 +43,14 @@ class CraftingPattern implements Pattern {
         return inputResources;
     }
 
-    List<List<PlatformResourceKey>> getInputs() {
-        return inputs;
+    @Override
+    public List<Ingredient> getIngredients() {
+        return ingredients;
+    }
+
+    @Override
+    public List<ResourceAmount> getOutputs() {
+        return outputs;
     }
 
     ResourceAmount getOutput() {

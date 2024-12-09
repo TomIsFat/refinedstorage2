@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.api.autocrafting;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
+import java.util.List;
 import java.util.Set;
 
 import org.apiguardian.api.API;
@@ -11,6 +12,8 @@ public interface PatternRepository {
     void add(Pattern pattern);
 
     void remove(Pattern pattern);
+
+    List<Pattern> getByOutput(ResourceKey output);
 
     Set<ResourceKey> getOutputs();
 

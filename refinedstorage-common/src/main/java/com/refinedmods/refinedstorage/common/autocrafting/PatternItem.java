@@ -245,7 +245,9 @@ public class PatternItem extends Item implements PatternProviderItem {
         if (state == null) {
             return Optional.empty();
         }
-        return Optional.of(new ProcessingPattern(id, state.getFlatInputs(), state.getFlatOutputs()));
+        return Optional.of(
+            new ProcessingPattern(id, state.getFlatInputs(), state.getIngredients(), state.getFlatOutputs())
+        );
     }
 
     private Optional<Pattern> getStonecutterPattern(final UUID id, final ItemStack stack, final Level level) {

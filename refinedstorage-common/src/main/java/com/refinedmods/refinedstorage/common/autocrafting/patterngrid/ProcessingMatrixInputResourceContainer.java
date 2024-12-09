@@ -42,21 +42,21 @@ class ProcessingMatrixInputResourceContainer extends ResourceContainerImpl {
         }
     }
 
-    void set(final int index, final ProcessingPatternState.Input input) {
-        setSilently(index, input.input());
-        allowedTagIds.set(index, new HashSet<>(input.allowedAlternativeIds()));
+    void set(final int index, final ProcessingPatternState.ProcessingIngredient processingIngredient) {
+        setSilently(index, processingIngredient.input());
+        allowedTagIds.set(index, new HashSet<>(processingIngredient.allowedAlternativeIds()));
         changed();
     }
 
-    Optional<ProcessingPatternState.Input> getInput(final int index) {
-        return Optional.ofNullable(get(index)).map(input -> getInput(index, input));
+    Optional<ProcessingPatternState.ProcessingIngredient> getIngredient(final int index) {
+        return Optional.ofNullable(get(index)).map(input -> getIngredient(index, input));
     }
 
-    private ProcessingPatternState.Input getInput(final int index, final ResourceAmount input) {
+    private ProcessingPatternState.ProcessingIngredient getIngredient(final int index, final ResourceAmount input) {
         final List<ResourceLocation> ids = allowedTagIds.get(index) == null
             ? Collections.emptyList()
             : new ArrayList<>(allowedTagIds.get(index));
-        return new ProcessingPatternState.Input(input, ids);
+        return new ProcessingPatternState.ProcessingIngredient(input, ids);
     }
 
     Set<ResourceLocation> getAllowedTagIds(final int index) {

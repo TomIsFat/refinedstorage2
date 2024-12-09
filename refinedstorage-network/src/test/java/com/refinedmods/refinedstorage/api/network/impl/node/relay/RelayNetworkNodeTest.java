@@ -5,7 +5,7 @@ import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
-import com.refinedmods.refinedstorage.api.network.impl.autocrafting.SimplePattern;
+import com.refinedmods.refinedstorage.api.network.impl.autocrafting.PatternImpl;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.api.network.impl.security.SecurityDecisionProviderImpl;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
@@ -469,7 +469,7 @@ class RelayNetworkNodeTest {
     }
 
     static Runnable addPattern(final AutocraftingNetworkComponent component, final ResourceKey output) {
-        final Pattern pattern = new SimplePattern(output);
+        final Pattern pattern = new PatternImpl(output);
         final PatternProviderNetworkNode patternProvider = new PatternProviderNetworkNode(0, 1);
         patternProvider.setPattern(0, pattern);
         final NetworkNodeContainer container = () -> patternProvider;

@@ -3,9 +3,10 @@ package com.refinedmods.refinedstorage.api.network.impl.autocrafting;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepositoryImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorImpl;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.PreviewCraftingCalculatorListener;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
-import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewItem;
-import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusProvider;
@@ -15,20 +16,24 @@ import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComponent, ParentContainer {
+    private final Supplier<RootStorage> rootStorageProvider;
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Set<PatternListener> listeners = new HashSet<>();
     private final PatternRepositoryImpl patternRepository = new PatternRepositoryImpl();
     private final TaskStatusProvider taskStatusProvider;
 
-    public AutocraftingNetworkComponentImpl(final TaskStatusProvider taskStatusProvider) {
+    public AutocraftingNetworkComponentImpl(final Supplier<RootStorage> rootStorageProvider,
+                                            final TaskStatusProvider taskStatusProvider) {
+        this.rootStorageProvider = rootStorageProvider;
         this.taskStatusProvider = taskStatusProvider;
     }
 
@@ -72,19 +77,11 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
 
     @Override
     public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
-        final List<PreviewItem> items = new ArrayList<>();
-        final boolean missing = amount == 404;
-        for (int i = 0; i < 31; ++i) {
-            items.add(new PreviewItem(
-                resource,
-                (i + 1),
-                (i % 2 == 0 && missing) ? amount : 0,
-                i % 2 == 0 ? 0 : amount
-            ));
-        }
-        return Optional.of(new Preview(missing
-            ? PreviewType.MISSING_RESOURCES
-            : PreviewType.SUCCESS, items));
+        final RootStorage rootStorage = rootStorageProvider.get();
+        final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
+        final PreviewCraftingCalculatorListener listener = PreviewCraftingCalculatorListener.ofRoot();
+        craftingCalculator.calculate(resource, amount, listener);
+        return Optional.of(listener.buildPreview());
     }
 
     @Override
