@@ -39,7 +39,12 @@ public final class NetworkTestFixtures {
         );
         NETWORK_COMPONENT_MAP_FACTORY.addFactory(
             AutocraftingNetworkComponent.class,
-            network -> new AutocraftingNetworkComponentImpl(new FakeTaskStatusProvider())
+            network -> new AutocraftingNetworkComponentImpl(
+                () -> {
+                    throw new UnsupportedOperationException("Storage not accessible from here (yet)");
+                },
+                new FakeTaskStatusProvider()
+            )
         );
     }
 

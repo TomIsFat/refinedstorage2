@@ -7,6 +7,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+-   Autocrafting engine.
+
+### Changed
+
+-   Autocrafting now handles multiple patterns with the same output correctly by trying to use the pattern with the
+    highest priority first. If there are missing resources, lower priority patterns are checked.
+
 ## [2.0.0-milestone.4.11] - 2024-12-08
 
 ### Added

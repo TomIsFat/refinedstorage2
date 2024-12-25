@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
-import com.refinedmods.refinedstorage.api.network.impl.autocrafting.SimplePattern;
+import com.refinedmods.refinedstorage.api.network.impl.autocrafting.PatternImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkAutocraftingComponent;
 import com.refinedmods.refinedstorage.network.test.NetworkTest;
@@ -35,7 +35,7 @@ class PatternProviderNetworkNodeTest {
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
     ) {
         // Act
-        final SimplePattern pattern = new SimplePattern(A);
+        final PatternImpl pattern = new PatternImpl(A);
         sut.setPattern(0, pattern);
 
         // Assert
@@ -47,7 +47,7 @@ class PatternProviderNetworkNodeTest {
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
     ) {
         // Arrange
-        final SimplePattern pattern = new SimplePattern(A);
+        final PatternImpl pattern = new PatternImpl(A);
         sut.setPattern(0, pattern);
 
         // Act
@@ -62,11 +62,11 @@ class PatternProviderNetworkNodeTest {
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
     ) {
         // Arrange
-        final SimplePattern pattern = new SimplePattern(A);
+        final PatternImpl pattern = new PatternImpl(A);
         sut.setPattern(0, pattern);
 
         // Act
-        final SimplePattern replacedPattern = new SimplePattern(B);
+        final PatternImpl replacedPattern = new PatternImpl(B);
         sut.setPattern(0, replacedPattern);
 
         // Assert
@@ -78,7 +78,7 @@ class PatternProviderNetworkNodeTest {
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
     ) {
         // Arrange
-        final SimplePattern pattern = new SimplePattern(A);
+        final PatternImpl pattern = new PatternImpl(A);
         sut.setPattern(0, pattern);
 
         // Act
@@ -93,7 +93,7 @@ class PatternProviderNetworkNodeTest {
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
     ) {
         // Arrange
-        final SimplePattern pattern = new SimplePattern(A);
+        final PatternImpl pattern = new PatternImpl(A);
         sut.setPattern(0, pattern);
         sut.setActive(false);
 

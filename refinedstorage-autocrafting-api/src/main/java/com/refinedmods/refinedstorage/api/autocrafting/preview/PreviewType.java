@@ -7,4 +7,3 @@ public enum PreviewType {
     SUCCESS,
     MISSING_RESOURCES
 }
-

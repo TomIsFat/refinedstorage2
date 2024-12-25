@@ -1,0 +1,74 @@
+package com.refinedmods.refinedstorage.api.autocrafting.calculation;
+
+import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
+
+import java.util.Comparator;
+
+class CraftingState {
+    private final MutableResourceList storage;
+    private final MutableResourceList internalStorage;
+
+    private CraftingState(final MutableResourceList storage,
+                          final MutableResourceList internalStorage) {
+        this.storage = storage;
+        this.internalStorage = internalStorage;
+    }
+
+    void extractFromInternalStorage(final ResourceKey resource, final long amount) {
+        internalStorage.remove(resource, amount);
+    }
+
+    void extractFromStorage(final ResourceKey resource, final long amount) {
+        storage.remove(resource, amount);
+    }
+
+    void addOutputsToInternalStorage(final Pattern pattern, final Amount amount) {
+        pattern.getOutputs().forEach(
+            output -> internalStorage.add(output.resource(), output.amount() * amount.iterations())
+        );
+    }
+
+    CraftingState copy() {
+        return new CraftingState(storage.copy(), internalStorage.copy());
+    }
+
+    static CraftingState of(final RootStorage rootStorage) {
+        final MutableResourceListImpl storage = MutableResourceListImpl.create();
+        rootStorage.getAll().forEach(storage::add);
+        return new CraftingState(storage, MutableResourceListImpl.create());
+    }
+
+    Comparator<ResourceKey> storageSorter() {
+        return sorter(storage);
+    }
+
+    Comparator<ResourceKey> internalStorageSorter() {
+        return sorter(internalStorage);
+    }
+
+    private Comparator<ResourceKey> sorter(final MutableResourceList list) {
+        return (a, b) -> {
+            final long ar = list.get(a);
+            final long br = list.get(b);
+            return (int) br - (int) ar;
+        };
+    }
+
+    ResourceState getResource(final ResourceKey resource) {
+        return new ResourceState(resource, storage.get(resource), internalStorage.get(resource));
+    }
+
+    record ResourceState(ResourceKey resource, long inStorage, long inInternalStorage) {
+        boolean isInStorage() {
+            return inStorage > 0;
+        }
+
+        boolean isInInternalStorage() {
+            return inInternalStorage > 0;
+        }
+    }
+}

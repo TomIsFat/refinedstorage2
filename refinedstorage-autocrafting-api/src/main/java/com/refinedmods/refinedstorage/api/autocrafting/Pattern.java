@@ -1,7 +1,9 @@
 package com.refinedmods.refinedstorage.api.autocrafting;
 
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
+import java.util.List;
 import java.util.Set;
 
 import org.apiguardian.api.API;
@@ -11,4 +13,8 @@ public interface Pattern {
     Set<ResourceKey> getInputResources();
 
     Set<ResourceKey> getOutputResources();
+
+    List<Ingredient> getIngredients();
+
+    List<ResourceAmount> getOutputs();
 }

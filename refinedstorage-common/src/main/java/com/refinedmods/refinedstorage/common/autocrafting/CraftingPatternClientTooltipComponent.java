@@ -1,10 +1,10 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
-import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
-import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
@@ -95,17 +95,18 @@ class CraftingPatternClientTooltipComponent implements ClientTooltipComponent {
     private void renderInputSlot(final int x, final int y, final GuiGraphics graphics, final int sx, final int sy) {
         graphics.blitSprite(SLOT, x + sx * 18, y + sy * 18, 18, 18);
         final int index = sy * width + sx;
-        final List<PlatformResourceKey> inputs = craftingPattern.getInputs().get(index);
-        if (!inputs.isEmpty()) {
-            final int idx = currentCycle % inputs.size();
-            final PlatformResourceKey resource = inputs.get(idx);
-            RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass()).render(
-                resource,
-                graphics,
-                x + sx * 18 + 1,
-                y + sy * 18 + 1
-            );
+        final Ingredient ingredient = craftingPattern.getIngredients().get(index);
+        if (ingredient.isEmpty()) {
+            return;
         }
+        final int idx = currentCycle % ingredient.size();
+        final ResourceKey resource = ingredient.get(idx);
+        RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass()).render(
+            resource,
+            graphics,
+            x + sx * 18 + 1,
+            y + sy * 18 + 1
+        );
     }
 
     private void renderArrow(final int x, final int y, final GuiGraphics graphics) {
