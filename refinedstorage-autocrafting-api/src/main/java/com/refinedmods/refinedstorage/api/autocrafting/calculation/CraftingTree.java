@@ -59,9 +59,7 @@ class CraftingTree<T> {
                 result = CalculationResult.MISSING_RESOURCES;
             }
         }
-        if (result == CalculationResult.SUCCESS) {
-            craftingState.addOutputsToInternalStorage(pattern, amount);
-        }
+        craftingState.addOutputsToInternalStorage(pattern, amount);
         return result;
     }
 
@@ -81,9 +79,16 @@ class CraftingTree<T> {
                 remaining -= toTake;
             }
             if (remaining > 0) {
-                resourceState = tryCalculateChild(ingredientState, resourceState, remaining);
-                if (resourceState == null) {
+                final CraftingState.ResourceState newState = tryCalculateChild(
+                    ingredientState,
+                    resourceState,
+                    remaining
+                );
+                if (newState == null) {
+                    craftingState.extractFromInternalStorage(resourceState.resource(), remaining);
                     return CalculationResult.MISSING_RESOURCES;
+                } else {
+                    resourceState = newState;
                 }
             }
         }
@@ -116,14 +121,14 @@ class CraftingTree<T> {
                                                        final CraftingState.ResourceState resourceState) {
         final ChildCalculationResult<T> result = calculateChild(remaining, childPatterns, resourceState);
         if (result.success) {
-            this.craftingState = result.childCraftingState;
+            this.craftingState = result.childTree.craftingState;
             final CraftingState.ResourceState updatedResourceState = craftingState.getResource(
                 resourceState.resource()
             );
             listener.childCalculationCompleted(
                 updatedResourceState.resource(),
                 updatedResourceState.inInternalStorage(),
-                result.childListener
+                result.childTree.listener
             );
             return updatedResourceState;
         }
@@ -153,28 +158,26 @@ class CraftingTree<T> {
             return new ChildCalculationResult<>(
                 true,
                 craftingState.getResource(resourceState.resource()).inInternalStorage(),
-                childTree.listener,
-                childTree.craftingState
+                childTree
             );
         }
         return new ChildCalculationResult<>(
             false,
             requireNonNull(lastChildAmount).getTotal(),
-            requireNonNull(lastChildTree).listener,
-            lastChildTree.craftingState
+            requireNonNull(lastChildTree)
         );
     }
 
     @Nullable
     private CraftingState.ResourceState cycleToNextIngredientOrFail(final IngredientState ingredientState,
                                                                     final CraftingState.ResourceState resourceState,
-                                                                    final ChildCalculationResult<T> result) {
+                                                                    final ChildCalculationResult<T> childResult) {
         return ingredientState.cycle().map(craftingState::getResource).orElseGet(() -> {
-            this.craftingState = result.childCraftingState;
+            this.craftingState = childResult.childTree.craftingState;
             listener.childCalculationCompleted(
                 resourceState.resource(),
-                result.amountCrafted,
-                result.childListener
+                childResult.amountCrafted,
+                childResult.childTree.listener
             );
             return null;
         });
@@ -182,8 +185,7 @@ class CraftingTree<T> {
 
     private record ChildCalculationResult<T>(boolean success,
                                              long amountCrafted,
-                                             CraftingCalculatorListener<T> childListener,
-                                             CraftingState childCraftingState) {
+                                             CraftingTree<T> childTree) {
     }
 
     enum CalculationResult {

@@ -1,8 +1,6 @@
-package com.refinedmods.refinedstorage.api.autocrafting.calculation;
+package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
-import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
-import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewBuilder;
-import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorListener;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
