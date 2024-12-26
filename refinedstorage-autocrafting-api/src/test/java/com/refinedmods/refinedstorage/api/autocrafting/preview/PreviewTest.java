@@ -1,10 +1,10 @@
-package com.refinedmods.refinedstorage.api.autocrafting.calculation;
+package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepositoryImpl;
-import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
-import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewBuilder;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorImpl;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -36,7 +36,7 @@ import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewTyp
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class CraftingCalculatorImplTest {
+class PreviewTest {
     private static final RecursiveComparisonConfiguration PREVIEW_CONFIG = RecursiveComparisonConfiguration.builder()
         .withIgnoredCollectionOrderInFields("items")
         .build();
@@ -94,6 +94,39 @@ class CraftingCalculatorImplTest {
         assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(SUCCESS)
             .addToCraft(CRAFTING_TABLE, requestedAmount)
             .addAvailable(OAK_PLANKS, requestedAmount * 4)
+            .build());
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1, 2})
+    void shouldCalculateForSingleRootPatternSingleIngredientSpreadOutOverMultipleIngredientsAndThereAreMissingResources(
+        final long requestedAmount
+    ) {
+        // Arrange
+        final RootStorage storage = storage();
+        final PatternRepository patterns = patterns(
+            pattern()
+                .ingredient(OAK_LOG, 1)
+                .output(OAK_PLANKS, 4)
+                .build(),
+            pattern()
+                .ingredient(OAK_PLANKS, 1)
+                .ingredient(OAK_PLANKS, 1)
+                .ingredient(OAK_PLANKS, 1)
+                .ingredient(OAK_PLANKS, 1)
+                .output(CRAFTING_TABLE, 1)
+                .build()
+        );
+        final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
+
+        // Act
+        final Preview preview = calculateAndGetPreview(sut, CRAFTING_TABLE, requestedAmount);
+
+        // Assert
+        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(MISSING_RESOURCES)
+            .addToCraft(CRAFTING_TABLE, requestedAmount)
+            .addToCraft(OAK_PLANKS, requestedAmount * 4)
+            .addMissing(OAK_LOG, requestedAmount)
             .build());
     }
 
