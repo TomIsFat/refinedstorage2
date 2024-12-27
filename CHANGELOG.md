@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 -   Autocrafting engine.
+-   The crafting preview now has the ability to fill out the maximum amount of a resource you can currently craft.
 
 ### Changed
 

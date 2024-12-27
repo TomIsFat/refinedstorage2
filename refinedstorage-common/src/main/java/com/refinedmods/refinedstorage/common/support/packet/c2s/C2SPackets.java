@@ -145,6 +145,10 @@ public final class C2SPackets {
         Platform.INSTANCE.sendPacketToServer(new AutocraftingRequestPacket(id, resource, amount));
     }
 
+    public static void sendAutocraftingPreviewMaxAmountRequest(final PlatformResourceKey resource) {
+        Platform.INSTANCE.sendPacketToServer(new AutocraftingPreviewMaxAmountRequestPacket(resource));
+    }
+
     public static void sendAutocraftingMonitorCancel(final TaskId taskId) {
         Platform.INSTANCE.sendPacketToServer(new AutocraftingMonitorCancelPacket(taskId));
     }

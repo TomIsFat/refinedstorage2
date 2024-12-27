@@ -44,6 +44,11 @@ public class AutocraftingStorageMonitorContainerMenu extends AutocraftingPreview
     }
 
     @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        return requireNonNull(storageMonitor).getMaxAmount(resource);
+    }
+
+    @Override
     public boolean startTask(final ResourceKey resource, final long amount) {
         return requireNonNull(storageMonitor).startTask(resource, amount);
     }

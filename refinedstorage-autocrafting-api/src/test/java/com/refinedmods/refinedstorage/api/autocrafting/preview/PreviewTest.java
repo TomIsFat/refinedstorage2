@@ -2,15 +2,10 @@ package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
-import com.refinedmods.refinedstorage.api.autocrafting.PatternRepositoryImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorImpl;
-import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
-import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 
 import java.util.stream.Stream;
 
@@ -22,6 +17,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingHelpers.patterns;
+import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingHelpers.storage;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.CRAFTING_TABLE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_LOG;
@@ -652,23 +649,5 @@ class PreviewTest {
 
         // Assert
         assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
-    }
-
-
-    private static RootStorage storage(final ResourceAmount... resourceAmounts) {
-        final RootStorage storage = new RootStorageImpl();
-        storage.addSource(new StorageImpl());
-        for (final ResourceAmount resourceAmount : resourceAmounts) {
-            storage.insert(resourceAmount.resource(), resourceAmount.amount(), Action.EXECUTE, EmptyActor.INSTANCE);
-        }
-        return storage;
-    }
-
-    private static PatternRepository patterns(final Pattern... patterns) {
-        final PatternRepository patternRepository = new PatternRepositoryImpl();
-        for (final Pattern pattern : patterns) {
-            patternRepository.add(pattern);
-        }
-        return patternRepository;
     }
 }

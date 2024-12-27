@@ -136,6 +136,11 @@ class PortableGrid implements Grid {
     }
 
     @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        return 0;
+    }
+
+    @Override
     public boolean startTask(final ResourceKey resource, final long amount) {
         return false;
     }

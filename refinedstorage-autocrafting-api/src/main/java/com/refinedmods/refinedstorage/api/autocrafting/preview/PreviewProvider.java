@@ -10,5 +10,7 @@ import org.apiguardian.api.API;
 public interface PreviewProvider {
     Optional<Preview> getPreview(ResourceKey resource, long amount);
 
+    long getMaxAmount(ResourceKey resource);
+
     boolean startTask(ResourceKey resource, long amount);
 }

@@ -52,6 +52,12 @@ public final class ClientPlatformUtil {
         }
     }
 
+    public static void autocraftingPreviewMaxAmountResponseReceived(final long maxAmount) {
+        if (Minecraft.getInstance().screen instanceof AutocraftingPreviewScreen screen) {
+            screen.getMenu().maxAmountResponseReceived(maxAmount);
+        }
+    }
+
     public static void openCraftingPreview(final List<ResourceAmount> requests, @Nullable final Object parentScreen) {
         final Minecraft minecraft = Minecraft.getInstance();
         if ((!(parentScreen instanceof Screen) && minecraft.screen == null) || minecraft.player == null) {

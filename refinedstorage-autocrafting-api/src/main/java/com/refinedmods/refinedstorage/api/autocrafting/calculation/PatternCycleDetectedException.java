@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.api.autocrafting.calculation;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 
-public class PatternCycleDetectedException extends RuntimeException {
+public class PatternCycleDetectedException extends CalculationException {
     private final Pattern pattern;
 
     PatternCycleDetectedException(final Pattern pattern) {

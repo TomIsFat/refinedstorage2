@@ -33,6 +33,7 @@ import com.refinedmods.refinedstorage.common.support.packet.PacketHandler;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocrafterNameChangePacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingMonitorCancelAllPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingMonitorCancelPacket;
+import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingPreviewMaxAmountRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingPreviewRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.CraftingGridClearPacket;
@@ -64,6 +65,7 @@ import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMoni
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskAddedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskRemovedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskStatusChangedPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewMaxAmountResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.EnergyInfoPacket;
@@ -492,6 +494,10 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
             AutocraftingPreviewResponsePacket.STREAM_CODEC
         );
         PayloadTypeRegistry.playS2C().register(
+            AutocraftingPreviewMaxAmountResponsePacket.PACKET_TYPE,
+            AutocraftingPreviewMaxAmountResponsePacket.STREAM_CODEC
+        );
+        PayloadTypeRegistry.playS2C().register(
             AutocraftingResponsePacket.PACKET_TYPE,
             AutocraftingResponsePacket.STREAM_CODEC
         );
@@ -601,6 +607,10 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
         PayloadTypeRegistry.playC2S().register(
             AutocraftingPreviewRequestPacket.PACKET_TYPE,
             AutocraftingPreviewRequestPacket.STREAM_CODEC
+        );
+        PayloadTypeRegistry.playC2S().register(
+            AutocraftingPreviewMaxAmountRequestPacket.PACKET_TYPE,
+            AutocraftingPreviewMaxAmountRequestPacket.STREAM_CODEC
         );
         PayloadTypeRegistry.playC2S().register(
             AutocraftingRequestPacket.PACKET_TYPE,
@@ -716,6 +726,10 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
         ServerPlayNetworking.registerGlobalReceiver(
             AutocraftingPreviewRequestPacket.PACKET_TYPE,
             wrapHandler(AutocraftingPreviewRequestPacket::handle)
+        );
+        ServerPlayNetworking.registerGlobalReceiver(
+            AutocraftingPreviewMaxAmountRequestPacket.PACKET_TYPE,
+            wrapHandler(AutocraftingPreviewMaxAmountRequestPacket::handle)
         );
         ServerPlayNetworking.registerGlobalReceiver(
             AutocraftingRequestPacket.PACKET_TYPE,

@@ -374,6 +374,14 @@ public class StorageMonitorBlockEntity extends AbstractBaseNetworkNodeContainerB
     }
 
     @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        return Optional.ofNullable(mainNetworkNode.getNetwork())
+            .map(network -> network.getComponent(AutocraftingNetworkComponent.class))
+            .map(component -> component.getMaxAmount(resource))
+            .orElse(0L);
+    }
+
+    @Override
     public boolean startTask(final ResourceKey resource, final long amount) {
         final Network network = mainNetworkNode.getNetwork();
         if (network == null) {

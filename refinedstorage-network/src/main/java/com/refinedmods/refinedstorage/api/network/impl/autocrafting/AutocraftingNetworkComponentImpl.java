@@ -83,6 +83,13 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        final RootStorage rootStorage = rootStorageProvider.get();
+        final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
+        return craftingCalculator.getMaxAmount(resource);
+    }
+
+    @Override
     public boolean startTask(final ResourceKey resource, final long amount) {
         return true;
     }
