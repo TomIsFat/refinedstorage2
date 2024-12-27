@@ -35,6 +35,8 @@ public record AutocraftingPreviewResponsePacket(UUID id, Preview preview) implem
         StreamCodec.composite(
             enumStreamCodec(PreviewType.values()), Preview::type,
             ByteBufCodecs.collection(ArrayList::new, PREVIEW_ITEM_STREAM_CODEC), Preview::items,
+            ByteBufCodecs.collection(ArrayList::new, ResourceCodecs.AMOUNT_STREAM_CODEC),
+            Preview::outputsOfPatternWithCycle,
             Preview::new
         );
     public static final StreamCodec<RegistryFriendlyByteBuf, AutocraftingPreviewResponsePacket> STREAM_CODEC =

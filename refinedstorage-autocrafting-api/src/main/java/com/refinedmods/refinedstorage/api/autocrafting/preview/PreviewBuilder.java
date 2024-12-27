@@ -1,14 +1,20 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.core.CoreValidations;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PreviewBuilder {
     private final PreviewType type;
     private final Map<ResourceKey, MutablePreviewItem> items = new LinkedHashMap<>();
+
+    private List<ResourceAmount> outputsOfPatternWithCycle = Collections.emptyList();
 
     private PreviewBuilder(final PreviewType type) {
         this.type = type;
@@ -20,6 +26,11 @@ public class PreviewBuilder {
 
     private MutablePreviewItem get(final ResourceKey resource) {
         return items.computeIfAbsent(resource, key -> new MutablePreviewItem());
+    }
+
+    public PreviewBuilder withPatternWithCycle(final Pattern pattern) {
+        this.outputsOfPatternWithCycle = pattern.getOutputs();
+        return this;
     }
 
     public PreviewBuilder addAvailable(final ResourceKey resource, final long amount) {
@@ -44,7 +55,7 @@ public class PreviewBuilder {
         return new Preview(type, items.entrySet()
             .stream()
             .map(entry -> entry.getValue().toPreviewItem(entry.getKey()))
-            .toList());
+            .toList(), outputsOfPatternWithCycle);
     }
 
     private static class MutablePreviewItem {

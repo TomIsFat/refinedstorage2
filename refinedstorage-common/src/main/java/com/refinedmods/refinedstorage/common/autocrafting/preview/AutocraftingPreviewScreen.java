@@ -3,6 +3,7 @@ package com.refinedmods.refinedstorage.common.autocrafting.preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewItem;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.support.amount.AbstractAmountScreen;
@@ -22,6 +23,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.joml.Vector3f;
@@ -41,6 +43,18 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     private static final MutableComponent MISSING_RESOURCES = createTranslation(
         "gui",
         "autocrafting_preview.start.missing_resources"
+    );
+    private static final MutableComponent CYCLE_DETECTED = createTranslation(
+        "gui",
+        "autocrafting_preview.cycle_detected"
+    ).withStyle(Style.EMPTY.withBold(true));
+    private static final MutableComponent CYCLE_OUTPUTS = createTranslation(
+        "gui",
+        "autocrafting_preview.cycle_detected.outputs"
+    );
+    private static final MutableComponent BREAK_THE_CYCLE_AND_TRY_AGAIN = createTranslation(
+        "gui",
+        "autocrafting_preview.cycle_detected.break_the_cycle_and_try_again"
     );
     private static final ResourceLocation ROW = createIdentifier("autocrafting_preview/row");
     private static final ResourceLocation CRAFTING_REQUESTS = createIdentifier("autocrafting_preview/requests");
@@ -257,16 +271,87 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         final int x = leftPos + 8;
         final int y = topPos + 98;
         graphics.enableScissor(x, y, x + 221, y + PREVIEW_AREA_HEIGHT);
+        if (preview.type() == PreviewType.CYCLE_DETECTED) {
+            renderCycleDetected(graphics, y, x, preview);
+        } else {
+            renderPreviewRows(graphics, mouseX, mouseY, preview, y, x);
+        }
+        graphics.disableScissor();
+    }
+
+    private void renderCycleDetected(final GuiGraphics graphics, final int y, final int x, final Preview preview) {
+        int yy = y + 4;
+        SmallText.render(
+            graphics,
+            font,
+            CYCLE_DETECTED.getVisualOrderText(),
+            x + 4,
+            yy,
+            0xFF5555,
+            false
+        );
+        yy += 10;
+        SmallText.render(
+            graphics,
+            font,
+            CYCLE_OUTPUTS.getVisualOrderText(),
+            x + 4,
+            yy,
+            0x404040,
+            false
+        );
+        yy += 10;
+        for (final ResourceAmount output : preview.outputsOfPatternWithCycle()) {
+            final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(
+                output.resource().getClass()
+            );
+            rendering.render(output.resource(), graphics, x + 4, yy);
+            SmallText.render(
+                graphics,
+                font,
+                Component.literal(output.amount() + "x ").append(rendering.getDisplayName(output.resource()))
+                    .getVisualOrderText(),
+                x + 4 + 16 + 3,
+                yy + 5,
+                0x404040,
+                false
+            );
+            yy += 18;
+        }
+        yy += 2;
+        SmallText.render(
+            graphics,
+            font,
+            BREAK_THE_CYCLE_AND_TRY_AGAIN.getVisualOrderText(),
+            x + 4,
+            yy,
+            0x404040,
+            false
+        );
+    }
+
+    private void renderPreviewRows(final GuiGraphics graphics,
+                                   final int mouseX,
+                                   final int mouseY,
+                                   final Preview preview,
+                                   final int y,
+                                   final int x) {
         final List<PreviewItem> items = preview.items();
         final int rows = Math.ceilDiv(items.size(), COLUMNS);
         for (int i = 0; i < rows; ++i) {
-            final int scrollOffset = previewItemsScrollbar.isSmoothScrolling()
-                ? (int) previewItemsScrollbar.getOffset()
-                : (int) previewItemsScrollbar.getOffset() * ROW_HEIGHT;
+            final int scrollOffset = getScrollOffset();
             final int yy = y + (i * ROW_HEIGHT) - scrollOffset;
             renderRow(graphics, x, yy, i, items, mouseX, mouseY);
         }
-        graphics.disableScissor();
+    }
+
+    private int getScrollOffset() {
+        if (previewItemsScrollbar == null) {
+            return 0;
+        }
+        return (previewItemsScrollbar.isSmoothScrolling()
+            ? (int) previewItemsScrollbar.getOffset()
+            : (int) previewItemsScrollbar.getOffset() * ROW_HEIGHT);
     }
 
     private void renderRow(final GuiGraphics graphics,

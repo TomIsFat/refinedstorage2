@@ -5,7 +5,9 @@ import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 import static java.util.Objects.requireNonNull;
@@ -15,18 +17,21 @@ class CraftingTree<T> {
     private final Amount amount;
     private final PatternRepository patternRepository;
     private final CraftingCalculatorListener<T> listener;
+    private final Set<Pattern> activePatterns;
     private CraftingState craftingState;
 
     private CraftingTree(final Pattern pattern,
                          final CraftingState craftingState,
                          final Amount amount,
                          final PatternRepository patternRepository,
-                         final CraftingCalculatorListener<T> listener) {
+                         final CraftingCalculatorListener<T> listener,
+                         final Set<Pattern> activePatterns) {
         this.pattern = pattern;
         this.craftingState = craftingState;
         this.amount = amount;
         this.patternRepository = patternRepository;
         this.listener = listener;
+        this.activePatterns = activePatterns;
     }
 
     static <T> CraftingTree<T> root(final Pattern pattern,
@@ -35,19 +40,23 @@ class CraftingTree<T> {
                                     final PatternRepository patternRepository,
                                     final CraftingCalculatorListener<T> listener) {
         final CraftingState craftingState = CraftingState.of(rootStorage);
-        return new CraftingTree<>(pattern, craftingState, amount, patternRepository, listener);
+        return new CraftingTree<>(pattern, craftingState, amount, patternRepository, listener, new HashSet<>());
     }
 
     static <T> CraftingTree<T> child(final Pattern pattern,
                                      final CraftingState parentState,
                                      final Amount amount,
                                      final PatternRepository patternRepository,
-                                     final CraftingCalculatorListener<T> listener) {
+                                     final CraftingCalculatorListener<T> listener,
+                                     final Set<Pattern> activePatterns) {
         return new CraftingTree<>(pattern, parentState.copy(), amount, patternRepository,
-            listener.childCalculationStarted());
+            listener.childCalculationStarted(), activePatterns);
     }
 
     CalculationResult calculate() {
+        if (!activePatterns.add(pattern)) {
+            throw new PatternCycleDetectedException(pattern);
+        }
         CalculationResult result = CalculationResult.SUCCESS;
         for (final Ingredient ingredient : pattern.getIngredients()) {
             if (ingredient.isEmpty()) {
@@ -60,6 +69,7 @@ class CraftingTree<T> {
             }
         }
         craftingState.addOutputsToInternalStorage(pattern, amount);
+        activePatterns.remove(pattern);
         return result;
     }
 
@@ -147,7 +157,8 @@ class CraftingTree<T> {
                 craftingState,
                 childAmount,
                 patternRepository,
-                listener
+                listener,
+                activePatterns
             );
             final CalculationResult childResult = childTree.calculate();
             if (childResult == CalculationResult.MISSING_RESOURCES) {

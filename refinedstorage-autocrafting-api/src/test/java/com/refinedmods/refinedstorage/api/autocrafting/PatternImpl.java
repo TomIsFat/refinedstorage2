@@ -41,4 +41,9 @@ public class PatternImpl implements Pattern {
     public List<ResourceAmount> getOutputs() {
         return outputs;
     }
+
+    @Override
+    public String toString() {
+        return ingredients + " -> " + outputs;
+    }
 }

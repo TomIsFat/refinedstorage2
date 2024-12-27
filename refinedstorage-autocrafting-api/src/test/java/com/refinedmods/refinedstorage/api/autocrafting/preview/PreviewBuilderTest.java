@@ -1,5 +1,8 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternImpl;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -27,7 +30,22 @@ class PreviewBuilderTest {
 
         // Assert
         assertThat(preview).usingRecursiveComparison()
-            .isEqualTo(new Preview(PreviewType.SUCCESS, Collections.emptyList()));
+            .isEqualTo(new Preview(PreviewType.SUCCESS, Collections.emptyList(), Collections.emptyList()));
+    }
+
+    @Test
+    void testWithPatternWithCycle() {
+        // Arrange
+        final Pattern pattern = new PatternImpl(OAK_PLANKS);
+
+        // Act
+        final Preview preview = PreviewBuilder.ofType(PreviewType.CYCLE_DETECTED)
+            .withPatternWithCycle(pattern)
+            .build();
+
+        // Assert
+        assertThat(preview).usingRecursiveComparison()
+            .isEqualTo(new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), pattern.getOutputs()));
     }
 
     @Test
@@ -49,7 +67,7 @@ class PreviewBuilderTest {
                 new PreviewItem(OAK_PLANKS, 0, 0, 5),
                 new PreviewItem(OAK_LOG, 3, 0, 0),
                 new PreviewItem(SPRUCE_LOG, 0, 3, 0)
-            )));
+            ), Collections.emptyList()));
     }
 
     @ParameterizedTest
