@@ -164,10 +164,12 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             getMenu().loadCurrentRequest();
         }
 
+        final boolean wasActive = maxButton == null || maxButton.active;
         maxButton = Button.builder(MAX, this::requestMaxAmount)
             .size(22, 15)
             .pos(leftPos + 185 - 1, topPos + 49 - 1)
             .build();
+        maxButton.active = wasActive;
         addRenderableWidget(maxButton);
 
         getExclusionZones().add(new Rect2i(
