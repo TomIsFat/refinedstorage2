@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.calculation;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
@@ -28,8 +29,16 @@ class CraftingState {
 
     void addOutputsToInternalStorage(final Pattern pattern, final Amount amount) {
         pattern.getOutputs().forEach(
-            output -> internalStorage.add(output.resource(), output.amount() * amount.iterations())
+            output -> addOutputToInternalStorage(amount, output)
         );
+    }
+
+    private void addOutputToInternalStorage(final Amount amount, final ResourceAmount output) {
+        final long totalAmount = output.amount() * amount.iterations();
+        if (totalAmount < 0) {
+            throw new NumberOverflowDuringCalculationException();
+        }
+        internalStorage.add(output.resource(), totalAmount);
     }
 
     CraftingState copy() {

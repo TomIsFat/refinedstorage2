@@ -629,7 +629,7 @@ class PreviewTest {
     }
 
     @Test
-    void shouldDetectNumberOverflowInChildPattern() {
+    void shouldDetectNumberOverflowWithRootPattern() {
         // Arrange
         final RootStorage storage = storage();
         final PatternRepository patterns = patterns(
@@ -646,6 +646,30 @@ class PreviewTest {
 
         // Act
         final Preview preview = calculatePreview(sut, OAK_PLANKS, Long.MAX_VALUE);
+
+        // Assert
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
+    }
+
+    @Test
+    void shouldDetectNumberOverflowWithOutputOfChildPattern() {
+        // Arrange
+        final RootStorage storage = storage();
+        final PatternRepository patterns = patterns(
+            pattern()
+                .ingredient(OAK_LOG, 1)
+                .output(OAK_PLANKS, 4)
+                .output(SIGN, Long.MAX_VALUE)
+                .build(),
+            pattern()
+                .ingredient(OAK_PLANKS, 4)
+                .output(CRAFTING_TABLE, 1)
+                .build()
+        );
+        final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
+
+        // Act
+        final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 2);
 
         // Assert
         assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
