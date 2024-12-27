@@ -114,6 +114,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
 
     @Override
     protected void init() {
+        final boolean wasAlreadyInitialized = amountField != null;
         super.init();
         previewItemsScrollbar = new ScrollbarWidget(
             leftPos + 235,
@@ -128,7 +129,9 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         if (confirmButton != null) {
             setStartDisabled();
         }
-        getMenu().loadCurrentRequest();
+        if (!wasAlreadyInitialized) {
+            getMenu().loadCurrentRequest();
+        }
         getExclusionZones().add(new Rect2i(
             leftPos - REQUESTS_WIDTH + 4,
             topPos,
@@ -424,6 +427,9 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     }
 
     private void setPending() {
+        if (confirmButton == null) {
+            return;
+        }
         confirmButton.active = false;
         confirmButton.setError(false);
         confirmButton.setTooltip(null);
@@ -431,6 +437,9 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     }
 
     private void setStartDisabled() {
+        if (confirmButton == null) {
+            return;
+        }
         confirmButton.active = false;
         confirmButton.setError(false);
         confirmButton.setTooltip(null);

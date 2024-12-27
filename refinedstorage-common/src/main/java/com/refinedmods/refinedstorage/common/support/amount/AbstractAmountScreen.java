@@ -117,6 +117,7 @@ public abstract class AbstractAmountScreen<T extends AbstractContainerMenu, N ex
 
     private void addAmountField() {
         final Vector3f pos = configuration.getAmountFieldPosition();
+        final String originalValue = amountField != null ? amountField.getValue() : null;
         amountField = new EditBox(
             font,
             leftPos + (int) pos.x(),
@@ -126,14 +127,17 @@ public abstract class AbstractAmountScreen<T extends AbstractContainerMenu, N ex
             Component.empty()
         );
         amountField.setBordered(false);
-        if (configuration.getInitialAmount() != null) {
+        amountField.setTextColor(0xFFFFFF);
+        if (originalValue != null) {
+            amountField.setValue(originalValue);
+            onAmountFieldChanged();
+        } else if (configuration.getInitialAmount() != null) {
             updateAmount(configuration.getInitialAmount());
         }
         amountField.setVisible(true);
         amountField.setCanLoseFocus(this instanceof AlternativesScreen);
         amountField.setFocused(true);
         amountField.setResponder(value -> onAmountFieldChanged());
-        amountField.setTextColor(0xFFFFFF);
         setFocused(amountField);
 
         addRenderableWidget(amountField);
