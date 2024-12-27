@@ -76,6 +76,9 @@ class CraftingTree<T> {
     private CalculationResult calculateIngredient(final IngredientState ingredientState) {
         CraftingState.ResourceState resourceState = craftingState.getResource(ingredientState.get());
         long remaining = ingredientState.amount() * amount.iterations();
+        if (remaining < 0) {
+            throw new NumberOverflowDuringCalculationException();
+        }
         while (remaining > 0) {
             if (resourceState.isInInternalStorage()) {
                 final long toTake = Math.min(remaining, resourceState.inInternalStorage());

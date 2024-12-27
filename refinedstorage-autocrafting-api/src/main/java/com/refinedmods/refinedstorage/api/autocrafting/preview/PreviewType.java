@@ -6,5 +6,6 @@ import org.apiguardian.api.API;
 public enum PreviewType {
     SUCCESS,
     MISSING_RESOURCES,
-    CYCLE_DETECTED
+    CYCLE_DETECTED,
+    OVERFLOW
 }

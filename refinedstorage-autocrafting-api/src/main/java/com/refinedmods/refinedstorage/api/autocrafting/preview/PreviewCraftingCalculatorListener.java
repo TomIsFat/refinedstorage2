@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorListener;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.NumberOverflowDuringCalculationException;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.PatternCycleDetectedException;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
@@ -33,6 +34,8 @@ public class PreviewCraftingCalculatorListener
             calculator.calculate(resource, amount, listener);
         } catch (final PatternCycleDetectedException e) {
             return new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), e.getPattern().getOutputs());
+        } catch (final NumberOverflowDuringCalculationException e) {
+            return new Preview(PreviewType.OVERFLOW, Collections.emptyList(), Collections.emptyList());
         }
         return listener.buildPreview();
     }

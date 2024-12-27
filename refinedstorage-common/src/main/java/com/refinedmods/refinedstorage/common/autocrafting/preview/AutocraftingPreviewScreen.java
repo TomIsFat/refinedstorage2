@@ -56,6 +56,14 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         "gui",
         "autocrafting_preview.cycle_detected.break_the_cycle_and_try_again"
     );
+    private static final MutableComponent REQUEST_TOO_LARGE_TO_HANDLE = createTranslation(
+        "gui",
+        "autocrafting_preview.request_too_large_to_handle"
+    ).withStyle(Style.EMPTY.withBold(true));
+    private static final MutableComponent TRY_SMALLER_AMOUNT = createTranslation(
+        "gui",
+        "autocrafting_preview.request_too_large_to_handle.try_smaller_amount"
+    );
     private static final ResourceLocation ROW = createIdentifier("autocrafting_preview/row");
     private static final ResourceLocation CRAFTING_REQUESTS = createIdentifier("autocrafting_preview/requests");
 
@@ -273,6 +281,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         graphics.enableScissor(x, y, x + 221, y + PREVIEW_AREA_HEIGHT);
         if (preview.type() == PreviewType.CYCLE_DETECTED) {
             renderCycleDetected(graphics, y, x, preview);
+        } else if (preview.type() == PreviewType.OVERFLOW) {
+            renderRequestTooLargeToHandle(graphics, x, y);
         } else {
             renderPreviewRows(graphics, mouseX, mouseY, preview, y, x);
         }
@@ -325,6 +335,27 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             BREAK_THE_CYCLE_AND_TRY_AGAIN.getVisualOrderText(),
             x + 4,
             yy,
+            0x404040,
+            false
+        );
+    }
+
+    private void renderRequestTooLargeToHandle(final GuiGraphics graphics, final int x, final int y) {
+        SmallText.render(
+            graphics,
+            font,
+            REQUEST_TOO_LARGE_TO_HANDLE.getVisualOrderText(),
+            x + 4,
+            y + 4,
+            0xFF5555,
+            false
+        );
+        SmallText.render(
+            graphics,
+            font,
+            TRY_SMALLER_AMOUNT.getVisualOrderText(),
+            x + 4,
+            y + 4 + 10,
             0x404040,
             false
         );

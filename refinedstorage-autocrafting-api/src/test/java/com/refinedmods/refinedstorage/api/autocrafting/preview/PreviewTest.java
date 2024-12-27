@@ -33,6 +33,7 @@ import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.S
 import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewCraftingCalculatorListener.calculatePreview;
 import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.CYCLE_DETECTED;
 import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.MISSING_RESOURCES;
+import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.OVERFLOW;
 import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -610,6 +611,49 @@ class PreviewTest {
             .withPatternWithCycle(cycledPattern)
             .build());
     }
+
+    @Test
+    void shouldDetectNumberOverflowInIngredient() {
+        // Arrange
+        final RootStorage storage = storage();
+        final PatternRepository patterns = patterns(
+            pattern()
+                .ingredient(OAK_LOG, Long.MAX_VALUE)
+                .output(OAK_PLANKS, 1)
+                .build()
+        );
+        final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
+
+        // Act
+        final Preview preview = calculatePreview(sut, OAK_PLANKS, 2);
+
+        // Assert
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
+    }
+
+    @Test
+    void shouldDetectNumberOverflowInChildPattern() {
+        // Arrange
+        final RootStorage storage = storage();
+        final PatternRepository patterns = patterns(
+            pattern()
+                .ingredient(OAK_LOG, 1)
+                .output(OAK_PLANKS, 4)
+                .build(),
+            pattern()
+                .ingredient(OAK_PLANKS, 4)
+                .output(CRAFTING_TABLE, 1)
+                .build()
+        );
+        final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
+
+        // Act
+        final Preview preview = calculatePreview(sut, OAK_PLANKS, Long.MAX_VALUE);
+
+        // Assert
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
+    }
+
 
     private static RootStorage storage(final ResourceAmount... resourceAmounts) {
         final RootStorage storage = new RootStorageImpl();

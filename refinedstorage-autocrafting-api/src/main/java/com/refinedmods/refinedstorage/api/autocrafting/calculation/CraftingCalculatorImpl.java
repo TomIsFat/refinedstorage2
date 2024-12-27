@@ -29,6 +29,9 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
         Amount lastPatternAmount = null;
         for (final Pattern pattern : patterns) {
             final Amount patternAmount = Amount.of(pattern, resource, amount);
+            if (patternAmount.getTotal() < 0) {
+                throw new NumberOverflowDuringCalculationException();
+            }
             final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted();
             final CraftingTree<T> tree = root(pattern, rootStorage, patternAmount, patternRepository, childListener);
             final CraftingTree.CalculationResult calculationResult = tree.calculate();
