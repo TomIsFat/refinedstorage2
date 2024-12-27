@@ -10,4 +10,6 @@ interface AutocraftingPreviewListener {
     void previewChanged(@Nullable Preview preview);
 
     void requestRemoved(AutocraftingRequest request, boolean last);
+
+    void maxAmountReceived(double maxAmount);
 }

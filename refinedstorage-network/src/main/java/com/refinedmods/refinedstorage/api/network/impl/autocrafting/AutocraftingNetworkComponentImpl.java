@@ -79,9 +79,14 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
         final RootStorage rootStorage = rootStorageProvider.get();
         final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
-        final PreviewCraftingCalculatorListener listener = PreviewCraftingCalculatorListener.ofRoot();
-        craftingCalculator.calculate(resource, amount, listener);
-        return Optional.of(listener.buildPreview());
+        return Optional.of(PreviewCraftingCalculatorListener.calculatePreview(craftingCalculator, resource, amount));
+    }
+
+    @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        final RootStorage rootStorage = rootStorageProvider.get();
+        final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
+        return craftingCalculator.getMaxAmount(resource);
     }
 
     @Override

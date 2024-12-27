@@ -1,10 +1,14 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorListener;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.NumberOverflowDuringCalculationException;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.PatternCycleDetectedException;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 
+import java.util.Collections;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -22,8 +26,18 @@ public class PreviewCraftingCalculatorListener
         this.previewState = previewState;
     }
 
-    public static PreviewCraftingCalculatorListener ofRoot() {
-        return new PreviewCraftingCalculatorListener(new PreviewState());
+    public static Preview calculatePreview(final CraftingCalculator calculator,
+                                           final ResourceKey resource,
+                                           final long amount) {
+        final PreviewCraftingCalculatorListener listener = new PreviewCraftingCalculatorListener(new PreviewState());
+        try {
+            calculator.calculate(resource, amount, listener);
+        } catch (final PatternCycleDetectedException e) {
+            return new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), e.getPattern().getOutputs());
+        } catch (final NumberOverflowDuringCalculationException e) {
+            return new Preview(PreviewType.OVERFLOW, Collections.emptyList(), Collections.emptyList());
+        }
+        return listener.buildPreview();
     }
 
     @Override

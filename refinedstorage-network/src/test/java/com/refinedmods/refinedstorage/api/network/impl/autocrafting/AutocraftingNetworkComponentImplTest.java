@@ -19,6 +19,7 @@ import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 import com.refinedmods.refinedstorage.network.test.fixtures.FakeTaskStatusProvider;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -166,6 +167,6 @@ class AutocraftingNetworkComponentImplTest {
             .isEqualTo(new Preview(PreviewType.SUCCESS, List.of(
                 new PreviewItem(B, 0, 0, 2),
                 new PreviewItem(A, 6, 0, 0)
-            )));
+            ), Collections.emptyList()));
     }
 }

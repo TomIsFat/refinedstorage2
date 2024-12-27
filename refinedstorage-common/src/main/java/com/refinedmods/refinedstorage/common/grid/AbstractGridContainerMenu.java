@@ -464,6 +464,11 @@ public abstract class AbstractGridContainerMenu extends AbstractResourceContaine
     }
 
     @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        return requireNonNull(grid).getMaxAmount(resource);
+    }
+
+    @Override
     public boolean startTask(final ResourceKey resource, final long amount) {
         return requireNonNull(grid).startTask(resource, amount);
     }

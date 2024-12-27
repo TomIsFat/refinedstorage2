@@ -121,6 +121,11 @@ class WirelessGrid implements Grid {
     }
 
     @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        return getAutocrafting().map(component -> component.getMaxAmount(resource)).orElse(0L);
+    }
+
+    @Override
     public boolean startTask(final ResourceKey resource, final long amount) {
         return getAutocrafting().map(autocrafting -> autocrafting.startTask(resource, amount)).orElse(false);
     }

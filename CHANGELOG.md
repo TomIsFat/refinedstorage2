@@ -10,11 +10,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 -   Autocrafting engine.
+-   The crafting preview now has the ability to fill out the maximum amount of a resource you can currently craft.
 
 ### Changed
 
 -   Autocrafting now handles multiple patterns with the same output correctly by trying to use the pattern with the
     highest priority first. If there are missing resources, lower priority patterns are checked.
+
+### Fixed
+
+-   Fixed amount in amount screens resetting when resizing the screen.
 
 ## [2.0.0-milestone.4.11] - 2024-12-08
 

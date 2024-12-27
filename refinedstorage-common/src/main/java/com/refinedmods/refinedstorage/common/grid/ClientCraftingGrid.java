@@ -110,6 +110,11 @@ class ClientCraftingGrid implements CraftingGrid {
     }
 
     @Override
+    public long getMaxAmount(final ResourceKey resource) {
+        return 0;
+    }
+
+    @Override
     public boolean startTask(final ResourceKey resource, final long amount) {
         throw new UnsupportedOperationException();
     }
