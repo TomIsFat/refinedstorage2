@@ -81,7 +81,7 @@ import com.refinedmods.refinedstorage.common.support.packet.s2c.StorageInfoRespo
 import com.refinedmods.refinedstorage.common.support.packet.s2c.WirelessTransmitterDataPacket;
 import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeItem;
 import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
-import com.refinedmods.refinedstorage.common.util.ServerEventQueue;
+import com.refinedmods.refinedstorage.common.util.ServerListener;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApi;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApiProxy;
 import com.refinedmods.refinedstorage.neoforge.constructordestructor.ForgeConstructorBlockEntity;
@@ -148,6 +148,8 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import net.neoforged.neoforge.items.wrapper.RangedWrapper;
@@ -559,6 +561,8 @@ public class ModInitializer extends AbstractModInitializer {
 
     private void registerTickHandler() {
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
+        NeoForge.EVENT_BUS.addListener(this::onServerStarting);
+        NeoForge.EVENT_BUS.addListener(this::onServerStopped);
     }
 
     @SubscribeEvent
@@ -876,7 +880,17 @@ public class ModInitializer extends AbstractModInitializer {
 
     @SubscribeEvent
     public void onServerTick(final ServerTickEvent.Pre e) {
-        ServerEventQueue.runQueuedActions();
+        ServerListener.tick();
+    }
+
+    @SubscribeEvent
+    public void onServerStarting(final ServerStartingEvent e) {
+        ServerListener.starting();
+    }
+
+    @SubscribeEvent
+    public void onServerStopped(final ServerStoppedEvent e) {
+        ServerListener.stopped();
     }
 
     private record ForgeRegistryCallback<T>(DeferredRegister<T> registry) implements RegistryCallback<T> {

@@ -22,19 +22,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComponent, ParentContainer {
     private final Supplier<RootStorage> rootStorageProvider;
+    private final TaskStatusProvider taskStatusProvider;
+    private final ExecutorService executorService;
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Set<PatternListener> listeners = new HashSet<>();
     private final PatternRepositoryImpl patternRepository = new PatternRepositoryImpl();
-    private final TaskStatusProvider taskStatusProvider;
 
     public AutocraftingNetworkComponentImpl(final Supplier<RootStorage> rootStorageProvider,
-                                            final TaskStatusProvider taskStatusProvider) {
+                                            final TaskStatusProvider taskStatusProvider,
+                                            final ExecutorService executorService) {
         this.rootStorageProvider = rootStorageProvider;
         this.taskStatusProvider = taskStatusProvider;
+        this.executorService = executorService;
     }
 
     @Override
@@ -76,17 +81,22 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
-        final RootStorage rootStorage = rootStorageProvider.get();
-        final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
-        return Optional.of(PreviewCraftingCalculatorListener.calculatePreview(craftingCalculator, resource, amount));
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
+        return CompletableFuture.supplyAsync(() -> {
+            final RootStorage rootStorage = rootStorageProvider.get();
+            final CraftingCalculator calculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
+            final Preview preview = PreviewCraftingCalculatorListener.calculatePreview(calculator, resource, amount);
+            return Optional.of(preview);
+        }, executorService);
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
-        final RootStorage rootStorage = rootStorageProvider.get();
-        final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
-        return craftingCalculator.getMaxAmount(resource);
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return CompletableFuture.supplyAsync(() -> {
+            final RootStorage rootStorage = rootStorageProvider.get();
+            final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
+            return craftingCalculator.getMaxAmount(resource);
+        }, executorService);
     }
 
     @Override

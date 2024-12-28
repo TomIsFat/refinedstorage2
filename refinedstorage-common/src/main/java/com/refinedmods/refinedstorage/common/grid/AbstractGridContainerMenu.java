@@ -46,6 +46,7 @@ import com.refinedmods.refinedstorage.query.parser.ParserOperatorMappings;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiPredicate;
 import javax.annotation.Nullable;
 
@@ -459,12 +460,12 @@ public abstract class AbstractGridContainerMenu extends AbstractResourceContaine
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         return requireNonNull(grid).getPreview(resource, amount);
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
         return requireNonNull(grid).getMaxAmount(resource);
     }
 

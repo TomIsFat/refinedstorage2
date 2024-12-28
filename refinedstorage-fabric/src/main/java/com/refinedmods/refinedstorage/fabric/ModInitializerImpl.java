@@ -81,7 +81,7 @@ import com.refinedmods.refinedstorage.common.support.packet.s2c.WirelessTransmit
 import com.refinedmods.refinedstorage.common.support.resource.FluidResource;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeItem;
-import com.refinedmods.refinedstorage.common.util.ServerEventQueue;
+import com.refinedmods.refinedstorage.common.util.ServerListener;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStorageFabricApi;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStorageFabricApiProxy;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStoragePlugin;
@@ -116,6 +116,7 @@ import java.util.function.Predicate;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -867,7 +868,9 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
     }
 
     private void registerTickHandler() {
-        ServerTickEvents.START_SERVER_TICK.register(server -> ServerEventQueue.runQueuedActions());
+        ServerTickEvents.START_SERVER_TICK.register(server -> ServerListener.tick());
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerListener.starting());
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> ServerListener.stopped());
     }
 
     private void registerWrenchingEvent() {

@@ -16,6 +16,7 @@ import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
@@ -105,13 +106,13 @@ class ClientCraftingGrid implements CraftingGrid {
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
-        return 0;
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return CompletableFuture.completedFuture(0L);
     }
 
     @Override

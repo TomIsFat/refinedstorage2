@@ -26,6 +26,7 @@ import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerI
 import com.refinedmods.refinedstorage.common.util.PlatformUtil;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.RateLimiter;
@@ -367,18 +368,19 @@ public class StorageMonitorBlockEntity extends AbstractBaseNetworkNodeContainerB
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         return Optional.ofNullable(mainNetworkNode.getNetwork())
             .map(network -> network.getComponent(AutocraftingNetworkComponent.class))
-            .flatMap(component -> component.getPreview(resource, amount));
+            .map(component -> component.getPreview(resource, amount))
+            .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
         return Optional.ofNullable(mainNetworkNode.getNetwork())
             .map(network -> network.getComponent(AutocraftingNetworkComponent.class))
             .map(component -> component.getMaxAmount(resource))
-            .orElse(0L);
+            .orElseGet(() -> CompletableFuture.completedFuture(0L));
     }
 
     @Override

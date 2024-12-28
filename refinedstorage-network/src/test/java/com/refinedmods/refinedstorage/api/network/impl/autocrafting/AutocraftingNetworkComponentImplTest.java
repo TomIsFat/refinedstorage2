@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +45,11 @@ class AutocraftingNetworkComponentImplTest {
     @BeforeEach
     void setUp() {
         rootStorage = new RootStorageImpl();
-        sut = new AutocraftingNetworkComponentImpl(() -> rootStorage, new FakeTaskStatusProvider());
+        sut = new AutocraftingNetworkComponentImpl(
+            () -> rootStorage,
+            new FakeTaskStatusProvider(),
+            Executors.newSingleThreadExecutor()
+        );
     }
 
     @Test
@@ -147,7 +153,7 @@ class AutocraftingNetworkComponentImplTest {
     }
 
     @Test
-    void shouldGetPreview() {
+    void shouldGetPreview() throws ExecutionException, InterruptedException {
         // Arrange
         rootStorage.addSource(new StorageImpl());
         rootStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
@@ -158,7 +164,7 @@ class AutocraftingNetworkComponentImplTest {
         ));
 
         // Act
-        final Optional<Preview> preview = sut.getPreview(B, 2);
+        final Optional<Preview> preview = sut.getPreview(B, 2).get();
 
         // Assert
         assertThat(preview)
