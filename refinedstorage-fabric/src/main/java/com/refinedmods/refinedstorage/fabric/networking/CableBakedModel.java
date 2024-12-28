@@ -32,25 +32,26 @@ class CableBakedModel extends ForwardingBakedModel {
                                final Supplier<RandomSource> randomSupplier,
                                final RenderContext context) {
         super.emitBlockQuads(blockView, state, pos, randomSupplier, context);
-        if (!(blockView.getBlockEntityRenderData(pos) instanceof CableConnections connections)) {
+        final Object data = blockView.getBlockEntityRenderData(pos);
+        if (!(data instanceof CableConnections(boolean n, boolean e, boolean s, boolean w, boolean up, boolean down))) {
             return;
         }
-        if (connections.north()) {
+        if (n) {
             addExtension(blockView, state, pos, Direction.NORTH, randomSupplier, context);
         }
-        if (connections.east()) {
+        if (e) {
             addExtension(blockView, state, pos, Direction.EAST, randomSupplier, context);
         }
-        if (connections.south()) {
+        if (s) {
             addExtension(blockView, state, pos, Direction.SOUTH, randomSupplier, context);
         }
-        if (connections.west()) {
+        if (w) {
             addExtension(blockView, state, pos, Direction.WEST, randomSupplier, context);
         }
-        if (connections.up()) {
+        if (up) {
             addExtension(blockView, state, pos, Direction.UP, randomSupplier, context);
         }
-        if (connections.down()) {
+        if (down) {
             addExtension(blockView, state, pos, Direction.DOWN, randomSupplier, context);
         }
     }

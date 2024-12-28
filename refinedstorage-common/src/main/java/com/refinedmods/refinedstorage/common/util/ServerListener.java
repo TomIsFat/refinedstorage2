@@ -78,6 +78,7 @@ public final class ServerListener {
         } catch (final InterruptedException e) {
             LOGGER.warn("Interrupted while waiting for autocrafting pool to terminate", e);
             pool.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 }

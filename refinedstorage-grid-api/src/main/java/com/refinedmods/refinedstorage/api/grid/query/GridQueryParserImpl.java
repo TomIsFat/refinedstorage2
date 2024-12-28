@@ -127,8 +127,8 @@ public class GridQueryParserImpl implements GridQueryParser {
             predicate = not(parseNode(content));
         } else if (unaryOperatorToAttributeKeyMapping.containsKey(operator)) {
             final Set<GridResourceAttributeKey> keys = unaryOperatorToAttributeKeyMapping.get(operator);
-            if (content instanceof LiteralNode literalNode) {
-                predicate = attributeMatch(keys, literalNode.token().content());
+            if (content instanceof LiteralNode(Token token)) {
+                predicate = attributeMatch(keys, token.content());
             } else {
                 throw new GridQueryParserException("Expected a literal", null);
             }

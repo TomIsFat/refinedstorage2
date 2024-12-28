@@ -91,7 +91,8 @@ public final class StorageBlockItemTest {
     public static void shouldInsertItemFuzzyAllowlist(final GameTestHelper helper) {
         preparePlot(helper, true, (storageBlock, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> { }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
+            }));
 
             // Act
             final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
@@ -152,7 +153,8 @@ public final class StorageBlockItemTest {
     public static void shouldInsertItemFuzzyBlocklist(final GameTestHelper helper) {
         preparePlot(helper, true, (storageBlock, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> { }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
+            }));
 
             // Act
             final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
@@ -212,9 +214,7 @@ public final class StorageBlockItemTest {
     public static void shouldExtractItemAllowlist(final GameTestHelper helper) {
         preparePlot(helper, true, (storageBlock, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, STONE, 64);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> insert(helper, network, STONE, 64)));
 
             // Act
             storageBlock.setFilterMode(FilterMode.ALLOW);

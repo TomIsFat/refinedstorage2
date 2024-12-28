@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 class ProcessingPattern implements Pattern {
     private final UUID id;
-    private final List<ResourceAmount> inputs;
     private final List<Ingredient> ingredients;
     private final List<ResourceAmount> outputs;
     private final Set<ResourceKey> inputResources;
@@ -24,7 +23,6 @@ class ProcessingPattern implements Pattern {
                       final List<Ingredient> ingredients,
                       final List<ResourceAmount> outputs) {
         this.id = id;
-        this.inputs = inputs;
         this.ingredients = ingredients;
         this.outputs = outputs;
         this.inputResources = inputs.stream().map(ResourceAmount::resource).collect(Collectors.toSet());
