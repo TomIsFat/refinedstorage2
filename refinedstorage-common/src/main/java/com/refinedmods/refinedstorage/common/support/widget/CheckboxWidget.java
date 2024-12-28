@@ -17,7 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 // A custom checkbox so that we can change the font color and size.
-public class CustomCheckboxWidget extends AbstractButton {
+public class CheckboxWidget extends AbstractButton {
     private static final ResourceLocation CHECKBOX_SELECTED_HIGHLIGHTED_SPRITE = ResourceLocation.withDefaultNamespace(
         "widget/checkbox_selected_highlighted"
     );
@@ -39,22 +39,22 @@ public class CustomCheckboxWidget extends AbstractButton {
     @Nullable
     private Component helpTooltip;
 
-    public CustomCheckboxWidget(final int x,
-                                final int y,
-                                final Component text,
-                                final Font font,
-                                final boolean selected,
-                                final Size size) {
+    public CheckboxWidget(final int x,
+                          final int y,
+                          final Component text,
+                          final Font font,
+                          final boolean selected,
+                          final Size size) {
         this(x, y, size.widthHeight + CHECKBOX_TEXT_SPACING + font.width(text), text, font, selected, size);
     }
 
-    public CustomCheckboxWidget(final int x,
-                                final int y,
-                                final int maxWidth,
-                                final Component text,
-                                final Font font,
-                                final boolean selected,
-                                final Size size) {
+    public CheckboxWidget(final int x,
+                          final int y,
+                          final int maxWidth,
+                          final Component text,
+                          final Font font,
+                          final boolean selected,
+                          final Size size) {
         super(x, y, getWidth(maxWidth, text, font, size), size.widthHeight, text);
         this.marquee = new TextMarquee(text, maxWidth - CHECKBOX_TEXT_SPACING - size.widthHeight);
         this.selected = selected;
@@ -64,7 +64,6 @@ public class CustomCheckboxWidget extends AbstractButton {
     private static int getWidth(final int maxWidth, final Component text, final Font font, final Size size) {
         return Math.min(maxWidth, size.widthHeight + CHECKBOX_TEXT_SPACING + font.width(text));
     }
-
 
     public void setHelpTooltip(@Nullable final Component helpTooltip) {
         this.helpTooltip = helpTooltip;
@@ -125,7 +124,7 @@ public class CustomCheckboxWidget extends AbstractButton {
 
     @FunctionalInterface
     public interface OnPressed {
-        void onPressed(CustomCheckboxWidget checkbox, boolean selected);
+        void onPressed(CheckboxWidget checkbox, boolean selected);
     }
 
     public enum Size {

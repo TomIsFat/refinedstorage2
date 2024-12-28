@@ -116,7 +116,7 @@ class ClientCraftingGrid implements CraftingGrid {
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
         throw new UnsupportedOperationException();
     }
 }

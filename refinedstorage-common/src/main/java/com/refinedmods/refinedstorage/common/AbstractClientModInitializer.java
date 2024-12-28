@@ -129,7 +129,7 @@ public abstract class AbstractClientModInitializer {
                 public AutocraftingPreviewScreen create(final AutocraftingPreviewContainerMenu menu,
                                                         final Inventory inventory,
                                                         final Component title) {
-                    return new AutocraftingPreviewScreen(menu, inventory, title);
+                    return new AutocraftingPreviewScreen(menu, inventory);
                 }
             });
         registration.register(Menus.INSTANCE.getAutocrafterManager(), AutocrafterManagerScreen::new);

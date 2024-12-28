@@ -142,7 +142,7 @@ class PortableGrid implements Grid {
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
         return false;
     }
 }

@@ -16,6 +16,7 @@ import com.refinedmods.refinedstorage.api.grid.view.GridViewBuilder;
 import com.refinedmods.refinedstorage.api.grid.view.GridViewBuilderImpl;
 import com.refinedmods.refinedstorage.api.grid.watcher.GridWatcher;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.common.Config;
 import com.refinedmods.refinedstorage.common.Platform;
@@ -470,8 +471,8 @@ public abstract class AbstractGridContainerMenu extends AbstractResourceContaine
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
-        return requireNonNull(grid).startTask(resource, amount);
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+        return requireNonNull(grid).startTask(resource, amount, actor, notify);
     }
 
     public boolean isLargeSlot(final Slot slot) {

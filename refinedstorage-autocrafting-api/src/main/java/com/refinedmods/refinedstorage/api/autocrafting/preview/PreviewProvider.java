@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -13,5 +14,5 @@ public interface PreviewProvider {
 
     CompletableFuture<Long> getMaxAmount(ResourceKey resource);
 
-    boolean startTask(ResourceKey resource, long amount);
+    boolean startTask(ResourceKey resource, long amount, Actor actor, boolean notify);
 }

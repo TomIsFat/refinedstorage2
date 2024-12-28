@@ -7,6 +7,7 @@ import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetwo
 import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
@@ -384,11 +385,11 @@ public class StorageMonitorBlockEntity extends AbstractBaseNetworkNodeContainerB
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
         final Network network = mainNetworkNode.getNetwork();
         if (network == null) {
             return false;
         }
-        return network.getComponent(AutocraftingNetworkComponent.class).startTask(resource, amount);
+        return network.getComponent(AutocraftingNetworkComponent.class).startTask(resource, amount, actor, notify);
     }
 }

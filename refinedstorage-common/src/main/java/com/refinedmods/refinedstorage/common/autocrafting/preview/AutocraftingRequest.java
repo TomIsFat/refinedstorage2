@@ -49,12 +49,12 @@ public class AutocraftingRequest {
         this.preview = previewReceived;
     }
 
-    void sendRequest(final double amountRequested) {
+    void sendRequest(final double amountRequested, final boolean notify) {
         if (!(resource instanceof PlatformResourceKey resourceKey)) {
             return;
         }
         final long normalizedAmount = resourceKey.getResourceType().normalizeAmount(amountRequested);
-        C2SPackets.sendAutocraftingRequest(id, resourceKey, normalizedAmount);
+        C2SPackets.sendAutocraftingRequest(id, resourceKey, normalizedAmount, notify);
     }
 
     UUID getId() {

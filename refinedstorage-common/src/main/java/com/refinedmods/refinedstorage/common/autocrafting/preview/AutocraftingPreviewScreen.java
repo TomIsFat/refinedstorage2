@@ -12,6 +12,7 @@ import com.refinedmods.refinedstorage.common.support.amount.AmountScreenConfigur
 import com.refinedmods.refinedstorage.common.support.amount.DoubleAmountOperations;
 import com.refinedmods.refinedstorage.common.support.tooltip.HelpClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.support.tooltip.SmallText;
+import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
 import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.RateLimiter;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -45,6 +47,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     private static final MutableComponent PENDING = createTranslation("gui", "autocrafting_preview.pending");
     private static final MutableComponent MAX = createTranslation("gui", "autocrafting_preview.max");
     private static final MutableComponent MAX_HELP = createTranslation("gui", "autocrafting_preview.max.help");
+    private static final MutableComponent NOTIFY = createTranslation("gui", "autocrafting_preview.notify");
+    private static final MutableComponent NOTIFY_HELP = createTranslation("gui", "autocrafting_preview.notify.help");
     private static final MutableComponent MISSING_RESOURCES = createTranslation(
         "gui",
         "autocrafting_preview.start.missing_resources"
@@ -91,6 +95,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     private ScrollbarWidget requestButtonsScrollbar;
     @Nullable
     private Button maxButton;
+    @Nullable
+    private CheckboxWidget notifyCheckbox;
 
     private final List<AutocraftingRequestButton> requestButtons = new ArrayList<>();
     private final boolean requestsButtonsVisible;
@@ -108,9 +114,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         this(new AutocraftingPreviewContainerMenu(requests), parent, playerInventory);
     }
 
-    public AutocraftingPreviewScreen(final AutocraftingPreviewContainerMenu menu,
-                                     final Inventory playerInventory,
-                                     final Component title) {
+    public AutocraftingPreviewScreen(final AutocraftingPreviewContainerMenu menu, final Inventory playerInventory) {
         this(menu, null, playerInventory);
     }
 
@@ -154,12 +158,15 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             PREVIEW_AREA_HEIGHT
         );
         previewItemsScrollbar.setEnabled(false);
+
         if (requestsButtonsVisible) {
             initRequestButtons();
         }
+
         if (confirmButton != null) {
             setStartDisabled();
         }
+
         if (!wasAlreadyInitialized) {
             getMenu().loadCurrentRequest();
         }
@@ -171,6 +178,19 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             .build();
         maxButton.active = wasActive;
         addRenderableWidget(maxButton);
+
+        final boolean selected = notifyCheckbox == null ? menu.isNotify() : notifyCheckbox.isSelected();
+        notifyCheckbox = new CheckboxWidget(
+            leftPos + imageWidth - font.width(NOTIFY) - 4 - 9 - 6,
+            topPos + 222 + 6,
+            NOTIFY,
+            Minecraft.getInstance().font,
+            selected,
+            CheckboxWidget.Size.SMALL
+        );
+        notifyCheckbox.setHelpTooltip(NOTIFY_HELP);
+        notifyCheckbox.setOnPressed((checkbox, notify) -> menu.setNotify(notify));
+        addRenderableWidget(notifyCheckbox);
 
         getExclusionZones().add(new Rect2i(
             leftPos - REQUESTS_WIDTH + 4,
@@ -619,7 +639,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     @Override
     protected boolean confirm(final Double amount) {
         setPending();
-        getMenu().sendRequest(amount);
+        getMenu().sendRequest(amount, notifyCheckbox == null ? menu.isNotify() : notifyCheckbox.isSelected());
         return false;
     }
 

@@ -25,6 +25,8 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
 
     private boolean smoothScrolling = true;
 
+    private boolean autocraftingNotification = true;
+
     private boolean searchBoxAutoSelected = false;
 
     @ConfigEntry.BoundedDiscrete(min = 3L, max = 256)
@@ -172,6 +174,17 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
     @Override
     public int getMaxRowsStretch() {
         return maxRowsStretch;
+    }
+
+    @Override
+    public boolean isAutocraftingNotification() {
+        return autocraftingNotification;
+    }
+
+    @Override
+    public void setAutocraftingNotification(final boolean autocraftingNotification) {
+        this.autocraftingNotification = autocraftingNotification;
+        AutoConfig.getConfigHolder(ConfigImpl.class).save();
     }
 
     @Override

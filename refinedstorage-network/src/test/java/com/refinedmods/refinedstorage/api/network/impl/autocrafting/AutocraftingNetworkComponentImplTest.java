@@ -149,7 +149,7 @@ class AutocraftingNetworkComponentImplTest {
 
     @Test
     void shouldStartTask() {
-        sut.startTask(A, 10);
+        sut.startTask(A, 10, EmptyActor.INSTANCE, true);
     }
 
     @Test

@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.common.support.amount.AbstractAmountScreen
 import com.refinedmods.refinedstorage.common.support.amount.AmountScreenConfiguration;
 import com.refinedmods.refinedstorage.common.support.amount.DoubleAmountOperations;
 import com.refinedmods.refinedstorage.common.support.containermenu.ResourceSlot;
-import com.refinedmods.refinedstorage.common.support.widget.CustomCheckboxWidget;
+import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
 import com.refinedmods.refinedstorage.common.support.widget.HoveredImageButton;
 import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
 import com.refinedmods.refinedstorage.common.support.widget.SearchIconWidget;
@@ -69,7 +69,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
     @Nullable
     private EditBox searchField;
 
-    private final List<CustomCheckboxWidget> alternativeCheckboxes = new ArrayList<>();
+    private final List<CheckboxWidget> alternativeCheckboxes = new ArrayList<>();
     private final List<Button> expandButtons = new ArrayList<>();
     private final Set<ResourceLocation> initialAllowedAlternativeIds;
 
@@ -166,14 +166,14 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
         final int y = getAlternativeY(idx);
         final boolean hasTranslation = I18n.exists(alternative.getTranslationKey());
         final MutableComponent id = Component.literal(alternative.getId().toString());
-        final CustomCheckboxWidget alternativeCheckbox = new CustomCheckboxWidget(
+        final CheckboxWidget alternativeCheckbox = new CheckboxWidget(
             x + 2,
             y + (ALTERNATIVE_ROW_HEIGHT / 2) - (9 / 2),
             144 - 16 - 1 - 4,
             hasTranslation ? Component.translatable(alternative.getTranslationKey()) : id,
             font,
             initialAllowedAlternativeIds.contains(alternative.getId()),
-            CustomCheckboxWidget.Size.SMALL
+            CheckboxWidget.Size.SMALL
         );
         if (hasTranslation) {
             alternativeCheckbox.setTooltip(Tooltip.create(id));
@@ -214,7 +214,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
             - (theScrollbar.isSmoothScrolling() ? scrollbarOffset : scrollbarOffset * ALTERNATIVE_ROW_HEIGHT);
         for (int i = 0; i < getMenu().getAlternatives().size(); ++i) {
             final Alternative alternative = getMenu().getAlternatives().get(i);
-            final CustomCheckboxWidget alternativeCheckbox = alternativeCheckboxes.get(i);
+            final CheckboxWidget alternativeCheckbox = alternativeCheckboxes.get(i);
             final Button expandButton = expandButtons.get(i);
 
             if (!alternative.isVisible()) {
@@ -246,7 +246,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
         theScrollbar.setEnabled(maxOffset > 0);
     }
 
-    private void updateAlternativeCheckbox(final CustomCheckboxWidget alternativeCheckbox, final int y) {
+    private void updateAlternativeCheckbox(final CheckboxWidget alternativeCheckbox, final int y) {
         alternativeCheckbox.setY(y + (ALTERNATIVE_ROW_HEIGHT / 2) - (9 / 2));
         alternativeCheckbox.visible = alternativeCheckbox.getY() >= getInsetY() - alternativeCheckbox.getHeight()
             && alternativeCheckbox.getY() < getInsetY() + INSET_HEIGHT;

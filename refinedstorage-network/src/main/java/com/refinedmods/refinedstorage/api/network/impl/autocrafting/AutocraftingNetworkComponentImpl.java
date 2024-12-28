@@ -16,6 +16,7 @@ import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
 import java.util.HashSet;
@@ -26,7 +27,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComponent, ParentContainer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutocraftingNetworkComponentImpl.class);
+
     private final Supplier<RootStorage> rootStorageProvider;
     private final TaskStatusProvider taskStatusProvider;
     private final ExecutorService executorService;
@@ -94,13 +100,14 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
         return CompletableFuture.supplyAsync(() -> {
             final RootStorage rootStorage = rootStorageProvider.get();
-            final CraftingCalculator craftingCalculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
-            return craftingCalculator.getMaxAmount(resource);
+            final CraftingCalculator calculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
+            return calculator.getMaxAmount(resource);
         }, executorService);
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+        LOGGER.info("{} started a task for {}x {} with notify={}", actor, amount, resource, notify);
         return true;
     }
 
