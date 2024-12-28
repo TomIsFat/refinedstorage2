@@ -4,7 +4,6 @@ import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 
 import java.util.Arrays;
@@ -21,7 +20,7 @@ class ImporterSourceImpl implements ImporterSource {
     }
 
     ImporterSourceImpl add(final ResourceKey resource, final long amount) {
-        storage.insert(resource, amount, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(resource, amount, Action.EXECUTE, Actor.EMPTY);
         return this;
     }
 

@@ -13,7 +13,7 @@ import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
@@ -149,14 +149,14 @@ class AutocraftingNetworkComponentImplTest {
 
     @Test
     void shouldStartTask() {
-        sut.startTask(A, 10, EmptyActor.INSTANCE, true);
+        sut.startTask(A, 10, Actor.EMPTY, true);
     }
 
     @Test
     void shouldGetPreview() throws ExecutionException, InterruptedException {
         // Arrange
         rootStorage.addSource(new StorageImpl());
-        rootStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.add(new PatternImpl(
             List.of(new Ingredient(3, List.of(A))),

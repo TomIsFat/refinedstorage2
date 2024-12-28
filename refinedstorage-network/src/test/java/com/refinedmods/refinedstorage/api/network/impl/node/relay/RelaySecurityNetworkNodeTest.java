@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.api.network.impl.security.SecurityDecision
 import com.refinedmods.refinedstorage.api.network.security.SecurityNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.security.SecurityPolicy;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetwork;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkEnergyComponent;
@@ -73,8 +73,8 @@ class RelaySecurityNetworkNodeTest {
         assertThat(outputSecurity.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
         assertThat(outputSecurity.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.B)).isTrue();
         assertThat(outputStorage.getAll()).isEmpty();
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
         assertThat(input.hasComponentType(RelayComponentType.ENERGY)).isFalse();
         assertThat(input.hasComponentType(RelayComponentType.SECURITY)).isTrue();
         assertThat(input.hasComponentType(RelayComponentType.STORAGE)).isFalse();

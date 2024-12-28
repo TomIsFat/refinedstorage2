@@ -4,7 +4,7 @@ import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.listenable.ResourceListListener;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.composite.PriorityStorage;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
@@ -38,12 +38,12 @@ class RootStorageImplTest {
     void shouldAddSource() {
         // Arrange
         final Storage storage = new LimitedStorageImpl(10);
-        storage.insert(A, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         sut.addSource(storage);
 
-        final long inserted = sut.insert(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -56,10 +56,10 @@ class RootStorageImplTest {
     void shouldRemoveSource() {
         // Arrange
         final Storage storage = new LimitedStorageImpl(10);
-        storage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
 
         final Storage removedStorage = new LimitedStorageImpl(10);
-        removedStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        removedStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
         sut.addSource(removedStorage);
@@ -67,7 +67,7 @@ class RootStorageImplTest {
         // Act
         sut.removeSource(removedStorage);
 
-        final long extracted = sut.extract(A, 15, Action.SIMULATE, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 15, Action.SIMULATE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -80,7 +80,7 @@ class RootStorageImplTest {
     void shouldFindMatchingStorage() {
         // Arrange
         final Storage matchedStorage = new LimitedStorageImpl(10);
-        matchedStorage.insert(A, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        matchedStorage.insert(A, 8, Action.EXECUTE, Actor.EMPTY);
         sut.addSource(matchedStorage);
 
         final Storage unmatchedStorage = new LimitedStorageImpl(10);
@@ -99,7 +99,7 @@ class RootStorageImplTest {
     void shouldCallListenerOnInsertion(final Action action) {
         // Arrange
         sut.addSource(new LimitedStorageImpl(10));
-        sut.insert(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
 
         final ResourceListListener listener = mock(ResourceListListener.class);
         sut.addListener(listener);
@@ -107,7 +107,7 @@ class RootStorageImplTest {
         final var changedResource = ArgumentCaptor.forClass(MutableResourceList.OperationResult.class);
 
         // Act
-        sut.insert(A, 8, action, EmptyActor.INSTANCE);
+        sut.insert(A, 8, action, Actor.EMPTY);
 
         // Assert
         if (action == Action.EXECUTE) {
@@ -126,10 +126,10 @@ class RootStorageImplTest {
     void shouldCallListenerOnExtraction(final Action action) {
         // Arrange
         final Storage storage = new LimitedStorageImpl(10);
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
-        sut.extract(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.extract(A, 2, Action.EXECUTE, Actor.EMPTY);
 
         final ResourceListListener listener = mock(ResourceListListener.class);
         sut.addListener(listener);
@@ -137,7 +137,7 @@ class RootStorageImplTest {
         final var changedResource = ArgumentCaptor.forClass(MutableResourceList.OperationResult.class);
 
         // Act
-        sut.extract(A, 5, action, EmptyActor.INSTANCE);
+        sut.extract(A, 5, action, Actor.EMPTY);
 
         // Assert
         if (action == Action.EXECUTE) {
@@ -155,14 +155,14 @@ class RootStorageImplTest {
     void shouldRemoveListener() {
         // Arrange
         sut.addSource(new LimitedStorageImpl(10));
-        sut.insert(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
 
         final ResourceListListener listener = mock(ResourceListListener.class);
         sut.addListener(listener);
 
         // Act
         sut.removeListener(listener);
-        sut.insert(A, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         verify(listener, never()).onChanged(any());
@@ -174,8 +174,8 @@ class RootStorageImplTest {
         sut.addSource(new LimitedStorageImpl(10));
 
         // Act
-        final long inserted1 = sut.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long inserted2 = sut.insert(B, 4, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted1 = sut.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        final long inserted2 = sut.insert(B, 4, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -191,12 +191,12 @@ class RootStorageImplTest {
     void shouldExtract() {
         // Arrange
         final Storage storage = new LimitedStorageImpl(100);
-        storage.insert(A, 50, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 50, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
 
         // Act
-        final long extracted = sut.extract(A, 49, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 49, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -210,7 +210,7 @@ class RootStorageImplTest {
     void shouldRetrieveIfResourceIsContained() {
         // Arrange
         final Storage storage = new LimitedStorageImpl(100);
-        storage.insert(A, 50, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 50, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
 
@@ -223,8 +223,8 @@ class RootStorageImplTest {
     void shouldRetrieveResourceAmount() {
         // Arrange
         final Storage storage = new LimitedStorageImpl(100);
-        storage.insert(A, 50, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.extract(A, 25, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 50, Action.EXECUTE, Actor.EMPTY);
+        storage.extract(A, 25, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
 
@@ -245,11 +245,11 @@ class RootStorageImplTest {
         sut.addSource(storage);
 
         // Act
-        sut.insert(A, 50, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 50, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.contains(A)).isTrue();
-        assertThat(sut.findTrackedResourceByActorType(A, EmptyActor.class))
+        assertThat(sut.findTrackedResourceByActorType(A, Actor.EMPTY.getClass()))
             .get()
             .usingRecursiveComparison()
             .isEqualTo(new TrackedResource("Empty", 0));
@@ -277,7 +277,7 @@ class RootStorageImplTest {
         // Act & assert
         sut.sortSources();
 
-        sut.insert(A, 15, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 15, Action.EXECUTE, Actor.EMPTY);
         assertThat(storage2.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(A, 10)
         );
@@ -286,7 +286,7 @@ class RootStorageImplTest {
         );
         assertThat(storage3.getAll()).isEmpty();
 
-        sut.extract(A, 12, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.extract(A, 12, Action.EXECUTE, Actor.EMPTY);
         assertThat(storage2.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(A, 3)
         );

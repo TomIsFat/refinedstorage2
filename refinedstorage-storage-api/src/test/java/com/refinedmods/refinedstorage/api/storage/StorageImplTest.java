@@ -18,7 +18,7 @@ class StorageImplTest {
     @EnumSource(Action.class)
     void shouldInsertResource(final Action action) {
         // Act
-        final long inserted = sut.insert(TestResource.A, 64, action, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(TestResource.A, 64, action, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(64);
@@ -38,9 +38,9 @@ class StorageImplTest {
     @SuppressWarnings("ConstantConditions")
     void shouldNotInsertInvalidResourceOrAmount() {
         // Act
-        final Executable action1 = () -> sut.insert(TestResource.A, 0, Action.EXECUTE, EmptyActor.INSTANCE);
-        final Executable action2 = () -> sut.insert(TestResource.A, -1, Action.EXECUTE, EmptyActor.INSTANCE);
-        final Executable action3 = () -> sut.insert(null, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Executable action1 = () -> sut.insert(TestResource.A, 0, Action.EXECUTE, Actor.EMPTY);
+        final Executable action2 = () -> sut.insert(TestResource.A, -1, Action.EXECUTE, Actor.EMPTY);
+        final Executable action3 = () -> sut.insert(null, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThrows(IllegalArgumentException.class, action1);
@@ -51,7 +51,7 @@ class StorageImplTest {
     @Test
     void shouldNotExtractNonexistentResource() {
         // Act
-        final long extracted = sut.extract(TestResource.A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(TestResource.A, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isZero();
@@ -62,10 +62,10 @@ class StorageImplTest {
     @EnumSource(Action.class)
     void shouldExtractResourcePartly(final Action action) {
         // Arrange
-        sut.insert(TestResource.A, 32, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(TestResource.A, 32, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long extracted = sut.extract(TestResource.A, 2, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(TestResource.A, 2, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(2);
@@ -87,10 +87,10 @@ class StorageImplTest {
     @EnumSource(Action.class)
     void shouldExtractResourceCompletely(final Action action) {
         // Arrange
-        sut.insert(TestResource.A, 32, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(TestResource.A, 32, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long extracted = sut.extract(TestResource.A, 32, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(TestResource.A, 32, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(32);
@@ -110,10 +110,10 @@ class StorageImplTest {
     @EnumSource(Action.class)
     void shouldNotExtractMoreThanIsAvailable(final Action action) {
         // Arrange
-        sut.insert(TestResource.A, 32, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(TestResource.A, 32, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long extracted = sut.extract(TestResource.A, 33, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(TestResource.A, 33, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(32);
@@ -133,9 +133,9 @@ class StorageImplTest {
     @Test
     void shouldNotExtractInvalidResourceOrAmount() {
         // Act
-        final Executable action1 = () -> sut.extract(TestResource.A, 0, Action.EXECUTE, EmptyActor.INSTANCE);
-        final Executable action2 = () -> sut.extract(TestResource.A, -1, Action.EXECUTE, EmptyActor.INSTANCE);
-        final Executable action3 = () -> sut.extract(null, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Executable action1 = () -> sut.extract(TestResource.A, 0, Action.EXECUTE, Actor.EMPTY);
+        final Executable action2 = () -> sut.extract(TestResource.A, -1, Action.EXECUTE, Actor.EMPTY);
+        final Executable action3 = () -> sut.extract(null, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThrows(IllegalArgumentException.class, action1);

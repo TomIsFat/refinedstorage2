@@ -4,7 +4,7 @@ import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkEnergyComponent;
@@ -51,7 +51,7 @@ class InterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, Long.MAX_VALUE, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, Long.MAX_VALUE, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, Long.MAX_VALUE);
 
@@ -73,7 +73,7 @@ class InterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 1);
 
@@ -99,7 +99,7 @@ class InterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 1);
 
@@ -125,7 +125,7 @@ class InterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setExportState(null);
         sut.setTransferQuotaProvider(resource -> 2);

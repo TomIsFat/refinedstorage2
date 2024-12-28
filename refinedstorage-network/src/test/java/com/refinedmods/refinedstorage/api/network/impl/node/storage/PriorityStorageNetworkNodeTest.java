@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.storage;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.impl.node.ProviderImpl;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
@@ -62,7 +62,7 @@ class PriorityStorageNetworkNodeTest {
         }
 
         // Act
-        networkStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         if (storageAHasPriority) {

@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.api.autocrafting;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
@@ -15,7 +15,7 @@ public final class AutocraftingHelpers {
         final RootStorage storage = new RootStorageImpl();
         storage.addSource(new StorageImpl());
         for (final ResourceAmount resourceAmount : resourceAmounts) {
-            storage.insert(resourceAmount.resource(), resourceAmount.amount(), Action.EXECUTE, EmptyActor.INSTANCE);
+            storage.insert(resourceAmount.resource(), resourceAmount.amount(), Action.EXECUTE, Actor.EMPTY);
         }
         return storage;
     }

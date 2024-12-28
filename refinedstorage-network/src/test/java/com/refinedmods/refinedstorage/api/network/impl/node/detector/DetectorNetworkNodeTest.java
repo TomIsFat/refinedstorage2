@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.detector;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -125,7 +125,7 @@ class DetectorNetworkNodeTest {
         sut.setAmount(comparisonAmount);
 
         if (amountInNetwork > 0) {
-            storage.insert(A, amountInNetwork, Action.EXECUTE, EmptyActor.INSTANCE);
+            storage.insert(A, amountInNetwork, Action.EXECUTE, Actor.EMPTY);
         }
 
         // Act

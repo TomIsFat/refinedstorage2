@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.iface;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -59,7 +59,7 @@ class ExportToEmptySlotInterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 10);
 
@@ -83,7 +83,7 @@ class ExportToEmptySlotInterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 1);
 
@@ -107,8 +107,8 @@ class ExportToEmptySlotInterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 7);
         exportState.setRequestedResource(2, B, 2);
@@ -137,8 +137,8 @@ class ExportToEmptySlotInterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A_ALTERNATIVE, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(A_ALTERNATIVE2, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A_ALTERNATIVE, 10, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(A_ALTERNATIVE2, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 10);
 
