@@ -6,6 +6,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusProvider
 import com.refinedmods.refinedstorage.api.network.NetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
+import java.util.List;
 import java.util.Set;
 
 import org.apiguardian.api.API;
@@ -17,6 +18,8 @@ public interface AutocraftingNetworkComponent extends NetworkComponent, PreviewP
     void removeListener(PatternListener listener);
 
     Set<Pattern> getPatterns();
+
+    List<Pattern> getPatternsByOutput(ResourceKey output);
 
     Set<ResourceKey> getOutputs();
 

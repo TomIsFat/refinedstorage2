@@ -6,7 +6,7 @@ import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
                               final long amount,
                               final CraftingCalculatorListener<T> listener) {
         CoreValidations.validateLargerThanZero(amount, "Requested amount must be greater than 0");
-        final List<Pattern> patterns = patternRepository.getByOutput(resource);
+        final Collection<Pattern> patterns = patternRepository.getByOutput(resource);
         CraftingCalculatorListener<T> lastChildListener = null;
         Amount lastPatternAmount = null;
         for (final Pattern pattern : patterns) {

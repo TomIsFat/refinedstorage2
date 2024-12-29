@@ -253,7 +253,7 @@ public abstract class AbstractGridContainerMenu extends AbstractResourceContaine
                 playerInventoryPatterns.remove(beforePattern);
             }
             if (afterPattern != null) {
-                playerInventoryPatterns.add(afterPattern);
+                playerInventoryPatterns.add(afterPattern, 0);
             }
         });
     }

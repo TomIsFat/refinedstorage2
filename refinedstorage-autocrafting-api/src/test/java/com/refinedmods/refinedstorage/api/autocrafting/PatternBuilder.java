@@ -21,6 +21,11 @@ public class PatternBuilder {
         return new IngredientBuilder(amount);
     }
 
+    public PatternBuilder ingredient(final Ingredient ingredient) {
+        ingredients.add(ingredient);
+        return this;
+    }
+
     public PatternBuilder ingredient(final ResourceKey input, final long amount) {
         ingredients.add(new Ingredient(amount, List.of(input)));
         return this;

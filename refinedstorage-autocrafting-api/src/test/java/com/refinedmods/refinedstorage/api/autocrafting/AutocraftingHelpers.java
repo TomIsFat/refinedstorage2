@@ -23,7 +23,7 @@ public final class AutocraftingHelpers {
     public static PatternRepository patterns(final Pattern... patterns) {
         final PatternRepository patternRepository = new PatternRepositoryImpl();
         for (final Pattern pattern : patterns) {
-            patternRepository.add(pattern);
+            patternRepository.add(pattern, 0);
         }
         return patternRepository;
     }

@@ -96,7 +96,6 @@ class AutocraftingNetworkComponentImplTest {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
         provider.setPattern(1, new PatternImpl(A));
-
         final NetworkNodeContainer container = () -> provider;
 
         // Act
@@ -123,31 +122,6 @@ class AutocraftingNetworkComponentImplTest {
     }
 
     @Test
-    void shouldAddPatternManually() {
-        // Arrange
-        final PatternImpl pattern = new PatternImpl(A);
-
-        // Act
-        sut.add(pattern);
-
-        // Assert
-        assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().containsExactly(A);
-    }
-
-    @Test
-    void shouldRemovePatternManually() {
-        // Arrange
-        final PatternImpl pattern = new PatternImpl(A);
-        sut.add(pattern);
-
-        // Act
-        sut.remove(pattern);
-
-        // Assert
-        assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().isEmpty();
-    }
-
-    @Test
     void shouldStartTask() {
         sut.startTask(A, 10, Actor.EMPTY, true);
     }
@@ -158,10 +132,13 @@ class AutocraftingNetworkComponentImplTest {
         rootStorage.addSource(new StorageImpl());
         rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
-        sut.add(new PatternImpl(
+        final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
+        provider.setPattern(1, new PatternImpl(
             List.of(new Ingredient(3, List.of(A))),
             new ResourceAmount(B, 1)
         ));
+        final NetworkNodeContainer container = () -> provider;
+        sut.onContainerAdded(container);
 
         // Act
         final Optional<Preview> preview = sut.getPreview(B, 2).get();
@@ -174,5 +151,26 @@ class AutocraftingNetworkComponentImplTest {
                 new PreviewItem(B, 0, 0, 2),
                 new PreviewItem(A, 6, 0, 0)
             ), Collections.emptyList()));
+    }
+
+    @Test
+    void shouldGetMaxAmount() throws ExecutionException, InterruptedException {
+        // Arrange
+        rootStorage.addSource(new StorageImpl());
+        rootStorage.insert(A, 64, Action.EXECUTE, Actor.EMPTY);
+
+        final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
+        provider.setPattern(1, new PatternImpl(
+            List.of(new Ingredient(4, List.of(A))),
+            new ResourceAmount(B, 1)
+        ));
+        final NetworkNodeContainer container = () -> provider;
+        sut.onContainerAdded(container);
+
+        // Act
+        final long maxAmount = sut.getMaxAmount(B).get();
+
+        // Assert
+        assertThat(maxAmount).isEqualTo(16);
     }
 }

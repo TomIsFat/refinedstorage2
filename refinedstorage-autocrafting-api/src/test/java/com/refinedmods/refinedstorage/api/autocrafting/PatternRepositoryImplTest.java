@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.A;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.B;
+import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.C;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PatternRepositoryImplTest {
@@ -25,7 +26,7 @@ class PatternRepositoryImplTest {
     @Test
     void shouldAddPattern() {
         // Act
-        sut.add(new PatternImpl(A));
+        sut.add(new PatternImpl(A), 0);
 
         // Assert
         assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().containsExactly(A);
@@ -40,8 +41,8 @@ class PatternRepositoryImplTest {
     @Test
     void shouldAddMultiplePatterns() {
         // Act
-        sut.add(new PatternImpl(A));
-        sut.add(new PatternImpl(B));
+        sut.add(new PatternImpl(A), 0);
+        sut.add(new PatternImpl(B), 0);
 
         // Assert
         assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -58,7 +59,7 @@ class PatternRepositoryImplTest {
         assertThat(sut.getByOutput(B)).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new PatternImpl(B)
         );
-        assertThat(sut.getByOutput(ResourceFixtures.C)).isEmpty();
+        assertThat(sut.getByOutput(C)).isEmpty();
     }
 
     @Test
@@ -68,8 +69,8 @@ class PatternRepositoryImplTest {
         final PatternImpl b = new PatternImpl(B, A);
 
         // Act
-        sut.add(a);
-        sut.add(b);
+        sut.add(a, 0);
+        sut.add(b, 1);
 
         // Assert
         assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -80,14 +81,41 @@ class PatternRepositoryImplTest {
             new PatternImpl(A),
             new PatternImpl(B, A)
         );
-        assertThat(sut.getByOutput(A)).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new PatternImpl(A),
-            new PatternImpl(B, A)
+        assertThat(sut.getByOutput(A)).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new PatternImpl(B, A),
+            new PatternImpl(A)
         );
         assertThat(sut.getByOutput(B)).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new PatternImpl(B, A)
         );
-        assertThat(sut.getByOutput(ResourceFixtures.C)).isEmpty();
+        assertThat(sut.getByOutput(C)).isEmpty();
+    }
+
+    @Test
+    void shouldUpdatePriorityOfPattern() {
+        // Arrange
+        final PatternImpl a = new PatternImpl(A);
+        final PatternImpl b = new PatternImpl(B, A);
+        sut.add(a, 0);
+        sut.add(b, 1);
+
+        // Act
+        sut.update(a, 2);
+
+        // Assert
+        assertThat(sut.getByOutput(A)).containsExactly(a, b);
+    }
+
+    @Test
+    void shouldNotUpdatePriorityOfPatternsIfThePatternHasNotBeenAddedYet() {
+        // Arrange
+        final PatternImpl pattern = new PatternImpl(C);
+
+        // Act
+        sut.update(pattern, 1);
+
+        // Assert
+        assertThat(sut.getByOutput(C)).isEmpty();
     }
 
     @Test
@@ -96,8 +124,8 @@ class PatternRepositoryImplTest {
         final PatternImpl a = new PatternImpl(A);
         final PatternImpl b = new PatternImpl(B);
 
-        sut.add(a);
-        sut.add(b);
+        sut.add(a, 0);
+        sut.add(b, 0);
 
         // Act
         sut.remove(a);
@@ -119,8 +147,8 @@ class PatternRepositoryImplTest {
         final PatternImpl a = new PatternImpl(A);
         final PatternImpl b = new PatternImpl(B);
 
-        sut.add(a);
-        sut.add(b);
+        sut.add(a, 0);
+        sut.add(b, 0);
 
         // Act
         sut.remove(a);
@@ -139,8 +167,8 @@ class PatternRepositoryImplTest {
         final PatternImpl a = new PatternImpl(A);
         final PatternImpl b = new PatternImpl(B, A);
 
-        sut.add(a);
-        sut.add(b);
+        sut.add(a, 0);
+        sut.add(b, 0);
 
         // Act
         sut.remove(a);

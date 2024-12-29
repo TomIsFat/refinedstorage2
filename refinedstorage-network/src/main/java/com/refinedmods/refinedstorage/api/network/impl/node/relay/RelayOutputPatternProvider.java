@@ -48,7 +48,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
         }
         this.delegate = delegate;
         if (delegate != null) {
-            parents.forEach(parent -> getPatterns().forEach(parent::add));
+            parents.forEach(parent -> getPatterns().forEach(pattern -> parent.add(pattern, 0)));
             delegate.addListener(this);
         }
     }
@@ -73,7 +73,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
         if (delegate == null || !isPatternAllowed(pattern) || delegate.contains(delegate)) {
             return;
         }
-        parents.forEach(parent -> parent.add(pattern));
+        parents.forEach(parent -> parent.add(pattern, 0));
     }
 
     @Override
@@ -92,7 +92,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     @Override
     public void onAddedIntoContainer(final ParentContainer parentContainer) {
         if (delegate != null) {
-            delegate.getPatterns().forEach(parentContainer::add);
+            delegate.getPatterns().forEach(pattern -> parentContainer.add(pattern, 0));
         }
         parents.add(parentContainer);
     }

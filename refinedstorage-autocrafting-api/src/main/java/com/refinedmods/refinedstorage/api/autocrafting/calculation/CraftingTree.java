@@ -5,8 +5,8 @@ import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -112,7 +112,7 @@ class CraftingTree<T> {
     private CraftingState.ResourceState tryCalculateChild(final IngredientState ingredientState,
                                                           final CraftingState.ResourceState resourceState,
                                                           final long remaining) {
-        final List<Pattern> childPatterns = patternRepository.getByOutput(resourceState.resource());
+        final Collection<Pattern> childPatterns = patternRepository.getByOutput(resourceState.resource());
         if (!childPatterns.isEmpty()) {
             return calculateChild(
                 ingredientState,
@@ -130,7 +130,7 @@ class CraftingTree<T> {
     @Nullable
     private CraftingState.ResourceState calculateChild(final IngredientState ingredientState,
                                                        final long remaining,
-                                                       final List<Pattern> childPatterns,
+                                                       final Collection<Pattern> childPatterns,
                                                        final CraftingState.ResourceState resourceState) {
         final ChildCalculationResult<T> result = calculateChild(remaining, childPatterns, resourceState);
         if (result.success) {
@@ -149,7 +149,7 @@ class CraftingTree<T> {
     }
 
     private ChildCalculationResult<T> calculateChild(final long remaining,
-                                                     final List<Pattern> childPatterns,
+                                                     final Collection<Pattern> childPatterns,
                                                      final CraftingState.ResourceState resourceState) {
         CraftingTree<T> lastChildTree = null;
         Amount lastChildAmount = null;

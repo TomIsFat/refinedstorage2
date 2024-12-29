@@ -8,6 +8,7 @@ import com.refinedmods.refinedstorage.network.test.NetworkTest;
 import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import com.refinedmods.refinedstorage.network.test.nodefactory.PatternProviderNetworkNodeFactory;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
@@ -102,5 +103,106 @@ class PatternProviderNetworkNodeTest {
 
         // Assert
         assertThat(autocrafting.getOutputs()).containsExactly(A);
+    }
+
+    @Nested
+    public class PriorityTest {
+        @AddNetworkNode(properties = {
+            @AddNetworkNode.Property(key = PatternProviderNetworkNodeFactory.PROPERTY_SIZE, intValue = 3)
+        })
+        private PatternProviderNetworkNode other;
+
+        @Test
+        void shouldSetPatternsRespectingPriority(
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            other.setPriority(1);
+            sut.setPriority(0);
+
+            // Act
+            final PatternImpl patternWithLowestPriority = new PatternImpl(A);
+            sut.setPattern(0, patternWithLowestPriority);
+
+            final PatternImpl patternWithHighestPriority = new PatternImpl(A);
+            other.setPattern(0, patternWithHighestPriority);
+
+            // Assert
+            assertThat(autocrafting.getOutputs()).containsExactly(A);
+            assertThat(autocrafting.getPatternsByOutput(A))
+                .containsExactly(patternWithHighestPriority, patternWithLowestPriority);
+        }
+
+        @Test
+        void shouldRemovePatternsRespectingPriorityWhenInactive(
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            other.setPriority(1);
+            sut.setPriority(0);
+
+            final PatternImpl patternWithLowestPriority = new PatternImpl(A);
+            sut.setPattern(0, patternWithLowestPriority);
+
+            final PatternImpl patternWithHighestPriority = new PatternImpl(A);
+            other.setPattern(0, patternWithHighestPriority);
+
+            // Act
+            other.setActive(false);
+
+            // Assert
+            assertThat(autocrafting.getOutputs()).containsExactly(A);
+            assertThat(autocrafting.getPatternsByOutput(A)).containsExactly(patternWithLowestPriority);
+        }
+
+        @Test
+        void shouldAddPatternsRespectingPriorityWhenActive(
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            other.setPriority(1);
+            sut.setPriority(0);
+
+            final PatternImpl patternWithLowestPriority = new PatternImpl(A);
+            sut.setPattern(0, patternWithLowestPriority);
+
+            final PatternImpl patternWithHighestPriority = new PatternImpl(A);
+            other.setPattern(0, patternWithHighestPriority);
+
+            sut.setActive(false);
+            other.setActive(false);
+
+            // Act
+            sut.setActive(true);
+            other.setActive(true);
+
+            // Assert
+            assertThat(autocrafting.getOutputs()).containsExactly(A);
+            assertThat(autocrafting.getPatternsByOutput(A))
+                .containsExactly(patternWithHighestPriority, patternWithLowestPriority);
+        }
+
+        @Test
+        void shouldModifyPriorityAfterAddingPatterns(
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            other.setPriority(1);
+            sut.setPriority(0);
+
+            final PatternImpl patternWithLowestPriority = new PatternImpl(A);
+            sut.setPattern(0, patternWithLowestPriority);
+
+            final PatternImpl patternWithHighestPriority = new PatternImpl(A);
+            other.setPattern(0, patternWithHighestPriority);
+
+            // Act
+            sut.setPriority(2);
+
+            // Assert
+            assertThat(autocrafting.getOutputs()).containsExactly(A);
+            assertThat(autocrafting.getPatternsByOutput(A))
+                .containsExactly(patternWithLowestPriority, patternWithHighestPriority);
+        }
     }
 }

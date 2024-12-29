@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComponent, ParentContainer {
+public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(AutocraftingNetworkComponentImpl.class);
 
     private final Supplier<RootStorage> rootStorageProvider;
@@ -39,6 +39,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Set<PatternListener> listeners = new HashSet<>();
     private final PatternRepositoryImpl patternRepository = new PatternRepositoryImpl();
+    private final ParentContainer parentContainer = new ParentContainerImpl();
 
     public AutocraftingNetworkComponentImpl(final Supplier<RootStorage> rootStorageProvider,
                                             final TaskStatusProvider taskStatusProvider,
@@ -51,7 +52,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     @Override
     public void onContainerAdded(final NetworkNodeContainer container) {
         if (container.getNode() instanceof PatternProvider provider) {
-            provider.onAddedIntoContainer(this);
+            provider.onAddedIntoContainer(parentContainer);
             providers.add(provider);
         }
     }
@@ -59,21 +60,9 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     @Override
     public void onContainerRemoved(final NetworkNodeContainer container) {
         if (container.getNode() instanceof PatternProvider provider) {
-            provider.onRemovedFromContainer(this);
+            provider.onRemovedFromContainer(parentContainer);
             providers.remove(provider);
         }
-    }
-
-    @Override
-    public void add(final Pattern pattern) {
-        patternRepository.add(pattern);
-        listeners.forEach(listener -> listener.onAdded(pattern));
-    }
-
-    @Override
-    public void remove(final Pattern pattern) {
-        listeners.forEach(listener -> listener.onRemoved(pattern));
-        patternRepository.remove(pattern);
     }
 
     @Override
@@ -137,6 +126,11 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
+    public List<Pattern> getPatternsByOutput(final ResourceKey output) {
+        return patternRepository.getByOutput(output);
+    }
+
+    @Override
     public List<TaskStatus> getStatuses() {
         return taskStatusProvider.getStatuses();
     }
@@ -154,5 +148,24 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     @Override
     public void testUpdate() {
         taskStatusProvider.testUpdate();
+    }
+
+    private class ParentContainerImpl implements ParentContainer {
+        @Override
+        public void add(final Pattern pattern, final int priority) {
+            patternRepository.add(pattern, priority);
+            listeners.forEach(listener -> listener.onAdded(pattern));
+        }
+
+        @Override
+        public void remove(final Pattern pattern) {
+            listeners.forEach(listener -> listener.onRemoved(pattern));
+            patternRepository.remove(pattern);
+        }
+
+        @Override
+        public void update(final Pattern pattern, final int priority) {
+            patternRepository.update(pattern, priority);
+        }
     }
 }
