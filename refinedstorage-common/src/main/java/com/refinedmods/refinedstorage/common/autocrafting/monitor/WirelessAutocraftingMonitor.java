@@ -73,9 +73,4 @@ class WirelessAutocraftingMonitor implements AutocraftingMonitor {
             );
         });
     }
-
-    @Override
-    public void testUpdate() {
-        getAutocrafting().ifPresent(AutocraftingNetworkComponent::testUpdate);
-    }
 }

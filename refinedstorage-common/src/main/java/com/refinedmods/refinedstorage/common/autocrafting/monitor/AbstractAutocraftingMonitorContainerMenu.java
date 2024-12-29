@@ -74,14 +74,6 @@ public abstract class AbstractAutocraftingMonitorContainerMenu extends AbstractB
         }
     }
 
-    @Override
-    public void broadcastChanges() {
-        super.broadcastChanges();
-        if (autocraftingMonitor != null) {
-            autocraftingMonitor.testUpdate();
-        }
-    }
-
     void setListener(@Nullable final AutocraftingMonitorListener listener) {
         this.listener = listener;
     }

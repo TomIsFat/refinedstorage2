@@ -17,6 +17,4 @@ public interface TaskStatusProvider {
     void cancel(TaskId taskId);
 
     void cancelAll();
-
-    void testUpdate();
 }

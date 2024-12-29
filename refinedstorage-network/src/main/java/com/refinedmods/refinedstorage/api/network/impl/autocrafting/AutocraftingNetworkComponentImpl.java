@@ -145,11 +145,6 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
         taskStatusProvider.cancelAll();
     }
 
-    @Override
-    public void testUpdate() {
-        taskStatusProvider.testUpdate();
-    }
-
     private class ParentContainerImpl implements ParentContainer {
         @Override
         public void add(final Pattern pattern, final int priority) {

@@ -88,7 +88,6 @@ class AutocraftingNetworkComponentImplTest {
         sut.getStatuses();
         sut.cancel(new TaskId(UUID.randomUUID()));
         sut.cancelAll();
-        sut.testUpdate();
     }
 
     @Test
