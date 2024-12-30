@@ -28,9 +28,7 @@ class CraftingState {
     }
 
     void addOutputsToInternalStorage(final Pattern pattern, final Amount amount) {
-        pattern.getOutputs().forEach(
-            output -> addOutputToInternalStorage(amount, output)
-        );
+        pattern.outputs().forEach(output -> addOutputToInternalStorage(amount, output));
     }
 
     private void addOutputToInternalStorage(final Amount amount, final ResourceAmount output) {

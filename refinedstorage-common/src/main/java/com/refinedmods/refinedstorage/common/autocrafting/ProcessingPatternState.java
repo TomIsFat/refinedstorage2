@@ -84,7 +84,7 @@ public record ProcessingPatternState(
             return new Ingredient(input.amount(), calculateInputsIncludingAlternatives());
         }
 
-        private List<ResourceKey> calculateInputsIncludingAlternatives() {
+        public List<ResourceKey> calculateInputsIncludingAlternatives() {
             return Stream.concat(
                 Stream.of(input.resource()),
                 allowedAlternativeIds.stream()

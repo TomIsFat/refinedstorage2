@@ -1,6 +1,5 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
-import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
@@ -8,7 +7,6 @@ import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalcu
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
-import java.util.Collections;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
@@ -675,35 +673,5 @@ class PreviewTest {
 
         // Assert
         assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
-    }
-
-    @Test
-    void shouldIgnoreEmptyIngredients() {
-        // Arrange
-        final RootStorage storage = storage(
-            new ResourceAmount(OAK_LOG, 1)
-        );
-        final PatternRepository patterns = patterns(
-            pattern()
-                .ingredient(new Ingredient(10, Collections.emptyList()))
-                .ingredient(OAK_LOG, 1)
-                .output(OAK_PLANKS, 4)
-                .build(),
-            pattern()
-                .ingredient(OAK_PLANKS, 4)
-                .output(CRAFTING_TABLE, 1)
-                .build()
-        );
-
-        // Act
-        final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
-        final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 1);
-
-        // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(SUCCESS)
-            .addToCraft(CRAFTING_TABLE, 1)
-            .addToCraft(OAK_PLANKS, 4)
-            .addAvailable(OAK_LOG, 1)
-            .build());
     }
 }

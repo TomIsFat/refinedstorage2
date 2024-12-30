@@ -1,13 +1,10 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
-import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.support.ResourceSlotRendering;
 
-import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
@@ -22,14 +19,12 @@ import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW_
 import static com.refinedmods.refinedstorage.common.support.Sprites.SLOT;
 
 class ProcessingPatternClientTooltipComponent implements ClientTooltipComponent {
-    private static final Ingredient EMPTY_INGREDIENT = new Ingredient(0, Collections.emptyList());
-
     private static final long CYCLE_MS = 1000;
     private static final int ARROW_SPACING = 8;
 
     private final int rows;
     private final List<Component> outputTexts;
-    private final List<Ingredient> ingredients;
+    private final List<List<ResourceAmount>> inputs;
     private final List<List<ResourceAmount>> outputs;
 
     private long cycleStart = 0;
@@ -38,11 +33,14 @@ class ProcessingPatternClientTooltipComponent implements ClientTooltipComponent 
     ProcessingPatternClientTooltipComponent(final ProcessingPatternState state) {
         this.rows = calculateMaxRows(state);
         this.outputTexts = getOutputText(state);
-        this.ingredients = state.ingredients()
+        this.inputs = state.ingredients()
             .stream()
             .map(processingIngredient ->
-                processingIngredient.map(ProcessingPatternState.ProcessingIngredient::toIngredient)
-                    .orElse(EMPTY_INGREDIENT)
+                processingIngredient
+                    .stream()
+                    .flatMap(i -> i.calculateInputsIncludingAlternatives().stream()
+                        .map(resource -> new ResourceAmount(resource, i.input().amount())))
+                    .toList()
             ).toList();
         this.outputs = state.outputs().stream().map(output -> output.map(List::of).orElse(List.of())).toList();
     }
@@ -119,7 +117,7 @@ class ProcessingPatternClientTooltipComponent implements ClientTooltipComponent 
                                    final int y,
                                    final boolean input,
                                    final GuiGraphics graphics) {
-        final int maxSize = input ? ingredients.size() : outputs.size();
+        final int maxSize = input ? inputs.size() : outputs.size();
         for (int row = 0; row < rows; ++row) {
             for (int column = 0; column < 3; ++column) {
                 final int slotXOffset = !input ? ((18 * 3) + ARROW_SPACING + LIGHT_ARROW_WIDTH + ARROW_SPACING) : 0;
@@ -130,28 +128,12 @@ class ProcessingPatternClientTooltipComponent implements ClientTooltipComponent 
                     break;
                 }
                 if (input) {
-                    renderMatrixSlot(graphics, slotX, slotY, ingredients.get(idx));
+                    renderMatrixSlot(graphics, slotX, slotY, inputs.get(idx));
                 } else {
                     renderMatrixSlot(graphics, slotX, slotY, outputs.get(idx));
                 }
             }
         }
-    }
-
-    private void renderMatrixSlot(
-        final GuiGraphics graphics,
-        final int slotX,
-        final int slotY,
-        final Ingredient ingredient
-    ) {
-        graphics.blitSprite(SLOT, slotX, slotY, 18, 18);
-        if (ingredient.isEmpty()) {
-            return;
-        }
-        final ResourceKey resource = ingredient.get(currentCycle % ingredient.size());
-        final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass());
-        rendering.render(resource, graphics, slotX + 1, slotY + 1);
-        ResourceSlotRendering.renderAmount(graphics, slotX + 1, slotY + 1, ingredient.getAmount(), rendering);
     }
 
     private void renderMatrixSlot(

@@ -30,8 +30,10 @@ import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguratio
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.C;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AutocraftingNetworkComponentImplTest {
@@ -94,7 +96,7 @@ class AutocraftingNetworkComponentImplTest {
     void shouldAddPatternsFromPatternProvider() {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new PatternImpl(A));
+        provider.setPattern(1, pattern().output(A, 1).ingredient(C, 1).build());
         final NetworkNodeContainer container = () -> provider;
 
         // Act
@@ -108,7 +110,7 @@ class AutocraftingNetworkComponentImplTest {
     void shouldRemovePatternsFromPatternProvider() {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new PatternImpl(A));
+        provider.setPattern(1, pattern().output(A, 1).ingredient(C, 1).build());
 
         final NetworkNodeContainer container = () -> provider;
         sut.onContainerAdded(container);
@@ -132,9 +134,9 @@ class AutocraftingNetworkComponentImplTest {
         rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new PatternImpl(
+        provider.setPattern(1, new Pattern(
             List.of(new Ingredient(3, List.of(A))),
-            new ResourceAmount(B, 1)
+            List.of(new ResourceAmount(B, 1))
         ));
         final NetworkNodeContainer container = () -> provider;
         sut.onContainerAdded(container);
@@ -159,9 +161,9 @@ class AutocraftingNetworkComponentImplTest {
         rootStorage.insert(A, 64, Action.EXECUTE, Actor.EMPTY);
 
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new PatternImpl(
+        provider.setPattern(1, new Pattern(
             List.of(new Ingredient(4, List.of(A))),
-            new ResourceAmount(B, 1)
+            List.of(new ResourceAmount(B, 1))
         ));
         final NetworkNodeContainer container = () -> provider;
         sut.onContainerAdded(container);

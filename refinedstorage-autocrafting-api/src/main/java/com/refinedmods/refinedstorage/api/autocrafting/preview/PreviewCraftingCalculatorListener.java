@@ -33,7 +33,7 @@ public class PreviewCraftingCalculatorListener
         try {
             calculator.calculate(resource, amount, listener);
         } catch (final PatternCycleDetectedException e) {
-            return new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), e.getPattern().getOutputs());
+            return new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), e.getPattern().outputs());
         } catch (final NumberOverflowDuringCalculationException e) {
             return new Preview(PreviewType.OVERFLOW, Collections.emptyList(), Collections.emptyList());
         }

@@ -129,6 +129,19 @@ class CoreValidationsTest {
     }
 
     @Test
+    void shouldValidateNotEmpty() {
+        // Act & assert
+        final List<Integer> badList = List.of();
+        final Exception e = assertThrows(
+            IllegalArgumentException.class,
+            () -> CoreValidations.validateNotEmpty(badList, "bla")
+        );
+        assertThat(e.getMessage()).isEqualTo("bla");
+
+        assertDoesNotThrow(() -> CoreValidations.validateNotEmpty(List.of(1), "bla"));
+    }
+
+    @Test
     void shouldValidateEmpty() {
         // Act & assert
         final List<Integer> badList = List.of(1);

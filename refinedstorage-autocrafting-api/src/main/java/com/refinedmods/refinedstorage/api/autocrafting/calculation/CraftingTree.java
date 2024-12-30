@@ -58,10 +58,7 @@ class CraftingTree<T> {
             throw new PatternCycleDetectedException(pattern);
         }
         CalculationResult result = CalculationResult.SUCCESS;
-        for (final Ingredient ingredient : pattern.getIngredients()) {
-            if (ingredient.isEmpty()) {
-                continue;
-            }
+        for (final Ingredient ingredient : pattern.ingredients()) {
             final IngredientState ingredientState = new IngredientState(ingredient, craftingState);
             final CalculationResult ingredientResult = calculateIngredient(ingredientState);
             if (ingredientResult == CalculationResult.MISSING_RESOURCES) {

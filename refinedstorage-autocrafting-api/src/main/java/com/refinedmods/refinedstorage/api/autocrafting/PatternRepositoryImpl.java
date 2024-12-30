@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.api.autocrafting;
 
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 import java.util.Collections;
@@ -13,16 +14,17 @@ import java.util.Set;
 
 public class PatternRepositoryImpl implements PatternRepository {
     private final Set<Pattern> patterns = new HashSet<>();
-    private final Map<ResourceKey, PriorityQueue<PatternHolder>> patternsByOutput = new HashMap<>();
     private final Set<Pattern> patternsView = Collections.unmodifiableSet(patterns);
+    private final Map<ResourceKey, PriorityQueue<PatternHolder>> patternsByOutput = new HashMap<>();
     private final Set<ResourceKey> outputs = new HashSet<>();
+    private final Set<ResourceKey> outputsView = Collections.unmodifiableSet(outputs);
 
     @Override
     public void add(final Pattern pattern, final int priority) {
         patterns.add(pattern);
-        outputs.addAll(pattern.getOutputResources());
-        for (final ResourceKey output : pattern.getOutputResources()) {
-            patternsByOutput.computeIfAbsent(output, k -> new PriorityQueue<>(
+        pattern.outputs().forEach(output -> outputs.add(output.resource()));
+        for (final ResourceAmount output : pattern.outputs()) {
+            patternsByOutput.computeIfAbsent(output.resource(), k -> new PriorityQueue<>(
                 Comparator.comparingInt(PatternHolder::priority).reversed()
             )).add(new PatternHolder(pattern, priority));
         }
@@ -30,8 +32,8 @@ public class PatternRepositoryImpl implements PatternRepository {
 
     @Override
     public void update(final Pattern pattern, final int priority) {
-        for (final ResourceKey output : pattern.getOutputResources()) {
-            final PriorityQueue<PatternHolder> holders = patternsByOutput.get(output);
+        for (final ResourceAmount output : pattern.outputs()) {
+            final PriorityQueue<PatternHolder> holders = patternsByOutput.get(output.resource());
             if (holders == null) {
                 continue;
             }
@@ -43,19 +45,20 @@ public class PatternRepositoryImpl implements PatternRepository {
     @Override
     public void remove(final Pattern pattern) {
         patterns.remove(pattern);
-        for (final ResourceKey output : pattern.getOutputResources()) {
-            final PriorityQueue<PatternHolder> holders = patternsByOutput.get(output);
+        for (final ResourceAmount output : pattern.outputs()) {
+            final PriorityQueue<PatternHolder> holders = patternsByOutput.get(output.resource());
             if (holders == null) {
                 continue;
             }
             holders.removeIf(holder -> holder.pattern.equals(pattern));
             if (holders.isEmpty()) {
-                patternsByOutput.remove(output);
+                patternsByOutput.remove(output.resource());
             }
             final boolean noOtherPatternHasThisOutput = patterns.stream()
-                .noneMatch(otherPattern -> otherPattern.getOutputResources().contains(output));
+                .noneMatch(otherPattern -> otherPattern.outputs().stream()
+                    .anyMatch(o -> o.resource().equals(output.resource())));
             if (noOtherPatternHasThisOutput) {
-                outputs.remove(output);
+                outputs.remove(output.resource());
             }
         }
     }
@@ -71,7 +74,7 @@ public class PatternRepositoryImpl implements PatternRepository {
 
     @Override
     public Set<ResourceKey> getOutputs() {
-        return outputs;
+        return outputsView;
     }
 
     @Override

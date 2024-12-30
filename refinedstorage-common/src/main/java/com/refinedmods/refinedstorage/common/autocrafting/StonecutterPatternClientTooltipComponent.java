@@ -1,7 +1,6 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
-import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
@@ -20,13 +19,13 @@ class StonecutterPatternClientTooltipComponent implements ClientTooltipComponent
     private static final int ARROW_SPACING = 8;
 
     private final Component outputText;
-    private final PlatformResourceKey input;
-    private final PlatformResourceKey output;
+    private final ItemResource input;
+    private final ItemResource output;
 
-    StonecutterPatternClientTooltipComponent(final StonecutterPattern pattern) {
-        this.outputText = getOutputText(pattern.getOutput());
-        this.input = pattern.getInput();
-        this.output = pattern.getOutput();
+    StonecutterPatternClientTooltipComponent(final PatternResolver.ResolvedStonecutterPattern pattern) {
+        this.outputText = getOutputText(pattern.output());
+        this.input = pattern.input();
+        this.output = pattern.output();
     }
 
     @Override

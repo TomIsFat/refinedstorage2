@@ -5,6 +5,7 @@ import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetwo
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.Filter;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
@@ -65,7 +66,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     private boolean isPatternAllowed(final Pattern pattern) {
-        return pattern.getOutputResources().stream().anyMatch(filter::isAllowed);
+        return pattern.outputs().stream().map(ResourceAmount::resource).anyMatch(filter::isAllowed);
     }
 
     @Override

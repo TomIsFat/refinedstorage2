@@ -21,4 +21,6 @@ public interface PatternProviderItem {
     UUID getId(ItemStack stack);
 
     Optional<Pattern> getPattern(ItemStack stack, Level level);
+
+    Optional<ItemStack> getOutput(ItemStack stack, Level level);
 }

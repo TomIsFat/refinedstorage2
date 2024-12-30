@@ -29,7 +29,7 @@ public class PreviewBuilder {
     }
 
     public PreviewBuilder withPatternWithCycle(final Pattern pattern) {
-        this.outputsOfPatternWithCycle = pattern.getOutputs();
+        this.outputsOfPatternWithCycle = pattern.outputs();
         return this;
     }
 

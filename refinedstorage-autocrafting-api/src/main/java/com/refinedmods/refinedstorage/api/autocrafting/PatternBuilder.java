@@ -37,7 +37,7 @@ public class PatternBuilder {
     }
 
     public Pattern build() {
-        return new PatternImpl(ingredients, outputs.toArray(new ResourceAmount[0]));
+        return new Pattern(ingredients, outputs);
     }
 
     public class IngredientBuilder {

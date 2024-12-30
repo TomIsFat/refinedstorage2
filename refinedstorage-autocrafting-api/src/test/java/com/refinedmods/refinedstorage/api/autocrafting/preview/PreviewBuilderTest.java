@@ -1,7 +1,6 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
-import com.refinedmods.refinedstorage.api.autocrafting.PatternImpl;
 
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_LOG;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_PLANKS;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SPRUCE_LOG;
@@ -36,7 +36,7 @@ class PreviewBuilderTest {
     @Test
     void testWithPatternWithCycle() {
         // Arrange
-        final Pattern pattern = new PatternImpl(OAK_PLANKS);
+        final Pattern pattern = pattern().ingredient(OAK_LOG, 1).output(OAK_PLANKS, 4).build();
 
         // Act
         final Preview preview = PreviewBuilder.ofType(PreviewType.CYCLE_DETECTED)
@@ -45,7 +45,7 @@ class PreviewBuilderTest {
 
         // Assert
         assertThat(preview).usingRecursiveComparison()
-            .isEqualTo(new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), pattern.getOutputs()));
+            .isEqualTo(new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), pattern.outputs()));
     }
 
     @Test
