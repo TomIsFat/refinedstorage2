@@ -38,7 +38,7 @@ public class PriorityScreen extends AbstractAmountScreen<AbstractAmountScreen.De
             IntegerAmountOperations.INSTANCE
         );
         this.priorityChanged = priorityChanged;
-        this.imageWidth = 164;
+        this.imageWidth = 172;
         this.imageHeight = 92;
     }
 

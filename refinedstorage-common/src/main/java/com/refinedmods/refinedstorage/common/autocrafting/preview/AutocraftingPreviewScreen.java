@@ -10,6 +10,7 @@ import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRender
 import com.refinedmods.refinedstorage.common.support.amount.AbstractAmountScreen;
 import com.refinedmods.refinedstorage.common.support.amount.AmountScreenConfiguration;
 import com.refinedmods.refinedstorage.common.support.amount.DoubleAmountOperations;
+import com.refinedmods.refinedstorage.common.support.amount.IconButton;
 import com.refinedmods.refinedstorage.common.support.tooltip.HelpClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.support.tooltip.SmallText;
 import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
@@ -200,6 +201,12 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         ));
     }
 
+    @Nullable
+    @Override
+    protected IconButton.Icon getConfirmButtonIcon() {
+        return null;
+    }
+
     private void requestMaxAmount(final Button button) {
         button.active = false;
         getMenu().requestMaxAmount();
@@ -276,7 +283,9 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         previewItemsScrollbar.setEnabled(rows > 0);
         confirmButton.setMessage(START);
         confirmButton.active = preview.type() == PreviewType.SUCCESS;
-        confirmButton.setError(preview.type() != PreviewType.SUCCESS);
+        confirmButton.setIcon(preview.type() == PreviewType.SUCCESS
+            ? IconButton.Icon.START
+            : IconButton.Icon.ERROR);
         confirmButton.setTooltip(preview.type() == PreviewType.MISSING_RESOURCES
             ? Tooltip.create(MISSING_RESOURCES)
             : null);
@@ -603,7 +612,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             return;
         }
         confirmButton.active = false;
-        confirmButton.setError(false);
+        confirmButton.setIcon(null);
         confirmButton.setTooltip(null);
         confirmButton.setMessage(PENDING);
     }
@@ -613,7 +622,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             return;
         }
         confirmButton.active = false;
-        confirmButton.setError(false);
+        confirmButton.setIcon(null);
         confirmButton.setTooltip(null);
         confirmButton.setMessage(START);
     }
