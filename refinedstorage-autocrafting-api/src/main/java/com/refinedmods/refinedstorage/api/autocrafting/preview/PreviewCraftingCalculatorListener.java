@@ -5,8 +5,6 @@ import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalcu
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.NumberOverflowDuringCalculationException;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.PatternCycleDetectedException;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
-import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -14,22 +12,23 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PreviewCraftingCalculatorListener
-    implements CraftingCalculatorListener<PreviewCraftingCalculatorListener.PreviewState> {
+public class PreviewCraftingCalculatorListener implements CraftingCalculatorListener<PreviewBuilder> {
     private static final Logger LOGGER = LoggerFactory.getLogger(PreviewCraftingCalculatorListener.class);
 
     private final UUID listenerId = UUID.randomUUID();
-    private PreviewState previewState;
+    private PreviewBuilder builder;
 
-    private PreviewCraftingCalculatorListener(final PreviewState previewState) {
+    private PreviewCraftingCalculatorListener(final PreviewBuilder builder) {
         LOGGER.debug("{} - Started calculation", listenerId);
-        this.previewState = previewState;
+        this.builder = builder;
     }
 
     public static Preview calculatePreview(final CraftingCalculator calculator,
                                            final ResourceKey resource,
                                            final long amount) {
-        final PreviewCraftingCalculatorListener listener = new PreviewCraftingCalculatorListener(new PreviewState());
+        final PreviewCraftingCalculatorListener listener = new PreviewCraftingCalculatorListener(
+            PreviewBuilder.create()
+        );
         try {
             calculator.calculate(resource, amount, listener);
         } catch (final PatternCycleDetectedException e) {
@@ -41,72 +40,38 @@ public class PreviewCraftingCalculatorListener
     }
 
     @Override
-    public CraftingCalculatorListener<PreviewState> childCalculationStarted() {
-        return new PreviewCraftingCalculatorListener(previewState.copy());
+    public CraftingCalculatorListener<PreviewBuilder> childCalculationStarted(final ResourceKey resource,
+                                                                              final long amount) {
+        LOGGER.debug("{} - Child calculation starting for {}x {}", listenerId, amount, resource);
+        final PreviewBuilder copy = builder.copy();
+        copy.addToCraft(resource, amount);
+        return new PreviewCraftingCalculatorListener(copy);
     }
 
     @Override
-    public void childCalculationCompleted(final ResourceKey resource,
-                                          final long amount,
-                                          final CraftingCalculatorListener<PreviewState> childListener) {
-        LOGGER.debug("{} - Child calculation completed for {}x {}", listenerId, amount, resource);
-        this.previewState = ((PreviewCraftingCalculatorListener) childListener).previewState;
-        this.previewState.toCraft.add(resource, amount);
-        if (LOGGER.isDebugEnabled()) {
-            for (final ResourceKey missingResource : previewState.missing.getAll()) {
-                LOGGER.debug("{} - Missing: {}x {}", listenerId, previewState.missing.get(missingResource),
-                    missingResource);
-            }
-            for (final ResourceKey toCraftResource : previewState.toCraft.getAll()) {
-                LOGGER.debug("{} - To craft: {}x {}", listenerId, previewState.toCraft.get(toCraftResource),
-                    toCraftResource);
-            }
-            for (final ResourceKey toTakeFromStorageResource : previewState.toTakeFromStorage.getAll()) {
-                LOGGER.debug("{} - To take from storage: {}x {}", listenerId,
-                    previewState.toTakeFromStorage.get(toTakeFromStorageResource), toTakeFromStorageResource);
-            }
-        }
+    public void childCalculationCompleted(final CraftingCalculatorListener<PreviewBuilder> childListener) {
+        LOGGER.debug("{} - Child calculation completed", listenerId);
+        this.builder = childListener.getData();
     }
 
     @Override
     public void ingredientsExhausted(final ResourceKey resource, final long amount) {
         LOGGER.debug("{} - Ingredients exhausted for {}x {}", listenerId, amount, resource);
-        previewState.missing.add(resource, amount);
+        builder.addMissing(resource, amount);
     }
 
     @Override
     public void ingredientExtractedFromStorage(final ResourceKey resource, final long amount) {
         LOGGER.debug("{} - Extracted from storage: {} - {}", listenerId, resource, amount);
-        previewState.toTakeFromStorage.add(resource, amount);
+        builder.addAvailable(resource, amount);
     }
 
-    public Preview buildPreview() {
-        final PreviewType previewType = previewState.missing.getAll().isEmpty()
-            ? PreviewType.SUCCESS
-            : PreviewType.MISSING_RESOURCES;
-        final PreviewBuilder previewBuilder = PreviewBuilder.ofType(previewType);
-        previewState.missing.getAll().forEach(resource ->
-            previewBuilder.addMissing(resource, previewState.missing.get(resource)));
-        previewState.toCraft.getAll().forEach(resource ->
-            previewBuilder.addToCraft(resource, previewState.toCraft.get(resource)));
-        previewState.toTakeFromStorage.getAll().forEach(resource ->
-            previewBuilder.addAvailable(resource, previewState.toTakeFromStorage.get(resource)));
-        return previewBuilder.build();
+    @Override
+    public PreviewBuilder getData() {
+        return builder;
     }
 
-    public record PreviewState(MutableResourceList toTakeFromStorage,
-                               MutableResourceList toCraft,
-                               MutableResourceList missing) {
-        private PreviewState() {
-            this(MutableResourceListImpl.create(), MutableResourceListImpl.create(), MutableResourceListImpl.create());
-        }
-
-        private PreviewState copy() {
-            return new PreviewState(
-                toTakeFromStorage.copy(),
-                toCraft.copy(),
-                missing.copy()
-            );
-        }
+    private Preview buildPreview() {
+        return builder.build();
     }
 }

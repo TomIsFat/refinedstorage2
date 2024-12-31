@@ -37,7 +37,10 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
             if (patternAmount.getTotal() < 0) {
                 throw new NumberOverflowDuringCalculationException();
             }
-            final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted();
+            final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted(
+                resource,
+                patternAmount.getTotal()
+            );
             final CraftingTree<T> tree = root(pattern, rootStorage, patternAmount, patternRepository, childListener);
             final CraftingTree.CalculationResult calculationResult = tree.calculate();
             if (calculationResult == CraftingTree.CalculationResult.MISSING_RESOURCES) {
@@ -45,13 +48,13 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
                 lastPatternAmount = patternAmount;
                 continue;
             }
-            listener.childCalculationCompleted(resource, patternAmount.getTotal(), childListener);
+            listener.childCalculationCompleted(childListener);
             return;
         }
         if (lastChildListener == null) {
             throw new IllegalStateException("No pattern found for " + resource);
         }
-        listener.childCalculationCompleted(resource, lastPatternAmount.getTotal(), lastChildListener);
+        listener.childCalculationCompleted(lastChildListener);
     }
 
     private boolean isCraftable(final ResourceKey resource, final long amount) {

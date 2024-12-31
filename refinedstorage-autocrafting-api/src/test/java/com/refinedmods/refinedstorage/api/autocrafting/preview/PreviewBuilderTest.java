@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.assertj.core.api.ThrowableAssert;
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -19,14 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 class PreviewBuilderTest {
-    private static final RecursiveComparisonConfiguration CONFIG = RecursiveComparisonConfiguration.builder()
-        .withIgnoredCollectionOrderInFields("items")
-        .build();
-
     @Test
     void testDefaultState() {
         // Act
-        final Preview preview = PreviewBuilder.ofType(PreviewType.SUCCESS).build();
+        final Preview preview = PreviewBuilder.create().build();
 
         // Assert
         assertThat(preview).usingRecursiveComparison()
@@ -39,7 +34,7 @@ class PreviewBuilderTest {
         final Pattern pattern = pattern().ingredient(OAK_LOG, 1).output(OAK_PLANKS, 4).build();
 
         // Act
-        final Preview preview = PreviewBuilder.ofType(PreviewType.CYCLE_DETECTED)
+        final Preview preview = PreviewBuilder.create()
             .withPatternWithCycle(pattern)
             .build();
 
@@ -51,7 +46,7 @@ class PreviewBuilderTest {
     @Test
     void testPreview() {
         // Act
-        final Preview preview = PreviewBuilder.ofType(PreviewType.MISSING_RESOURCES)
+        final Preview preview = PreviewBuilder.create()
             .addToCraft(OAK_PLANKS, 4)
             .addToCraft(OAK_PLANKS, 1)
             .addAvailable(OAK_LOG, 1)
@@ -61,20 +56,18 @@ class PreviewBuilderTest {
             .build();
 
         // Assert
-        assertThat(preview)
-            .usingRecursiveComparison(CONFIG)
-            .isEqualTo(new Preview(PreviewType.MISSING_RESOURCES, List.of(
-                new PreviewItem(OAK_PLANKS, 0, 0, 5),
-                new PreviewItem(OAK_LOG, 3, 0, 0),
-                new PreviewItem(SPRUCE_LOG, 0, 3, 0)
-            ), Collections.emptyList()));
+        assertThat(preview).isEqualTo(new Preview(PreviewType.MISSING_RESOURCES, List.of(
+            new PreviewItem(OAK_PLANKS, 0, 0, 5),
+            new PreviewItem(OAK_LOG, 3, 0, 0),
+            new PreviewItem(SPRUCE_LOG, 0, 3, 0)
+        ), Collections.emptyList()));
     }
 
     @ParameterizedTest
     @ValueSource(longs = {-1, 0})
     void testToCraftMustBeLargerThanZero(final long amount) {
         // Arrange
-        final PreviewBuilder builder = PreviewBuilder.ofType(PreviewType.MISSING_RESOURCES);
+        final PreviewBuilder builder = PreviewBuilder.create();
 
         // Act
         final ThrowableAssert.ThrowingCallable action = () -> builder.addToCraft(OAK_PLANKS, amount);
@@ -89,7 +82,7 @@ class PreviewBuilderTest {
     @ValueSource(longs = {-1, 0})
     void testMissingMustBeLargerThanZero(final long amount) {
         // Arrange
-        final PreviewBuilder builder = PreviewBuilder.ofType(PreviewType.MISSING_RESOURCES);
+        final PreviewBuilder builder = PreviewBuilder.create();
 
         // Act
         final ThrowableAssert.ThrowingCallable action = () -> builder.addMissing(OAK_PLANKS, amount);
@@ -104,7 +97,7 @@ class PreviewBuilderTest {
     @ValueSource(longs = {-1, 0})
     void testAvailableMustBeLargerThanZero(final long amount) {
         // Arrange
-        final PreviewBuilder builder = PreviewBuilder.ofType(PreviewType.MISSING_RESOURCES);
+        final PreviewBuilder builder = PreviewBuilder.create();
 
         // Act
         final ThrowableAssert.ThrowingCallable action = () -> builder.addAvailable(OAK_PLANKS, amount);

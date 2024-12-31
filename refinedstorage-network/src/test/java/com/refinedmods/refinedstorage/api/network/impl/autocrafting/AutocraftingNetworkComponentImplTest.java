@@ -26,7 +26,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,10 +36,6 @@ import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtu
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AutocraftingNetworkComponentImplTest {
-    private static final RecursiveComparisonConfiguration PREVIEW_CONFIG = RecursiveComparisonConfiguration.builder()
-        .withIgnoredCollectionOrderInFields("items")
-        .build();
-
     private RootStorage rootStorage;
     private AutocraftingNetworkComponentImpl sut;
 
@@ -145,13 +140,10 @@ class AutocraftingNetworkComponentImplTest {
         final Optional<Preview> preview = sut.getPreview(B, 2).get();
 
         // Assert
-        assertThat(preview)
-            .get()
-            .usingRecursiveComparison(PREVIEW_CONFIG)
-            .isEqualTo(new Preview(PreviewType.SUCCESS, List.of(
-                new PreviewItem(B, 0, 0, 2),
-                new PreviewItem(A, 6, 0, 0)
-            ), Collections.emptyList()));
+        assertThat(preview).get().usingRecursiveComparison().isEqualTo(new Preview(PreviewType.SUCCESS, List.of(
+            new PreviewItem(B, 0, 0, 2),
+            new PreviewItem(A, 6, 0, 0)
+        ), Collections.emptyList()));
     }
 
     @Test
