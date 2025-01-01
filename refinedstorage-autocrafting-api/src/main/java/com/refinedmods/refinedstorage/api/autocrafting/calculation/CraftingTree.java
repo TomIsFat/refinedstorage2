@@ -52,8 +52,9 @@ class CraftingTree<T> {
                                      final CraftingCalculatorListener<T> listener,
                                      final Set<Pattern> activePatterns) {
         final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted(
+            pattern,
             resource,
-            amount.getTotal()
+            amount
         );
         final CraftingState childState = parentState.copy();
         return new CraftingTree<>(pattern, childState, amount, patternRepository, childListener, activePatterns);
@@ -64,9 +65,10 @@ class CraftingTree<T> {
             throw new PatternCycleDetectedException(pattern);
         }
         CalculationResult result = CalculationResult.SUCCESS;
-        for (final Ingredient ingredient : pattern.ingredients()) {
+        for (int ingredientIndex = 0; ingredientIndex < pattern.ingredients().size(); ++ingredientIndex) {
+            final Ingredient ingredient = pattern.ingredients().get(ingredientIndex);
             final IngredientState ingredientState = new IngredientState(ingredient, craftingState);
-            final CalculationResult ingredientResult = calculateIngredient(ingredientState);
+            final CalculationResult ingredientResult = calculateIngredient(ingredientIndex, ingredientState);
             if (ingredientResult == CalculationResult.MISSING_RESOURCES) {
                 result = CalculationResult.MISSING_RESOURCES;
             }
@@ -76,7 +78,7 @@ class CraftingTree<T> {
         return result;
     }
 
-    private CalculationResult calculateIngredient(final IngredientState ingredientState) {
+    private CalculationResult calculateIngredient(final int ingredientIndex, final IngredientState ingredientState) {
         CraftingState.ResourceState resourceState = craftingState.getResource(ingredientState.get());
         long remaining = ingredientState.amount() * amount.iterations();
         if (remaining < 0) {
@@ -86,12 +88,14 @@ class CraftingTree<T> {
             if (resourceState.isInInternalStorage()) {
                 final long toTake = Math.min(remaining, resourceState.inInternalStorage());
                 craftingState.extractFromInternalStorage(resourceState.resource(), toTake);
+                listener.ingredientUsed(pattern, ingredientIndex, resourceState.resource(), toTake);
                 remaining -= toTake;
             }
             if (remaining > 0 && resourceState.isInStorage()) {
                 final long toTake = Math.min(remaining, resourceState.inStorage());
                 craftingState.extractFromStorage(resourceState.resource(), toTake);
                 listener.ingredientExtractedFromStorage(resourceState.resource(), toTake);
+                listener.ingredientUsed(pattern, ingredientIndex, resourceState.resource(), toTake);
                 remaining -= toTake;
             }
             if (remaining > 0) {

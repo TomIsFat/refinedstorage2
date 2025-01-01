@@ -116,6 +116,11 @@ public class MutableResourceListImpl implements MutableResourceList {
         return copy;
     }
 
+    @Override
+    public String toString() {
+        return entries.toString();
+    }
+
     private static class Entry {
         private final ResourceKey resource;
         private long amount;
@@ -141,6 +146,11 @@ public class MutableResourceListImpl implements MutableResourceList {
 
         private ResourceAmount toResourceAmount() {
             return new ResourceAmount(resource, amount);
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(amount);
         }
     }
 }

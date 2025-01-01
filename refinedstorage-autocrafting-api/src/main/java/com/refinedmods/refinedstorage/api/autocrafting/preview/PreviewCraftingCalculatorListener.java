@@ -1,5 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.Amount;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorListener;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.NumberOverflowDuringCalculationException;
@@ -40,11 +42,12 @@ public class PreviewCraftingCalculatorListener implements CraftingCalculatorList
     }
 
     @Override
-    public CraftingCalculatorListener<PreviewBuilder> childCalculationStarted(final ResourceKey resource,
-                                                                              final long amount) {
+    public CraftingCalculatorListener<PreviewBuilder> childCalculationStarted(final Pattern pattern,
+                                                                              final ResourceKey resource,
+                                                                              final Amount amount) {
         LOGGER.debug("{} - Child calculation starting for {}x {}", listenerId, amount, resource);
         final PreviewBuilder copy = builder.copy();
-        copy.addToCraft(resource, amount);
+        copy.addToCraft(resource, amount.getTotal());
         return new PreviewCraftingCalculatorListener(copy);
     }
 
@@ -58,6 +61,14 @@ public class PreviewCraftingCalculatorListener implements CraftingCalculatorList
     public void ingredientsExhausted(final ResourceKey resource, final long amount) {
         LOGGER.debug("{} - Ingredients exhausted for {}x {}", listenerId, amount, resource);
         builder.addMissing(resource, amount);
+    }
+
+    @Override
+    public void ingredientUsed(final Pattern pattern,
+                               final int ingredientIndex,
+                               final ResourceKey resource,
+                               final long amount) {
+        // no op
     }
 
     @Override

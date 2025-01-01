@@ -4,7 +4,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
-record Amount(long iterations, long amountPerIteration) {
+public record Amount(long iterations, long amountPerIteration) {
     public long getTotal() {
         return iterations * amountPerIteration;
     }
