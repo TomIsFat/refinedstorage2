@@ -31,7 +31,6 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
         CoreValidations.validateLargerThanZero(amount, "Requested amount must be greater than 0");
         final Collection<Pattern> patterns = patternRepository.getByOutput(resource);
         CraftingCalculatorListener<T> lastChildListener = null;
-        Amount lastPatternAmount = null;
         for (final Pattern pattern : patterns) {
             final Amount patternAmount = Amount.of(pattern, resource, amount);
             if (patternAmount.getTotal() < 0) {
@@ -45,7 +44,6 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
             final CraftingTree.CalculationResult calculationResult = tree.calculate();
             if (calculationResult == CraftingTree.CalculationResult.MISSING_RESOURCES) {
                 lastChildListener = childListener;
-                lastPatternAmount = patternAmount;
                 continue;
             }
             listener.childCalculationCompleted(childListener);
