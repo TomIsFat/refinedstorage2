@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 public class PatternProviderNetworkNode extends SimpleNetworkNode implements PatternProvider {
     private final Pattern[] patterns;
     private final Set<ParentContainer> parents = new HashSet<>();
+    private int priority;
 
     public PatternProviderNetworkNode(final long energyUsage, final int patterns) {
         super(energyUsage);
@@ -25,7 +26,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         }
         patterns[index] = pattern;
         if (pattern != null) {
-            parents.forEach(parent -> parent.add(pattern));
+            parents.forEach(parent -> parent.add(pattern, priority));
         }
     }
 
@@ -42,7 +43,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         }
         for (final Pattern pattern : patterns) {
             if (pattern != null) {
-                parents.forEach(parent -> parent.add(pattern));
+                parents.forEach(parent -> parent.add(pattern, priority));
             }
         }
     }
@@ -52,7 +53,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         parents.add(parentContainer);
         for (final Pattern pattern : patterns) {
             if (pattern != null) {
-                parentContainer.add(pattern);
+                parentContainer.add(pattern, priority);
             }
         }
     }
@@ -63,6 +64,19 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         for (final Pattern pattern : patterns) {
             if (pattern != null) {
                 parentContainer.remove(pattern);
+            }
+        }
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(final int priority) {
+        this.priority = priority;
+        for (final Pattern pattern : patterns) {
+            if (pattern != null) {
+                parents.forEach(parent -> parent.update(pattern, priority));
             }
         }
     }

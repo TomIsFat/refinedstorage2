@@ -32,9 +32,4 @@ public class FakeTaskStatusProvider implements TaskStatusProvider {
     public void cancelAll() {
         // no op
     }
-
-    @Override
-    public void testUpdate() {
-        // no op
-    }
 }

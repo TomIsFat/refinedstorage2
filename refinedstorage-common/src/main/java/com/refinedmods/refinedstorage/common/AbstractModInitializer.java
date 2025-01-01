@@ -151,6 +151,7 @@ import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeState;
 import com.refinedmods.refinedstorage.common.upgrade.SimpleUpgradeItem;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeDestinations;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeWithEnchantedBookRecipeSerializer;
+import com.refinedmods.refinedstorage.common.util.ServerListener;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -276,7 +277,9 @@ public abstract class AbstractModInitializer {
             AutocraftingNetworkComponent.class,
             network -> new AutocraftingNetworkComponentImpl(
                 () -> network.getComponent(StorageNetworkComponent.class),
-                new TaskStatusProviderImpl())
+                new TaskStatusProviderImpl(),
+                ServerListener.getAutocraftingPool()
+            )
         );
     }
 

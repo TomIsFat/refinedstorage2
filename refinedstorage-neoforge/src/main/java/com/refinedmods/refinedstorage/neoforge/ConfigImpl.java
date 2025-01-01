@@ -20,6 +20,7 @@ import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTr
 public class ConfigImpl implements Config {
     private static final String ENERGY_USAGE = "energyUsage";
     private static final String ENERGY_CAPACITY = "energyCapacity";
+    private static final String OPEN_ENERGY_USAGE = "openEnergyUsage";
 
     private final ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
     private final ModConfigSpec spec;
@@ -28,6 +29,7 @@ public class ConfigImpl implements Config {
     private final ModConfigSpec.BooleanValue smoothScrolling;
     private final ModConfigSpec.IntValue maxRowsStretch;
     private final ModConfigSpec.BooleanValue searchBoxAutoSelected;
+    private final ModConfigSpec.BooleanValue autocraftingNotification;
     private final SimpleEnergyUsageEntry cable;
     private final ControllerEntry controller;
     private final DiskDriveEntry diskDrive;
@@ -73,6 +75,9 @@ public class ConfigImpl implements Config {
         searchBoxAutoSelected = builder
             .translation(translationKey("searchBoxAutoSelected"))
             .define("searchBoxAutoSelected", false);
+        autocraftingNotification = builder
+            .translation(translationKey("autocraftingNotification"))
+            .define("autocraftingNotification", true);
         cable = new SimpleEnergyUsageEntryImpl("cable", DefaultEnergyUsage.CABLE);
         controller = new ControllerEntryImpl();
         diskDrive = new DiskDriveEntryImpl();
@@ -133,6 +138,19 @@ public class ConfigImpl implements Config {
     @Override
     public int getMaxRowsStretch() {
         return maxRowsStretch.get();
+    }
+
+    @Override
+    public boolean isAutocraftingNotification() {
+        return autocraftingNotification.get();
+    }
+
+    @Override
+    public void setAutocraftingNotification(final boolean autocraftingNotification) {
+        if (autocraftingNotification != Boolean.TRUE.equals(this.autocraftingNotification.get())) {
+            this.autocraftingNotification.set(autocraftingNotification);
+            ConfigImpl.this.spec.save();
+        }
     }
 
     @Override
@@ -835,7 +853,7 @@ public class ConfigImpl implements Config {
                 .defineInRange(ENERGY_CAPACITY, DefaultEnergyUsage.WIRELESS_GRID_CAPACITY, 0, Long.MAX_VALUE);
             openEnergyUsage = builder
                 .translation(translationKey("wirelessGrid.openEnergyUsage"))
-                .defineInRange("openEnergyUsage", DefaultEnergyUsage.WIRELESS_GRID_OPEN, 0, Long.MAX_VALUE);
+                .defineInRange(OPEN_ENERGY_USAGE, DefaultEnergyUsage.WIRELESS_GRID_OPEN, 0, Long.MAX_VALUE);
             extractEnergyUsage = builder
                 .translation(translationKey("wirelessGrid.extractEnergyUsage"))
                 .defineInRange("extractEnergyUsage", DefaultEnergyUsage.WIRELESS_GRID_EXTRACT, 0, Long.MAX_VALUE);
@@ -905,7 +923,7 @@ public class ConfigImpl implements Config {
                 .defineInRange(ENERGY_CAPACITY, DefaultEnergyUsage.PORTABLE_GRID_CAPACITY, 0, Long.MAX_VALUE);
             openEnergyUsage = builder
                 .translation(translationKey("portableGrid.openEnergyUsage"))
-                .defineInRange("openEnergyUsage", DefaultEnergyUsage.PORTABLE_GRID_OPEN, 0, Long.MAX_VALUE);
+                .defineInRange(OPEN_ENERGY_USAGE, DefaultEnergyUsage.PORTABLE_GRID_OPEN, 0, Long.MAX_VALUE);
             extractEnergyUsage = builder
                 .translation(translationKey("portableGrid.extractEnergyUsage"))
                 .defineInRange("extractEnergyUsage", DefaultEnergyUsage.PORTABLE_GRID_EXTRACT, 0, Long.MAX_VALUE);
@@ -1053,7 +1071,7 @@ public class ConfigImpl implements Config {
                     Long.MAX_VALUE);
             openEnergyUsage = builder
                 .translation(translationKey("wirelessAutocraftingMonitor.openEnergyUsage"))
-                .defineInRange("openEnergyUsage", DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_OPEN, 0,
+                .defineInRange(OPEN_ENERGY_USAGE, DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_OPEN, 0,
                     Long.MAX_VALUE);
             cancelEnergyUsage = builder
                 .translation(translationKey("wirelessAutocraftingMonitor.cancelEnergyUsage"))

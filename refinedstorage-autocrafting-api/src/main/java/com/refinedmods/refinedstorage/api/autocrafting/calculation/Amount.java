@@ -10,7 +10,7 @@ record Amount(long iterations, long amountPerIteration) {
     }
 
     static Amount of(final Pattern pattern, final ResourceKey resource, final long requestedAmount) {
-        final long amountPerIteration = pattern.getOutputs()
+        final long amountPerIteration = pattern.outputs()
             .stream()
             .filter(output -> output.resource().equals(resource))
             .mapToLong(ResourceAmount::amount)

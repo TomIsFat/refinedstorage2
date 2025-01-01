@@ -3,10 +3,11 @@ package com.refinedmods.refinedstorage.api.autocrafting.calculation;
 import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -45,12 +46,17 @@ class CraftingTree<T> {
 
     static <T> CraftingTree<T> child(final Pattern pattern,
                                      final CraftingState parentState,
+                                     final ResourceKey resource,
                                      final Amount amount,
                                      final PatternRepository patternRepository,
                                      final CraftingCalculatorListener<T> listener,
                                      final Set<Pattern> activePatterns) {
-        return new CraftingTree<>(pattern, parentState.copy(), amount, patternRepository,
-            listener.childCalculationStarted(), activePatterns);
+        final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted(
+            resource,
+            amount.getTotal()
+        );
+        final CraftingState childState = parentState.copy();
+        return new CraftingTree<>(pattern, childState, amount, patternRepository, childListener, activePatterns);
     }
 
     CalculationResult calculate() {
@@ -58,10 +64,7 @@ class CraftingTree<T> {
             throw new PatternCycleDetectedException(pattern);
         }
         CalculationResult result = CalculationResult.SUCCESS;
-        for (final Ingredient ingredient : pattern.getIngredients()) {
-            if (ingredient.isEmpty()) {
-                continue;
-            }
+        for (final Ingredient ingredient : pattern.ingredients()) {
             final IngredientState ingredientState = new IngredientState(ingredient, craftingState);
             final CalculationResult ingredientResult = calculateIngredient(ingredientState);
             if (ingredientResult == CalculationResult.MISSING_RESOURCES) {
@@ -112,7 +115,7 @@ class CraftingTree<T> {
     private CraftingState.ResourceState tryCalculateChild(final IngredientState ingredientState,
                                                           final CraftingState.ResourceState resourceState,
                                                           final long remaining) {
-        final List<Pattern> childPatterns = patternRepository.getByOutput(resourceState.resource());
+        final Collection<Pattern> childPatterns = patternRepository.getByOutput(resourceState.resource());
         if (!childPatterns.isEmpty()) {
             return calculateChild(
                 ingredientState,
@@ -130,7 +133,7 @@ class CraftingTree<T> {
     @Nullable
     private CraftingState.ResourceState calculateChild(final IngredientState ingredientState,
                                                        final long remaining,
-                                                       final List<Pattern> childPatterns,
+                                                       final Collection<Pattern> childPatterns,
                                                        final CraftingState.ResourceState resourceState) {
         final ChildCalculationResult<T> result = calculateChild(remaining, childPatterns, resourceState);
         if (result.success) {
@@ -138,26 +141,22 @@ class CraftingTree<T> {
             final CraftingState.ResourceState updatedResourceState = craftingState.getResource(
                 resourceState.resource()
             );
-            listener.childCalculationCompleted(
-                updatedResourceState.resource(),
-                updatedResourceState.inInternalStorage(),
-                result.childTree.listener
-            );
+            listener.childCalculationCompleted(result.childTree.listener);
             return updatedResourceState;
         }
         return cycleToNextIngredientOrFail(ingredientState, resourceState, result);
     }
 
     private ChildCalculationResult<T> calculateChild(final long remaining,
-                                                     final List<Pattern> childPatterns,
+                                                     final Collection<Pattern> childPatterns,
                                                      final CraftingState.ResourceState resourceState) {
         CraftingTree<T> lastChildTree = null;
-        Amount lastChildAmount = null;
         for (final Pattern childPattern : childPatterns) {
             final Amount childAmount = Amount.of(childPattern, resourceState.resource(), remaining);
             final CraftingTree<T> childTree = child(
                 childPattern,
                 craftingState,
+                resourceState.resource(),
                 childAmount,
                 patternRepository,
                 listener,
@@ -166,20 +165,11 @@ class CraftingTree<T> {
             final CalculationResult childResult = childTree.calculate();
             if (childResult == CalculationResult.MISSING_RESOURCES) {
                 lastChildTree = childTree;
-                lastChildAmount = childAmount;
                 continue;
             }
-            return new ChildCalculationResult<>(
-                true,
-                craftingState.getResource(resourceState.resource()).inInternalStorage(),
-                childTree
-            );
+            return new ChildCalculationResult<>(true, childTree);
         }
-        return new ChildCalculationResult<>(
-            false,
-            requireNonNull(lastChildAmount).getTotal(),
-            requireNonNull(lastChildTree)
-        );
+        return new ChildCalculationResult<>(false, requireNonNull(lastChildTree));
     }
 
     @Nullable
@@ -188,18 +178,12 @@ class CraftingTree<T> {
                                                                     final ChildCalculationResult<T> childResult) {
         return ingredientState.cycle().map(craftingState::getResource).orElseGet(() -> {
             this.craftingState = childResult.childTree.craftingState;
-            listener.childCalculationCompleted(
-                resourceState.resource(),
-                childResult.amountCrafted,
-                childResult.childTree.listener
-            );
+            listener.childCalculationCompleted(childResult.childTree.listener);
             return null;
         });
     }
 
-    private record ChildCalculationResult<T>(boolean success,
-                                             long amountCrafted,
-                                             CraftingTree<T> childTree) {
+    private record ChildCalculationResult<T>(boolean success, CraftingTree<T> childTree) {
     }
 
     enum CalculationResult {

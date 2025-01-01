@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 -   Autocrafting engine.
 -   The crafting preview now has the ability to fill out the maximum amount of a resource you can currently craft.
+-   In the crafting preview, you can now indicate whether you want to be notified when an autocrafting task is finished.
 
 ### Changed
 

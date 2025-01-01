@@ -2,6 +2,8 @@ package com.refinedmods.refinedstorage.api.autocrafting.calculation;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
+import static java.util.Objects.requireNonNull;
+
 class MissingResourcesCraftingCalculatorListener implements CraftingCalculatorListener<Boolean> {
     private boolean missingResources;
 
@@ -17,15 +19,14 @@ class MissingResourcesCraftingCalculatorListener implements CraftingCalculatorLi
     }
 
     @Override
-    public CraftingCalculatorListener<Boolean> childCalculationStarted() {
+    public CraftingCalculatorListener<Boolean> childCalculationStarted(final ResourceKey resource,
+                                                                       final long amount) {
         return new MissingResourcesCraftingCalculatorListener(missingResources);
     }
 
     @Override
-    public void childCalculationCompleted(final ResourceKey resource,
-                                          final long amount,
-                                          final CraftingCalculatorListener<Boolean> childListener) {
-        missingResources = ((MissingResourcesCraftingCalculatorListener) childListener).missingResources;
+    public void childCalculationCompleted(final CraftingCalculatorListener<Boolean> childListener) {
+        missingResources = requireNonNull(childListener.getData());
     }
 
     @Override
@@ -36,5 +37,10 @@ class MissingResourcesCraftingCalculatorListener implements CraftingCalculatorLi
     @Override
     public void ingredientExtractedFromStorage(final ResourceKey resource, final long amount) {
         // no op
+    }
+
+    @Override
+    public Boolean getData() {
+        return missingResources;
     }
 }

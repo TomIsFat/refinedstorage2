@@ -6,7 +6,7 @@ import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,29 +29,30 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
                               final long amount,
                               final CraftingCalculatorListener<T> listener) {
         CoreValidations.validateLargerThanZero(amount, "Requested amount must be greater than 0");
-        final List<Pattern> patterns = patternRepository.getByOutput(resource);
+        final Collection<Pattern> patterns = patternRepository.getByOutput(resource);
         CraftingCalculatorListener<T> lastChildListener = null;
-        Amount lastPatternAmount = null;
         for (final Pattern pattern : patterns) {
             final Amount patternAmount = Amount.of(pattern, resource, amount);
             if (patternAmount.getTotal() < 0) {
                 throw new NumberOverflowDuringCalculationException();
             }
-            final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted();
+            final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted(
+                resource,
+                patternAmount.getTotal()
+            );
             final CraftingTree<T> tree = root(pattern, rootStorage, patternAmount, patternRepository, childListener);
             final CraftingTree.CalculationResult calculationResult = tree.calculate();
             if (calculationResult == CraftingTree.CalculationResult.MISSING_RESOURCES) {
                 lastChildListener = childListener;
-                lastPatternAmount = patternAmount;
                 continue;
             }
-            listener.childCalculationCompleted(resource, patternAmount.getTotal(), childListener);
+            listener.childCalculationCompleted(childListener);
             return;
         }
         if (lastChildListener == null) {
             throw new IllegalStateException("No pattern found for " + resource);
         }
-        listener.childCalculationCompleted(resource, lastPatternAmount.getTotal(), lastChildListener);
+        listener.childCalculationCompleted(lastChildListener);
     }
 
     private boolean isCraftable(final ResourceKey resource, final long amount) {

@@ -27,6 +27,7 @@ import com.refinedmods.refinedstorage.common.support.network.ColoredConnectionSt
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import net.minecraft.core.BlockPos;
@@ -101,27 +102,28 @@ public abstract class AbstractGridBlockEntity extends AbstractBaseNetworkNodeCon
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         return Optional.ofNullable(mainNetworkNode.getNetwork())
             .map(network -> network.getComponent(AutocraftingNetworkComponent.class))
-            .flatMap(component -> component.getPreview(resource, amount));
+            .map(component -> component.getPreview(resource, amount))
+            .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
         return Optional.ofNullable(mainNetworkNode.getNetwork())
             .map(network -> network.getComponent(AutocraftingNetworkComponent.class))
             .map(component -> component.getMaxAmount(resource))
-            .orElse(0L);
+            .orElseGet(() -> CompletableFuture.completedFuture(0L));
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
         final Network network = mainNetworkNode.getNetwork();
         if (network == null) {
             return false;
         }
-        return network.getComponent(AutocraftingNetworkComponent.class).startTask(resource, amount);
+        return network.getComponent(AutocraftingNetworkComponent.class).startTask(resource, amount, actor, notify);
     }
 
     @Override

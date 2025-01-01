@@ -1,11 +1,11 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
-import com.refinedmods.refinedstorage.api.network.impl.autocrafting.PatternImpl;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.api.network.impl.security.SecurityDecisionProviderImpl;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
@@ -15,7 +15,7 @@ import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponen
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.AccessMode;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetwork;
@@ -28,6 +28,7 @@ import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import com.refinedmods.refinedstorage.network.test.fixtures.PermissionFixtures;
 import com.refinedmods.refinedstorage.network.test.fixtures.SecurityActorFixtures;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -104,8 +105,8 @@ class RelayNetworkNodeTest {
         assertThat(outputSecurity.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
         assertThat(outputSecurity.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
         assertThat(outputStorage.getAll()).isEmpty();
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
         assertThat(outputAutocrafting.getOutputs()).isEmpty();
         assertThat(outputAutocrafting.getPatterns()).isEmpty();
         assertThat(output.getEnergyUsage()).isZero();
@@ -143,8 +144,8 @@ class RelayNetworkNodeTest {
         assertThat(outputSecurity.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
         assertThat(outputSecurity.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
         assertThat(outputStorage.getAll()).isEmpty();
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
         assertThat(outputAutocrafting.getOutputs()).isEmpty();
         assertThat(outputAutocrafting.getPatterns()).isEmpty();
         assertThat(output.getEnergyUsage()).isZero();
@@ -184,8 +185,8 @@ class RelayNetworkNodeTest {
         assertThat(outputSecurity.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
         assertThat(outputSecurity.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
         assertThat(outputStorage.getAll()).isEmpty();
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
         assertThat(outputAutocrafting.getOutputs()).isEmpty();
         assertThat(outputAutocrafting.getPatterns()).isEmpty();
         assertThat(output.getEnergyUsage()).isZero();
@@ -225,8 +226,8 @@ class RelayNetworkNodeTest {
         assertThat(outputSecurity.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
         assertThat(outputSecurity.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
         assertThat(outputStorage.getAll()).isEmpty();
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
         assertThat(outputAutocrafting.getOutputs()).isEmpty();
         assertThat(outputAutocrafting.getPatterns()).isEmpty();
         assertThat(output.getEnergyUsage()).isZero();
@@ -266,8 +267,8 @@ class RelayNetworkNodeTest {
         assertThat(outputSecurity.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
         assertThat(outputSecurity.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
         assertThat(outputStorage.getAll()).isEmpty();
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
         assertThat(outputAutocrafting.getOutputs()).isEmpty();
         assertThat(outputAutocrafting.getPatterns()).isEmpty();
         assertThat(output.getEnergyUsage()).isZero();
@@ -303,12 +304,12 @@ class RelayNetworkNodeTest {
         ));
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.extract(B, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.extract(B, 3, Action.EXECUTE, Actor.EMPTY);
 
         inputAlternativeStorage.addSource(new StorageImpl());
-        inputAlternativeStorage.insert(A, 33, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputAlternativeStorage.insert(A, 33, Action.EXECUTE, Actor.EMPTY);
 
         addSecurityPolicy(inputSecurity, PermissionFixtures.OTHER);
         addSecurityPolicy(inputAlternativeSecurity, PermissionFixtures.OTHER2);
@@ -324,8 +325,8 @@ class RelayNetworkNodeTest {
         final long originalStored = inputAlternativeEnergy.getStored();
         final long extractedEnergy = output.extract(1);
 
-        final long insertedStorage = outputStorage.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extractedStorage = outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long insertedStorage = outputStorage.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
+        final long extractedStorage = outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(extractedEnergy).isEqualTo(1);
@@ -343,7 +344,9 @@ class RelayNetworkNodeTest {
             new ResourceAmount(C, 1)
         );
         assertThat(outputAutocrafting.getOutputs()).containsExactly(B);
-        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.getOutputResources().contains(B));
+        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.outputs()
+            .stream()
+            .anyMatch(patternOutput -> patternOutput.resource().equals(B)));
         assertThat(inputAlternativeStorage.getAll()).usingRecursiveFieldByFieldElementComparator()
             .containsExactlyInAnyOrder(new ResourceAmount(A, 32), new ResourceAmount(C, 1));
         assertThat(inputStorage.getAll()).usingRecursiveFieldByFieldElementComparator()
@@ -389,10 +392,12 @@ class RelayNetworkNodeTest {
         assertThat(outputStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(A, 10)
         );
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isEqualTo(1);
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isEqualTo(1);
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
         assertThat(outputAutocrafting.getOutputs()).containsExactly(A);
-        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.getOutputResources().contains(A));
+        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.outputs()
+            .stream()
+            .anyMatch(patternOutput -> patternOutput.resource().equals(A)));
         assertThat(output.getEnergyUsage()).isEqualTo(OUTPUT_ENERGY_USAGE);
     }
 
@@ -432,10 +437,12 @@ class RelayNetworkNodeTest {
         assertThat(outputStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(A, 10)
         );
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isEqualTo(1);
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isEqualTo(1);
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
         assertThat(outputAutocrafting.getOutputs()).containsExactly(A);
-        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.getOutputResources().contains(A));
+        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.outputs()
+            .stream()
+            .anyMatch(patternOutput -> patternOutput.resource().equals(A)));
         assertThat(output.getEnergyUsage()).isEqualTo(OUTPUT_ENERGY_USAGE);
     }
 
@@ -465,11 +472,14 @@ class RelayNetworkNodeTest {
 
     static void addStorageSource(final StorageNetworkComponent storage) {
         storage.addSource(new StorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
     }
 
     static Runnable addPattern(final AutocraftingNetworkComponent component, final ResourceKey output) {
-        final Pattern pattern = new PatternImpl(output);
+        final Pattern pattern = new Pattern(
+            List.of(new Ingredient(1, List.of(C))),
+            List.of(new ResourceAmount(output, 1))
+        );
         final PatternProviderNetworkNode patternProvider = new PatternProviderNetworkNode(0, 1);
         patternProvider.setPattern(0, pattern);
         final NetworkNodeContainer container = () -> patternProvider;

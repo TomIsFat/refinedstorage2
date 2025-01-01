@@ -5,7 +5,6 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 class IngredientState {
     private final long amount;
@@ -13,9 +12,9 @@ class IngredientState {
     private int pos;
 
     IngredientState(final Ingredient ingredient, final CraftingState state) {
-        this.amount = ingredient.getAmount();
-        this.possibilities = IntStream.range(0, ingredient.size())
-            .mapToObj(ingredient::get)
+        this.amount = ingredient.amount();
+        this.possibilities = ingredient.inputs()
+            .stream()
             .sorted(state.storageSorter())
             .sorted(state.internalStorageSorter())
             .toList();

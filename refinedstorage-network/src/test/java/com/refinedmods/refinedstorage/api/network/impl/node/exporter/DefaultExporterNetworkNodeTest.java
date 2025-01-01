@@ -9,7 +9,6 @@ import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponen
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
@@ -36,8 +35,8 @@ class DefaultExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest {
     void shouldTransfer(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
         storage.addSource(new TrackedStorageImpl(new StorageImpl(), () -> 1L));
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 1);
@@ -69,7 +68,7 @@ class DefaultExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(B, 7, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(B, 7, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);
@@ -93,9 +92,9 @@ class DefaultExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(C, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 10, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(C, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl() {
             @Override

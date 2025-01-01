@@ -9,7 +9,7 @@ import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceExpor
 import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceNetworkNode;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
@@ -77,7 +77,7 @@ class IoLoopInterfaceExternalStorageProviderImplTest {
         regularInterface.setTransferQuotaProvider(resource -> 100);
 
         regularStorageInNetwork = new StorageImpl();
-        regularStorageInNetwork.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        regularStorageInNetwork.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         networkStorage.addSource(regularStorageInNetwork);
 
         externalStorageWithNonInterfaceConnection.initialize(new ExternalStorageProviderFactoryImpl(

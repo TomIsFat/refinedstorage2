@@ -152,9 +152,8 @@ public final class StorageBlockFluidTest {
     public static void shouldExtractFluidAllowlist(final GameTestHelper helper) {
         preparePlot(helper, false, (storageBlock, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, WATER, Platform.INSTANCE.getBucketAmount() * 16);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, WATER, Platform.INSTANCE.getBucketAmount() * 16)));
 
             // Act
             storageBlock.setFilterMode(FilterMode.ALLOW);
@@ -184,9 +183,8 @@ public final class StorageBlockFluidTest {
     public static void shouldExtractFluidBlocklist(final GameTestHelper helper) {
         preparePlot(helper, false, (storageBlock, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, WATER, Platform.INSTANCE.getBucketAmount() * 16);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, WATER, Platform.INSTANCE.getBucketAmount() * 16)));
 
             // Act
             storageBlock.setFilterMode(FilterMode.BLOCK);

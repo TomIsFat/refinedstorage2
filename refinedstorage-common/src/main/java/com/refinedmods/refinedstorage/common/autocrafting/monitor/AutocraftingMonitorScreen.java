@@ -26,7 +26,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 
 import static com.refinedmods.refinedstorage.common.support.Sprites.ERROR;
-import static com.refinedmods.refinedstorage.common.support.Sprites.ERROR_SIZE;
+import static com.refinedmods.refinedstorage.common.support.Sprites.ICON_SIZE;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
@@ -295,10 +295,10 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     private static void renderItemErrorIcon(final GuiGraphics graphics, final int x, final int y) {
         graphics.blitSprite(
             ERROR,
-            x + 73 - ERROR_SIZE - 3,
-            y + (29 / 2) - (ERROR_SIZE / 2),
-            ERROR_SIZE,
-            ERROR_SIZE
+            x + 73 - ICON_SIZE - 3,
+            y + (29 / 2) - (ICON_SIZE / 2),
+            ICON_SIZE,
+            ICON_SIZE
         );
     }
 

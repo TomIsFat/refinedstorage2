@@ -5,6 +5,7 @@ import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetwo
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.Filter;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
@@ -48,7 +49,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
         }
         this.delegate = delegate;
         if (delegate != null) {
-            parents.forEach(parent -> getPatterns().forEach(parent::add));
+            parents.forEach(parent -> getPatterns().forEach(pattern -> parent.add(pattern, 0)));
             delegate.addListener(this);
         }
     }
@@ -65,7 +66,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     private boolean isPatternAllowed(final Pattern pattern) {
-        return pattern.getOutputResources().stream().anyMatch(filter::isAllowed);
+        return pattern.outputs().stream().map(ResourceAmount::resource).anyMatch(filter::isAllowed);
     }
 
     @Override
@@ -73,7 +74,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
         if (delegate == null || !isPatternAllowed(pattern) || delegate.contains(delegate)) {
             return;
         }
-        parents.forEach(parent -> parent.add(pattern));
+        parents.forEach(parent -> parent.add(pattern, 0));
     }
 
     @Override
@@ -92,7 +93,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     @Override
     public void onAddedIntoContainer(final ParentContainer parentContainer) {
         if (delegate != null) {
-            delegate.getPatterns().forEach(parentContainer::add);
+            delegate.getPatterns().forEach(pattern -> parentContainer.add(pattern, 0));
         }
         parents.add(parentContainer);
     }

@@ -8,7 +8,6 @@ import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponen
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.InsertableStorage;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
@@ -59,8 +58,8 @@ abstract class AbstractExporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage failingDestination = new LimitedStorageImpl(0);
         final Storage destination = new LimitedStorageImpl(100);
@@ -91,8 +90,8 @@ abstract class AbstractExporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new LimitedStorageImpl(100) {
             @Override
@@ -144,8 +143,8 @@ abstract class AbstractExporterNetworkNodeTest {
     void shouldNotTransferWithoutSchedulingMode(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
 
@@ -168,8 +167,8 @@ abstract class AbstractExporterNetworkNodeTest {
     void shouldNotTransferWithoutStrategy(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
 
@@ -190,8 +189,8 @@ abstract class AbstractExporterNetworkNodeTest {
     void shouldNotTransferIfInactive(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 1);
@@ -215,8 +214,8 @@ abstract class AbstractExporterNetworkNodeTest {
     void shouldNotTransferWithoutFilters(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 1);
@@ -262,12 +261,12 @@ abstract class AbstractExporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(C, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(C, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new LimitedStorageImpl(5);
-        destination.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        destination.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);
 
@@ -307,11 +306,11 @@ abstract class AbstractExporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new LimitedStorageImpl(1);
-        destination.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        destination.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 5);
 
@@ -337,8 +336,8 @@ abstract class AbstractExporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 6, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 7, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 6, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 7, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);

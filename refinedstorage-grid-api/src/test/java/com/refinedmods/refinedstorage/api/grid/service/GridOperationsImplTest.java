@@ -7,7 +7,6 @@ import com.refinedmods.refinedstorage.api.grid.operations.GridOperationsImpl;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
@@ -45,7 +44,7 @@ class GridOperationsImplTest {
         void shouldInsertIntoDestination(final GridInsertMode insertMode) {
             // Arrange
             final Storage source = new LimitedStorageImpl(100);
-            source.insert(A, MAX_COUNT * 3, Action.EXECUTE, EmptyActor.INSTANCE);
+            source.insert(A, MAX_COUNT * 3, Action.EXECUTE, Actor.EMPTY);
 
             final Storage destination = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(destination);
@@ -97,11 +96,11 @@ class GridOperationsImplTest {
         void shouldNotInsertIntoDestinationWhenNoSpaceIsPresentInDestination(final GridInsertMode insertMode) {
             // Arrange
             final Storage source = new LimitedStorageImpl(100);
-            source.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            source.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             final Storage destination = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(destination);
-            rootStorage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.insert(A, insertMode, source);
@@ -125,11 +124,11 @@ class GridOperationsImplTest {
         void shouldInsertIntoDestinationWithRemainder() {
             // Arrange
             final Storage source = new LimitedStorageImpl(100);
-            source.insert(A, MAX_COUNT, Action.EXECUTE, EmptyActor.INSTANCE);
+            source.insert(A, MAX_COUNT, Action.EXECUTE, Actor.EMPTY);
 
             final Storage destination = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(destination);
-            rootStorage.insert(A, 100 - MAX_COUNT + 1, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, 100 - MAX_COUNT + 1, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.insert(A, GridInsertMode.ENTIRE_RESOURCE, source);
@@ -169,11 +168,11 @@ class GridOperationsImplTest {
                     return super.extract(resource, amount, action, source);
                 }
             };
-            source.insert(A, MAX_COUNT, Action.EXECUTE, EmptyActor.INSTANCE);
+            source.insert(A, MAX_COUNT, Action.EXECUTE, Actor.EMPTY);
 
             final Storage destination = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(destination);
-            rootStorage.insert(A, 100 - MAX_COUNT + 1, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, 100 - MAX_COUNT + 1, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.insert(A, GridInsertMode.ENTIRE_RESOURCE, source);
@@ -201,7 +200,7 @@ class GridOperationsImplTest {
 
             final Storage source = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(source);
-            rootStorage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.extract(A, extractMode, destination);
@@ -251,11 +250,11 @@ class GridOperationsImplTest {
         void shouldNotExtractFromSourceIfThereIsNoSpaceInDestination(final GridExtractMode extractMode) {
             // Arrange
             final Storage destination = new LimitedStorageImpl(100);
-            destination.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            destination.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
             final Storage source = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(source);
-            rootStorage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.extract(A, extractMode, destination);
@@ -282,7 +281,7 @@ class GridOperationsImplTest {
 
             final Storage source = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(source);
-            rootStorage.insert(A, MAX_COUNT - 1, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, MAX_COUNT - 1, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.extract(A, GridExtractMode.ENTIRE_RESOURCE, destination);
@@ -307,7 +306,7 @@ class GridOperationsImplTest {
 
             final Storage source = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(source);
-            rootStorage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.extract(A, GridExtractMode.ENTIRE_RESOURCE, destination);
@@ -337,7 +336,7 @@ class GridOperationsImplTest {
 
             final Storage source = new TrackedStorageImpl(new LimitedStorageImpl(100), () -> 0L);
             rootStorage.addSource(source);
-            rootStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+            rootStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final boolean success = sut.extract(A, GridExtractMode.HALF_RESOURCE, destination);

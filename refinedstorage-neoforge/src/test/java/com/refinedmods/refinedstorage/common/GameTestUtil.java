@@ -10,7 +10,7 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.common.api.support.network.AbstractNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceContainer;
 import com.refinedmods.refinedstorage.common.content.Blocks;
@@ -130,7 +130,7 @@ public final class GameTestUtil {
                               final long amount,
                               final boolean shouldSucceed) {
         final StorageNetworkComponent storage = network.getComponent(StorageNetworkComponent.class);
-        final long inserted = storage.insert(resource, amount, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = storage.insert(resource, amount, Action.EXECUTE, Actor.EMPTY);
         if (shouldSucceed) {
             helper.assertTrue(inserted == amount, "Resource couldn't be inserted");
         } else {
@@ -174,7 +174,7 @@ public final class GameTestUtil {
                                final long amount,
                                final boolean shouldSucceed) {
         final StorageNetworkComponent storage = network.getComponent(StorageNetworkComponent.class);
-        final long extracted = storage.extract(resource, amount, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = storage.extract(resource, amount, Action.EXECUTE, Actor.EMPTY);
         if (shouldSucceed) {
             helper.assertTrue(extracted == amount, "Resource couldn't be extracted");
         } else {

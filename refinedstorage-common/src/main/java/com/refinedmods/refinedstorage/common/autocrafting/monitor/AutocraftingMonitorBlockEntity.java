@@ -104,11 +104,6 @@ public class AutocraftingMonitorBlockEntity extends AbstractBaseNetworkNodeConta
     }
 
     @Override
-    public void testUpdate() {
-        getAutocrafting().ifPresent(AutocraftingNetworkComponent::testUpdate);
-    }
-
-    @Override
     public void addWatcher(final AutocraftingMonitorWatcher watcher) {
         watchers.add(watcher);
     }

@@ -53,7 +53,6 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     private final PatternInventory patternContainer = new PatternInventory(PATTERNS, this::getLevel);
     private final UpgradeContainer upgradeContainer;
     private LockMode lockMode = LockMode.NEVER;
-    private int priority;
     private boolean visibleToTheAutocrafterManager = true;
 
     public AutocrafterBlockEntity(final BlockPos pos, final BlockState state) {
@@ -203,7 +202,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     public void writeConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         super.writeConfiguration(tag, provider);
         tag.putInt(TAG_LOCK_MODE, LockModeSettings.getLockMode(lockMode));
-        tag.putInt(TAG_PRIORITY, priority);
+        tag.putInt(TAG_PRIORITY, mainNetworkNode.getPriority());
         tag.putBoolean(TAG_VISIBLE_TO_THE_AUTOCRAFTER_MANAGER, visibleToTheAutocrafterManager);
     }
 
@@ -225,7 +224,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
             lockMode = LockModeSettings.getLockMode(tag.getInt(TAG_LOCK_MODE));
         }
         if (tag.contains(TAG_PRIORITY)) {
-            priority = tag.getInt(TAG_PRIORITY);
+            mainNetworkNode.setPriority(tag.getInt(TAG_PRIORITY));
         }
         if (tag.contains(TAG_VISIBLE_TO_THE_AUTOCRAFTER_MANAGER)) {
             visibleToTheAutocrafterManager = tag.getBoolean(TAG_VISIBLE_TO_THE_AUTOCRAFTER_MANAGER);
@@ -275,11 +274,11 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     }
 
     int getPriority() {
-        return priority;
+        return mainNetworkNode.getPriority();
     }
 
     void setPriority(final int priority) {
-        this.priority = priority;
+        mainNetworkNode.setPriority(priority);
         setChanged();
     }
 

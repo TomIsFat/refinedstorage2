@@ -16,6 +16,7 @@ import com.refinedmods.refinedstorage.api.grid.view.GridViewBuilder;
 import com.refinedmods.refinedstorage.api.grid.view.GridViewBuilderImpl;
 import com.refinedmods.refinedstorage.api.grid.watcher.GridWatcher;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.common.Config;
 import com.refinedmods.refinedstorage.common.Platform;
@@ -46,6 +47,7 @@ import com.refinedmods.refinedstorage.query.parser.ParserOperatorMappings;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiPredicate;
 import javax.annotation.Nullable;
 
@@ -251,7 +253,7 @@ public abstract class AbstractGridContainerMenu extends AbstractResourceContaine
                 playerInventoryPatterns.remove(beforePattern);
             }
             if (afterPattern != null) {
-                playerInventoryPatterns.add(afterPattern);
+                playerInventoryPatterns.add(afterPattern, 0);
             }
         });
     }
@@ -459,18 +461,18 @@ public abstract class AbstractGridContainerMenu extends AbstractResourceContaine
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         return requireNonNull(grid).getPreview(resource, amount);
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
         return requireNonNull(grid).getMaxAmount(resource);
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
-        return requireNonNull(grid).startTask(resource, amount);
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+        return requireNonNull(grid).startTask(resource, amount, actor, notify);
     }
 
     public boolean isLargeSlot(final Slot slot) {

@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.common.support.amount.AbstractAmountScreen
 import com.refinedmods.refinedstorage.common.support.amount.AmountScreenConfiguration;
 import com.refinedmods.refinedstorage.common.support.amount.DoubleAmountOperations;
 import com.refinedmods.refinedstorage.common.support.containermenu.ResourceSlot;
-import com.refinedmods.refinedstorage.common.support.widget.CustomCheckboxWidget;
+import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
 import com.refinedmods.refinedstorage.common.support.widget.HoveredImageButton;
 import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
 import com.refinedmods.refinedstorage.common.support.widget.SearchIconWidget;
@@ -38,6 +38,7 @@ import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTr
 public class AlternativesScreen extends AbstractAmountScreen<AlternativeContainerMenu, Double> {
     static final int ALTERNATIVE_ROW_HEIGHT = 18;
     static final int ALTERNATIVE_HEIGHT = ALTERNATIVE_ROW_HEIGHT * 2;
+    static final int RESOURCES_PER_ROW = 9;
 
     private static final ResourceLocation TEXTURE = createIdentifier("textures/gui/alternatives.png");
     private static final MutableComponent TITLE = createTranslation("gui", "configure_amount");
@@ -58,8 +59,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
 
     private static final int ALTERNATIVES_DISPLAYED = 2;
     private static final int ROWS_PER_ALTERNATIVE = 2;
-    private static final int RESOURCES_PER_ROW = 8;
-    private static final int INSET_WIDTH = 146;
+    private static final int INSET_WIDTH = 164;
     private static final int INSET_HEIGHT = ALTERNATIVE_HEIGHT * ALTERNATIVES_DISPLAYED;
 
     private final ResourceSlot slot;
@@ -69,7 +69,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
     @Nullable
     private EditBox searchField;
 
-    private final List<CustomCheckboxWidget> alternativeCheckboxes = new ArrayList<>();
+    private final List<CheckboxWidget> alternativeCheckboxes = new ArrayList<>();
     private final List<Button> expandButtons = new ArrayList<>();
     private final Set<ResourceLocation> initialAllowedAlternativeIds;
 
@@ -85,10 +85,10 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
             AmountScreenConfiguration.AmountScreenConfigurationBuilder.<Double>create()
                 .withInitialAmount(slot.getDisplayAmount())
                 .withIncrementsTop(1, 10, 64)
-                .withIncrementsTopStartPosition(new Vector3f(40, 20, 0))
+                .withIncrementsTopStartPosition(new Vector3f(49, 20, 0))
                 .withIncrementsBottom(-1, -10, -64)
-                .withIncrementsBottomStartPosition(new Vector3f(40, 71, 0))
-                .withAmountFieldPosition(new Vector3f(38, 51, 0))
+                .withIncrementsBottomStartPosition(new Vector3f(49, 71, 0))
+                .withAmountFieldPosition(new Vector3f(47, 51, 0))
                 .withActionButtonsStartPosition(new Vector3f(7, 199, 0))
                 .withHorizontalActionButtons(true)
                 .withMinAmount(1D)
@@ -98,7 +98,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
             DoubleAmountOperations.INSTANCE
         );
         this.slot = slot;
-        this.imageWidth = 175;
+        this.imageWidth = 193;
         this.imageHeight = 226;
         this.initialAllowedAlternativeIds = allowedAlternativeIds;
     }
@@ -113,7 +113,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
             addWidgetsForAlternative(i, x);
         }
         scrollbar = new ScrollbarWidget(
-            leftPos + 155,
+            leftPos + 173,
             topPos + 122,
             ScrollbarWidget.Type.NORMAL,
             INSET_HEIGHT
@@ -130,7 +130,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
             font,
             leftPos + 24,
             topPos + 109,
-            144 - 6,
+            162 - 6,
             font.lineHeight,
             Component.empty()
         );
@@ -166,14 +166,14 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
         final int y = getAlternativeY(idx);
         final boolean hasTranslation = I18n.exists(alternative.getTranslationKey());
         final MutableComponent id = Component.literal(alternative.getId().toString());
-        final CustomCheckboxWidget alternativeCheckbox = new CustomCheckboxWidget(
+        final CheckboxWidget alternativeCheckbox = new CheckboxWidget(
             x + 2,
             y + (ALTERNATIVE_ROW_HEIGHT / 2) - (9 / 2),
-            144 - 16 - 1 - 4,
+            164 - 2 - 16 - 1 - 4,
             hasTranslation ? Component.translatable(alternative.getTranslationKey()) : id,
             font,
             initialAllowedAlternativeIds.contains(alternative.getId()),
-            CustomCheckboxWidget.Size.SMALL
+            CheckboxWidget.Size.SMALL
         );
         if (hasTranslation) {
             alternativeCheckbox.setTooltip(Tooltip.create(id));
@@ -214,7 +214,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
             - (theScrollbar.isSmoothScrolling() ? scrollbarOffset : scrollbarOffset * ALTERNATIVE_ROW_HEIGHT);
         for (int i = 0; i < getMenu().getAlternatives().size(); ++i) {
             final Alternative alternative = getMenu().getAlternatives().get(i);
-            final CustomCheckboxWidget alternativeCheckbox = alternativeCheckboxes.get(i);
+            final CheckboxWidget alternativeCheckbox = alternativeCheckboxes.get(i);
             final Button expandButton = expandButtons.get(i);
 
             if (!alternative.isVisible()) {
@@ -246,7 +246,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
         theScrollbar.setEnabled(maxOffset > 0);
     }
 
-    private void updateAlternativeCheckbox(final CustomCheckboxWidget alternativeCheckbox, final int y) {
+    private void updateAlternativeCheckbox(final CheckboxWidget alternativeCheckbox, final int y) {
         alternativeCheckbox.setY(y + (ALTERNATIVE_ROW_HEIGHT / 2) - (9 / 2));
         alternativeCheckbox.visible = alternativeCheckbox.getY() >= getInsetY() - alternativeCheckbox.getHeight()
             && alternativeCheckbox.getY() < getInsetY() + INSET_HEIGHT;
@@ -263,7 +263,7 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
                                         final int rowOffset,
                                         final boolean visible) {
         for (int i = 0; i < slots.size(); i++) {
-            final int row = (i / 8) + rowOffset;
+            final int row = (i / RESOURCES_PER_ROW) + rowOffset;
             final AlternativeSlot resourceSlot = slots.get(i);
             Platform.INSTANCE.setSlotY(
                 resourceSlot,
@@ -491,9 +491,9 @@ public class AlternativesScreen extends AbstractAmountScreen<AlternativeContaine
 
     private boolean isOverAlternativesArea(final double x, final double y) {
         return x >= leftPos + 7
-            && (x < leftPos + 7 + 161)
+            && (x < leftPos + 7 + 179)
             && y >= topPos + 121
-            && (y < topPos + 121 + 88);
+            && (y < topPos + 121 + 74);
     }
 
     @Override

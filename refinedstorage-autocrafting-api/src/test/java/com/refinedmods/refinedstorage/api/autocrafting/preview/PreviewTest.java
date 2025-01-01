@@ -7,9 +7,9 @@ import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalcu
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
+import java.util.Collections;
 import java.util.stream.Stream;
 
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,18 +28,10 @@ import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.S
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SPRUCE_PLANKS;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.STICKS;
 import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewCraftingCalculatorListener.calculatePreview;
-import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.CYCLE_DETECTED;
-import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.MISSING_RESOURCES;
-import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.OVERFLOW;
-import static com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType.SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PreviewTest {
-    private static final RecursiveComparisonConfiguration PREVIEW_CONFIG = RecursiveComparisonConfiguration.builder()
-        .withIgnoredCollectionOrderInFields("items")
-        .build();
-
     @Test
     void shouldNotCalculateForPatternThatIsNotFound() {
         // Arrange
@@ -90,7 +82,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, requestedAmount);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(SUCCESS)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(CRAFTING_TABLE, requestedAmount)
             .addAvailable(OAK_PLANKS, requestedAmount * 4)
             .build());
@@ -122,7 +114,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, requestedAmount);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(MISSING_RESOURCES)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(CRAFTING_TABLE, requestedAmount)
             .addToCraft(OAK_PLANKS, requestedAmount * 4)
             .addMissing(OAK_LOG, requestedAmount)
@@ -145,8 +137,8 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 3);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG)
-            .isEqualTo(PreviewBuilder.ofType(MISSING_RESOURCES)
+        assertThat(preview).usingRecursiveComparison()
+            .isEqualTo(PreviewBuilder.create()
                 .addToCraft(CRAFTING_TABLE, 3)
                 .addAvailable(OAK_PLANKS, 8)
                 .addMissing(OAK_PLANKS, 4)
@@ -179,7 +171,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 1);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(SUCCESS)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(CRAFTING_TABLE, 1)
             .addToCraft(SPRUCE_PLANKS, 4)
             .addAvailable(SPRUCE_LOG, 1)
@@ -205,7 +197,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 11);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(SUCCESS)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(CRAFTING_TABLE, 11)
             .addAvailable(OAK_PLANKS, 4 * 10)
             .addAvailable(SPRUCE_PLANKS, 4)
@@ -232,8 +224,8 @@ class PreviewTest {
 
         // Assert
         assertThat(preview)
-            .usingRecursiveComparison(PREVIEW_CONFIG)
-            .isEqualTo(PreviewBuilder.ofType(MISSING_RESOURCES)
+            .usingRecursiveComparison()
+            .isEqualTo(PreviewBuilder.create()
                 .addToCraft(CRAFTING_TABLE, 16)
                 .addAvailable(OAK_PLANKS, 4 * 10)
                 .addAvailable(SPRUCE_PLANKS, 4 * 5)
@@ -265,7 +257,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 1);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(MISSING_RESOURCES)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(CRAFTING_TABLE, 1)
             .addToCraft(SPRUCE_PLANKS, 4)
             .addMissing(SPRUCE_LOG, 1)
@@ -294,7 +286,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 2);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(SUCCESS)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(CRAFTING_TABLE, 2)
             .addAvailable(SPRUCE_PLANKS, 8)
             .build());
@@ -323,8 +315,8 @@ class PreviewTest {
 
         // Assert
         assertThat(preview)
-            .usingRecursiveComparison(PREVIEW_CONFIG)
-            .isEqualTo(PreviewBuilder.ofType(MISSING_RESOURCES)
+            .usingRecursiveComparison()
+            .isEqualTo(PreviewBuilder.create()
                 .addToCraft(CRAFTING_TABLE, 4)
                 .addAvailable(SPRUCE_PLANKS, 8)
                 .addMissing(SPRUCE_PLANKS, 8)
@@ -355,8 +347,8 @@ class PreviewTest {
 
         // Assert
         assertThat(preview)
-            .usingRecursiveComparison(PREVIEW_CONFIG)
-            .isEqualTo(PreviewBuilder.ofType(SUCCESS)
+            .usingRecursiveComparison()
+            .isEqualTo(PreviewBuilder.create()
                 .addToCraft(CRAFTING_TABLE, 3)
                 .addAvailable(OAK_PLANKS, 3)
                 .addToCraft(OAK_PLANKS, 12)
@@ -390,7 +382,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 3);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(MISSING_RESOURCES)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(CRAFTING_TABLE, 3)
             .addToCraft(OAK_PLANKS, 12)
             .addMissing(SPRUCE_LOG, 3)
@@ -428,7 +420,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, SIGN, 1);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(SUCCESS)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(SIGN, 3)
             .addToCraft(OAK_PLANKS, 8)
             .addAvailable(OAK_LOG, 4)
@@ -468,7 +460,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, SIGN, 1);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(SUCCESS)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(SIGN, 3)
             .addAvailable(OAK_PLANKS, 6)
             .addToCraft(STICKS, 4)
@@ -479,21 +471,21 @@ class PreviewTest {
 
     private static Stream<Arguments> provideMissingResourcesPreview() {
         return Stream.of(
-            Arguments.of(1, PreviewBuilder.ofType(MISSING_RESOURCES)
+            Arguments.of(1, PreviewBuilder.create()
                 .addToCraft(SIGN, 3)
                 .addToCraft(OAK_PLANKS, 8)
                 .addAvailable(OAK_LOG, 3) // 6
                 .addMissing(OAK_LOG, 1) // 2
                 .addToCraft(STICKS, 4)
                 .build()),
-            Arguments.of(4, PreviewBuilder.ofType(MISSING_RESOURCES)
+            Arguments.of(4, PreviewBuilder.create()
                 .addToCraft(SIGN, 6)
                 .addToCraft(OAK_PLANKS, 14)
                 .addAvailable(OAK_LOG, 3) // 6
                 .addMissing(OAK_LOG, 4) // 4*2=8
                 .addToCraft(STICKS, 4)
                 .build()),
-            Arguments.of(20, PreviewBuilder.ofType(MISSING_RESOURCES)
+            Arguments.of(20, PreviewBuilder.create()
                 .addToCraft(SIGN, 21) // these are 7 iterations (3 yield per, 7*3=21)
                 .addToCraft(OAK_PLANKS, 46) // 4 planks are used for the sticks (4*2=8).
                 // that remains 46-4=42
@@ -540,7 +532,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, SIGN, requestedAmount);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(expectedPreview);
+        assertThat(preview).usingRecursiveComparison().isEqualTo(expectedPreview);
     }
 
     private static Stream<Arguments> provideAmounts() {
@@ -577,7 +569,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, OAK_PLANKS, requestedAmount);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison(PREVIEW_CONFIG).isEqualTo(PreviewBuilder.ofType(SUCCESS)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .addToCraft(OAK_PLANKS, planksCrafted)
             .addAvailable(OAK_LOG, logsUsed)
             .build());
@@ -604,7 +596,7 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, OAK_PLANKS, 1);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(CYCLE_DETECTED)
+        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.create()
             .withPatternWithCycle(cycledPattern)
             .build());
     }
@@ -625,7 +617,9 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, OAK_PLANKS, 2);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
+        assertThat(preview).usingRecursiveComparison().isEqualTo(new Preview(
+            PreviewType.OVERFLOW, Collections.emptyList(), Collections.emptyList()
+        ));
     }
 
     @Test
@@ -648,7 +642,9 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, OAK_PLANKS, Long.MAX_VALUE);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
+        assertThat(preview).usingRecursiveComparison().isEqualTo(new Preview(
+            PreviewType.OVERFLOW, Collections.emptyList(), Collections.emptyList()
+        ));
     }
 
     @Test
@@ -672,6 +668,8 @@ class PreviewTest {
         final Preview preview = calculatePreview(sut, CRAFTING_TABLE, 2);
 
         // Assert
-        assertThat(preview).usingRecursiveComparison().isEqualTo(PreviewBuilder.ofType(OVERFLOW).build());
+        assertThat(preview).usingRecursiveComparison().isEqualTo(new Preview(
+            PreviewType.OVERFLOW, Collections.emptyList(), Collections.emptyList()
+        ));
     }
 }

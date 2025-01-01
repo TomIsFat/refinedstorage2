@@ -13,7 +13,7 @@ import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
@@ -23,27 +23,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.C;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AutocraftingNetworkComponentImplTest {
-    private static final RecursiveComparisonConfiguration PREVIEW_CONFIG = RecursiveComparisonConfiguration.builder()
-        .withIgnoredCollectionOrderInFields("items")
-        .build();
-
     private RootStorage rootStorage;
     private AutocraftingNetworkComponentImpl sut;
 
     @BeforeEach
     void setUp() {
         rootStorage = new RootStorageImpl();
-        sut = new AutocraftingNetworkComponentImpl(() -> rootStorage, new FakeTaskStatusProvider());
+        sut = new AutocraftingNetworkComponentImpl(
+            () -> rootStorage,
+            new FakeTaskStatusProvider(),
+            Executors.newSingleThreadExecutor()
+        );
     }
 
     @Test
@@ -82,15 +85,13 @@ class AutocraftingNetworkComponentImplTest {
         sut.getStatuses();
         sut.cancel(new TaskId(UUID.randomUUID()));
         sut.cancelAll();
-        sut.testUpdate();
     }
 
     @Test
     void shouldAddPatternsFromPatternProvider() {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new PatternImpl(A));
-
+        provider.setPattern(1, pattern().output(A, 1).ingredient(C, 1).build());
         final NetworkNodeContainer container = () -> provider;
 
         // Act
@@ -104,7 +105,7 @@ class AutocraftingNetworkComponentImplTest {
     void shouldRemovePatternsFromPatternProvider() {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new PatternImpl(A));
+        provider.setPattern(1, pattern().output(A, 1).ingredient(C, 1).build());
 
         final NetworkNodeContainer container = () -> provider;
         sut.onContainerAdded(container);
@@ -117,56 +118,52 @@ class AutocraftingNetworkComponentImplTest {
     }
 
     @Test
-    void shouldAddPatternManually() {
-        // Arrange
-        final PatternImpl pattern = new PatternImpl(A);
-
-        // Act
-        sut.add(pattern);
-
-        // Assert
-        assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().containsExactly(A);
-    }
-
-    @Test
-    void shouldRemovePatternManually() {
-        // Arrange
-        final PatternImpl pattern = new PatternImpl(A);
-        sut.add(pattern);
-
-        // Act
-        sut.remove(pattern);
-
-        // Assert
-        assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().isEmpty();
-    }
-
-    @Test
     void shouldStartTask() {
-        sut.startTask(A, 10);
+        sut.startTask(A, 10, Actor.EMPTY, true);
     }
 
     @Test
-    void shouldGetPreview() {
+    void shouldGetPreview() throws ExecutionException, InterruptedException {
         // Arrange
         rootStorage.addSource(new StorageImpl());
-        rootStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
-        sut.add(new PatternImpl(
+        final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
+        provider.setPattern(1, new Pattern(
             List.of(new Ingredient(3, List.of(A))),
-            new ResourceAmount(B, 1)
+            List.of(new ResourceAmount(B, 1))
         ));
+        final NetworkNodeContainer container = () -> provider;
+        sut.onContainerAdded(container);
 
         // Act
-        final Optional<Preview> preview = sut.getPreview(B, 2);
+        final Optional<Preview> preview = sut.getPreview(B, 2).get();
 
         // Assert
-        assertThat(preview)
-            .get()
-            .usingRecursiveComparison(PREVIEW_CONFIG)
-            .isEqualTo(new Preview(PreviewType.SUCCESS, List.of(
-                new PreviewItem(B, 0, 0, 2),
-                new PreviewItem(A, 6, 0, 0)
-            ), Collections.emptyList()));
+        assertThat(preview).get().usingRecursiveComparison().isEqualTo(new Preview(PreviewType.SUCCESS, List.of(
+            new PreviewItem(B, 0, 0, 2),
+            new PreviewItem(A, 6, 0, 0)
+        ), Collections.emptyList()));
+    }
+
+    @Test
+    void shouldGetMaxAmount() throws ExecutionException, InterruptedException {
+        // Arrange
+        rootStorage.addSource(new StorageImpl());
+        rootStorage.insert(A, 64, Action.EXECUTE, Actor.EMPTY);
+
+        final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
+        provider.setPattern(1, new Pattern(
+            List.of(new Ingredient(4, List.of(A))),
+            List.of(new ResourceAmount(B, 1))
+        ));
+        final NetworkNodeContainer container = () -> provider;
+        sut.onContainerAdded(container);
+
+        // Act
+        final long maxAmount = sut.getMaxAmount(B).get();
+
+        // Assert
+        assertThat(maxAmount).isEqualTo(16);
     }
 }

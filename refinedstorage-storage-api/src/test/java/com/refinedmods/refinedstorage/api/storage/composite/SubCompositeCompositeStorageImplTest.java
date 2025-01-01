@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.api.storage.composite;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 
@@ -27,7 +27,7 @@ class SubCompositeCompositeStorageImplTest {
         // Arrange
         final CompositeStorage subComposite = new CompositeStorageImpl(MutableResourceListImpl.create());
         subComposite.addSource(new StorageImpl());
-        subComposite.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        subComposite.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         sut.addSource(subComposite);
@@ -43,12 +43,12 @@ class SubCompositeCompositeStorageImplTest {
         // Arrange
         final CompositeStorage subComposite = new CompositeStorageImpl(MutableResourceListImpl.create());
         subComposite.addSource(new StorageImpl());
-        subComposite.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        subComposite.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(subComposite);
 
         final Storage subCompositeStorage = new StorageImpl();
-        subCompositeStorage.insert(B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        subCompositeStorage.insert(B, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         sut.removeSource(subComposite);
@@ -64,13 +64,13 @@ class SubCompositeCompositeStorageImplTest {
         // Arrange
         final CompositeStorage subComposite = new CompositeStorageImpl(MutableResourceListImpl.create());
         final Storage subStorage = new StorageImpl();
-        subStorage.insert(B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        subStorage.insert(B, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(subComposite);
         sut.addSource(subStorage);
 
         final Storage subCompositeStorage = new StorageImpl();
-        subCompositeStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        subCompositeStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         subComposite.addSource(subCompositeStorage);
@@ -91,13 +91,13 @@ class SubCompositeCompositeStorageImplTest {
         // Arrange
         final CompositeStorage subComposite = new CompositeStorageImpl(MutableResourceListImpl.create());
         final Storage subStorage = new StorageImpl();
-        subStorage.insert(B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        subStorage.insert(B, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(subComposite);
         sut.addSource(subStorage);
 
         final Storage subCompositeStorage = new StorageImpl();
-        subCompositeStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        subCompositeStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         subComposite.addSource(subCompositeStorage);
 

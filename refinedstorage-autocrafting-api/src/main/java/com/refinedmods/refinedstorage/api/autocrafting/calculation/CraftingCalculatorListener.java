@@ -6,11 +6,13 @@ import org.apiguardian.api.API;
 
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.4.12")
 public interface CraftingCalculatorListener<T> {
-    CraftingCalculatorListener<T> childCalculationStarted();
+    CraftingCalculatorListener<T> childCalculationStarted(ResourceKey resource, long amount);
 
-    void childCalculationCompleted(ResourceKey resource, long amount, CraftingCalculatorListener<T> childListener);
+    void childCalculationCompleted(CraftingCalculatorListener<T> childListener);
 
     void ingredientsExhausted(ResourceKey resource, long amount);
 
     void ingredientExtractedFromStorage(ResourceKey resource, long amount);
+
+    T getData();
 }

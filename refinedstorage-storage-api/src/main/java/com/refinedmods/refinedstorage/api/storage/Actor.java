@@ -9,6 +9,11 @@ import org.apiguardian.api.API;
 @FunctionalInterface
 public interface Actor {
     /**
+     * An unidentified {@link Actor}.
+     */
+    Actor EMPTY = () -> "Empty";
+
+    /**
      * @return the name of the actor
      */
     String getName();

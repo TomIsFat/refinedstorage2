@@ -81,7 +81,7 @@ import com.refinedmods.refinedstorage.common.support.slotreference.CompositeSlot
 import com.refinedmods.refinedstorage.common.support.slotreference.InventorySlotReference;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeRegistryImpl;
 import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
-import com.refinedmods.refinedstorage.common.util.ServerEventQueue;
+import com.refinedmods.refinedstorage.common.util.ServerListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -302,7 +302,7 @@ public class RefinedStorageApiImpl implements RefinedStorageApi {
             return;
         }
         final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl(level);
-        ServerEventQueue.queue(() -> {
+        ServerListener.queue(() -> {
             // The container could've been removed by the time it has been placed, and by the time the event queue has
             // run. In that case, don't initialize the network node because it no longer exists.
             // This is a workaround for the "Carry On" mod. The mod places the block (which creates a block entity and

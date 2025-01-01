@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nullable;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -131,17 +132,17 @@ class PortableGrid implements Grid {
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
-        return Optional.empty();
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
+        return CompletableFuture.completedFuture(Optional.empty());
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
-        return 0;
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return CompletableFuture.completedFuture(0L);
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
         return false;
     }
 }

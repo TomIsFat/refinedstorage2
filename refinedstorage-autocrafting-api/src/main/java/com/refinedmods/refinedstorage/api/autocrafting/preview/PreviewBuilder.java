@@ -11,17 +11,15 @@ import java.util.List;
 import java.util.Map;
 
 public class PreviewBuilder {
-    private final PreviewType type;
     private final Map<ResourceKey, MutablePreviewItem> items = new LinkedHashMap<>();
-
     private List<ResourceAmount> outputsOfPatternWithCycle = Collections.emptyList();
+    private boolean missing;
 
-    private PreviewBuilder(final PreviewType type) {
-        this.type = type;
+    private PreviewBuilder() {
     }
 
-    public static PreviewBuilder ofType(final PreviewType type) {
-        return new PreviewBuilder(type);
+    public static PreviewBuilder create() {
+        return new PreviewBuilder();
     }
 
     private MutablePreviewItem get(final ResourceKey resource) {
@@ -29,7 +27,7 @@ public class PreviewBuilder {
     }
 
     public PreviewBuilder withPatternWithCycle(final Pattern pattern) {
-        this.outputsOfPatternWithCycle = pattern.getOutputs();
+        this.outputsOfPatternWithCycle = pattern.outputs();
         return this;
     }
 
@@ -42,6 +40,7 @@ public class PreviewBuilder {
     public PreviewBuilder addMissing(final ResourceKey resource, final long amount) {
         CoreValidations.validateLargerThanZero(amount, "Missing amount must be larger than 0");
         get(resource).missing += amount;
+        missing = true;
         return this;
     }
 
@@ -51,11 +50,29 @@ public class PreviewBuilder {
         return this;
     }
 
+    public PreviewBuilder copy() {
+        final PreviewBuilder copy = new PreviewBuilder();
+        for (final Map.Entry<ResourceKey, MutablePreviewItem> entry : items.entrySet()) {
+            final MutablePreviewItem item = entry.getValue();
+            copy.items.put(entry.getKey(), item.copy());
+        }
+        copy.outputsOfPatternWithCycle = outputsOfPatternWithCycle;
+        copy.missing = missing;
+        return copy;
+    }
+
     public Preview build() {
-        return new Preview(type, items.entrySet()
+        return new Preview(getType(), items.entrySet()
             .stream()
             .map(entry -> entry.getValue().toPreviewItem(entry.getKey()))
             .toList(), outputsOfPatternWithCycle);
+    }
+
+    private PreviewType getType() {
+        if (!outputsOfPatternWithCycle.isEmpty()) {
+            return PreviewType.CYCLE_DETECTED;
+        }
+        return missing ? PreviewType.MISSING_RESOURCES : PreviewType.SUCCESS;
     }
 
     private static class MutablePreviewItem {
@@ -65,6 +82,14 @@ public class PreviewBuilder {
 
         private PreviewItem toPreviewItem(final ResourceKey resource) {
             return new PreviewItem(resource, available, missing, toCraft);
+        }
+
+        private MutablePreviewItem copy() {
+            final MutablePreviewItem copy = new MutablePreviewItem();
+            copy.available = available;
+            copy.missing = missing;
+            copy.toCraft = toCraft;
+            return copy;
         }
     }
 }

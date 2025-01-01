@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceExpor
 import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceNetworkNode;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
 import com.refinedmods.refinedstorage.network.test.NetworkTest;
@@ -89,7 +89,7 @@ class InterfaceExternalStorageProviderImplTest {
         )));
 
         // Act
-        final long inserted = storage.insert(A, 10, action, EmptyActor.INSTANCE);
+        final long inserted = storage.insert(A, 10, action, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(10);
@@ -119,7 +119,7 @@ class InterfaceExternalStorageProviderImplTest {
         externalStorage.detectChanges();
 
         // Act
-        final long inserted = storage.insert(A, 101, action, EmptyActor.INSTANCE);
+        final long inserted = storage.insert(A, 101, action, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isZero();
@@ -141,7 +141,7 @@ class InterfaceExternalStorageProviderImplTest {
         externalStorage.detectChanges();
 
         // Act
-        final long extracted = storage.extract(A, 101, action, EmptyActor.INSTANCE);
+        final long extracted = storage.extract(A, 101, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(100);
@@ -177,7 +177,7 @@ class InterfaceExternalStorageProviderImplTest {
         externalStorage.detectChanges();
 
         // Act
-        final long extracted = storage.extract(A, 51, action, EmptyActor.INSTANCE);
+        final long extracted = storage.extract(A, 51, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(51);
@@ -214,7 +214,7 @@ class InterfaceExternalStorageProviderImplTest {
         externalStorage.detectChanges();
 
         // Act
-        final long extracted = storage.extract(B, 1, action, EmptyActor.INSTANCE);
+        final long extracted = storage.extract(B, 1, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isZero();
@@ -238,7 +238,7 @@ class InterfaceExternalStorageProviderImplTest {
         externalStorage.detectChanges();
 
         // Act
-        final long extracted = storage.extract(A, 101, action, EmptyActor.INSTANCE);
+        final long extracted = storage.extract(A, 101, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isZero();

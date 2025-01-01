@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -116,17 +117,23 @@ class WirelessGrid implements Grid {
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
-        return getAutocrafting().flatMap(component -> component.getPreview(resource, amount));
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
+        return getAutocrafting()
+            .map(component -> component.getPreview(resource, amount))
+            .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 
     @Override
-    public long getMaxAmount(final ResourceKey resource) {
-        return getAutocrafting().map(component -> component.getMaxAmount(resource)).orElse(0L);
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return getAutocrafting()
+            .map(component -> component.getMaxAmount(resource))
+            .orElseGet(() -> CompletableFuture.completedFuture(0L));
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
-        return getAutocrafting().map(autocrafting -> autocrafting.startTask(resource, amount)).orElse(false);
+    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+        return getAutocrafting()
+            .map(autocrafting -> autocrafting.startTask(resource, amount, actor, notify))
+            .orElse(false);
     }
 }

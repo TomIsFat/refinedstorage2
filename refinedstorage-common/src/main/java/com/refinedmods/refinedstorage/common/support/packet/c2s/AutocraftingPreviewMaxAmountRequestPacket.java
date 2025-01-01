@@ -26,8 +26,8 @@ public record AutocraftingPreviewMaxAmountRequestPacket(PlatformResourceKey reso
     public static void handle(final AutocraftingPreviewMaxAmountRequestPacket packet, final PacketContext ctx) {
         if (ctx.getPlayer().containerMenu instanceof PreviewProvider provider) {
             final ServerPlayer player = (ServerPlayer) ctx.getPlayer();
-            final long maxAmount = provider.getMaxAmount(packet.resource);
-            S2CPackets.sendAutocraftingPreviewMaxAmountResponse(player, maxAmount);
+            provider.getMaxAmount(packet.resource).thenAccept(maxAmount ->
+                S2CPackets.sendAutocraftingPreviewMaxAmountResponse(player, maxAmount));
         }
     }
 
