@@ -14,42 +14,25 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class TaskPattern {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskPattern.class);
+abstract class AbstractTaskPattern {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTaskPattern.class);
 
-    private final Pattern pattern;
-    private final Map<Integer, Map<ResourceKey, Long>> ingredients = new HashMap<>();
-    private long iterationsRemaining;
+    protected final Pattern pattern;
+    protected final Map<Integer, Map<ResourceKey, Long>> ingredients = new HashMap<>();
 
-    TaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
+    protected AbstractTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         this.pattern = pattern;
-        this.iterationsRemaining = plan.iterations();
         for (final Map.Entry<Integer, Map<ResourceKey, Long>> entry : plan.ingredients().entrySet()) {
             final Map<ResourceKey, Long> possibilitiesCopy = new LinkedHashMap<>(entry.getValue());
             ingredients.put(entry.getKey(), possibilitiesCopy);
         }
     }
 
-    boolean step(final MutableResourceList internalStorage) {
-        final ResourceList iterationInputsSimulated = calculateIterationInputs(Action.SIMULATE);
-        if (extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
-            LOGGER.info("Stepping {}", pattern);
-            final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
-            extractAll(iterationInputs, internalStorage, Action.EXECUTE);
-            pattern.outputs().forEach(output -> {
-                LOGGER.info("Inserting {}x {} into internal storage", output.amount(), output.resource());
-                internalStorage.add(output);
-            });
-            iterationsRemaining--;
-            LOGGER.info("Stepped {} with {} iterations remaining", pattern, iterationsRemaining);
-            return iterationsRemaining == 0;
-        }
-        return false;
-    }
+    abstract boolean step(MutableResourceList internalStorage, ExternalPatternInputSink externalPatternInputSink);
 
-    private boolean extractAll(final ResourceList inputs,
-                               final MutableResourceList internalStorage,
-                               final Action action) {
+    protected final boolean extractAll(final ResourceList inputs,
+                                       final MutableResourceList internalStorage,
+                                       final Action action) {
         for (final ResourceKey inputResource : inputs.getAll()) {
             final long inputAmount = inputs.get(inputResource);
             final long inInternalStorage = internalStorage.get(inputResource);
@@ -64,7 +47,7 @@ class TaskPattern {
         return true;
     }
 
-    private ResourceList calculateIterationInputs(final Action action) {
+    protected final ResourceList calculateIterationInputs(final Action action) {
         final MutableResourceList iterationInputs = MutableResourceListImpl.create();
         for (final Map.Entry<Integer, Map<ResourceKey, Long>> ingredient : ingredients.entrySet()) {
             final int ingredientIndex = ingredient.getKey();

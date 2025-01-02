@@ -1,18 +1,16 @@
 package com.refinedmods.refinedstorage.api.network.impl.autocrafting;
 
-import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
-import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewItem;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
@@ -129,10 +127,7 @@ class AutocraftingNetworkComponentImplTest {
         rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new Pattern(
-            List.of(new Ingredient(3, List.of(A))),
-            List.of(new ResourceAmount(B, 1))
-        ));
+        provider.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
         final NetworkNodeContainer container = () -> provider;
         sut.onContainerAdded(container);
 
@@ -153,10 +148,7 @@ class AutocraftingNetworkComponentImplTest {
         rootStorage.insert(A, 64, Action.EXECUTE, Actor.EMPTY);
 
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, new Pattern(
-            List.of(new Ingredient(4, List.of(A))),
-            List.of(new ResourceAmount(B, 1))
-        ));
+        provider.setPattern(1, pattern().ingredient(A, 4).output(B, 1).build());
         final NetworkNodeContainer container = () -> provider;
         sut.onContainerAdded(container);
 

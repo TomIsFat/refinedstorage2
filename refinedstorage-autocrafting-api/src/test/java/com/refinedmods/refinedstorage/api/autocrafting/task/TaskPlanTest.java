@@ -18,10 +18,10 @@ import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.O
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_PLANKS;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SPRUCE_LOG;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SPRUCE_PLANKS;
-import static com.refinedmods.refinedstorage.api.autocrafting.task.Patterns.CRAFTING_TABLE_PATTERN;
-import static com.refinedmods.refinedstorage.api.autocrafting.task.Patterns.OAK_PLANKS_PATTERN;
-import static com.refinedmods.refinedstorage.api.autocrafting.task.Patterns.SPRUCE_PLANKS_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskCraftingCalculatorListener.calculatePlan;
+import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.CRAFTING_TABLE_PATTERN;
+import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.OAK_PLANKS_PATTERN;
+import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.SPRUCE_PLANKS_PATTERN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

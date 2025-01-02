@@ -28,7 +28,8 @@ class PatternTest {
             List.of(
                 new ResourceAmount(OAK_LOG, 3),
                 new ResourceAmount(OAK_PLANKS, 4)
-            )
+            ),
+            PatternType.INTERNAL
         );
 
         // Assert
@@ -43,6 +44,7 @@ class PatternTest {
             new ResourceAmount(OAK_LOG, 3),
             new ResourceAmount(OAK_PLANKS, 4)
         );
+        assertThat(sut.type()).isEqualTo(PatternType.INTERNAL);
     }
 
     @Test
@@ -53,7 +55,8 @@ class PatternTest {
             List.of(
                 new ResourceAmount(OAK_LOG, 3),
                 new ResourceAmount(OAK_PLANKS, 4)
-            )
+            ),
+            PatternType.INTERNAL
         );
 
         // Assert
@@ -68,7 +71,8 @@ class PatternTest {
                 new Ingredient(1, List.of(A, B)),
                 new Ingredient(2, List.of(C))
             ),
-            List.of()
+            List.of(),
+            PatternType.INTERNAL
         );
 
         // Assert
@@ -82,7 +86,7 @@ class PatternTest {
         ingredients.add(new Ingredient(1, List.of(A, B)));
         final List<ResourceAmount> outputs = new ArrayList<>();
         outputs.add(new ResourceAmount(OAK_LOG, 3));
-        final Pattern sut = new Pattern(ingredients, outputs);
+        final Pattern sut = new Pattern(ingredients, outputs, PatternType.INTERNAL);
 
         // Act
         ingredients.add(new Ingredient(2, List.of(C)));
@@ -98,7 +102,8 @@ class PatternTest {
         // Arrange
         final Pattern sut = new Pattern(
             List.of(new Ingredient(1, List.of(A))),
-            List.of(new ResourceAmount(OAK_LOG, 3))
+            List.of(new ResourceAmount(OAK_LOG, 3)),
+            PatternType.INTERNAL
         );
         final List<Ingredient> ingredients = sut.ingredients();
         final List<ResourceAmount> outputs = sut.outputs();
@@ -113,5 +118,25 @@ class PatternTest {
         // Assert
         assertThatThrownBy(action).isInstanceOf(UnsupportedOperationException.class);
         assertThatThrownBy(action2).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    @SuppressWarnings("ConstantConditions")
+    void shouldNotCreatePatternWithoutPatternType() {
+        // Act
+        final ThrowableAssert.ThrowingCallable action = () -> new Pattern(
+            List.of(
+                new Ingredient(1, List.of(A, B)),
+                new Ingredient(2, List.of(C))
+            ),
+            List.of(
+                new ResourceAmount(OAK_LOG, 3),
+                new ResourceAmount(OAK_PLANKS, 4)
+            ),
+            null
+        );
+
+        // Assert
+        assertThatThrownBy(action).isInstanceOf(NullPointerException.class);
     }
 }

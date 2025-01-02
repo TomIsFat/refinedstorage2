@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.content.DataComponents;
@@ -175,14 +176,15 @@ public class PatternResolver {
                     .filter(i -> !i.isEmpty())
                     .map(i -> new Ingredient(1, i))
                     .toList(),
-                Stream.concat(Stream.of(output), byproducts.stream()).toList()
+                Stream.concat(Stream.of(output), byproducts.stream()).toList(),
+                PatternType.INTERNAL
             ));
         }
     }
 
     public record ResolvedProcessingPattern(Pattern pattern) {
         ResolvedProcessingPattern(final List<Ingredient> ingredients, final List<ResourceAmount> outputs) {
-            this(new Pattern(ingredients, outputs));
+            this(new Pattern(ingredients, outputs, PatternType.EXTERNAL));
         }
     }
 
@@ -192,7 +194,8 @@ public class PatternResolver {
         ResolvedStonecutterPattern(final ItemResource input, final ItemResource output) {
             this(input, output, new Pattern(
                 List.of(new Ingredient(1, List.of(input))),
-                List.of(new ResourceAmount(output, 1))
+                List.of(new ResourceAmount(output, 1)),
+                PatternType.INTERNAL
             ));
         }
     }
@@ -208,7 +211,8 @@ public class PatternResolver {
                                      final ItemResource output) {
             this(template, base, addition, output, new Pattern(
                 List.of(single(template), single(base), single(addition)),
-                List.of(new ResourceAmount(output, 1))
+                List.of(new ResourceAmount(output, 1)),
+                PatternType.INTERNAL
             ));
         }
 

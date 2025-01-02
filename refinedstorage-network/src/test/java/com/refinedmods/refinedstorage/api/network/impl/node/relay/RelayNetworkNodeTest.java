@@ -1,6 +1,5 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
-import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
@@ -28,7 +27,6 @@ import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import com.refinedmods.refinedstorage.network.test.fixtures.PermissionFixtures;
 import com.refinedmods.refinedstorage.network.test.fixtures.SecurityActorFixtures;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -36,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.api.network.impl.node.security.SecurityDecisionProviderProxyNetworkNode.activeSecurityDecisionProvider;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
@@ -476,10 +475,7 @@ class RelayNetworkNodeTest {
     }
 
     static Runnable addPattern(final AutocraftingNetworkComponent component, final ResourceKey output) {
-        final Pattern pattern = new Pattern(
-            List.of(new Ingredient(1, List.of(C))),
-            List.of(new ResourceAmount(output, 1))
-        );
+        final Pattern pattern = pattern().ingredient(C, 1).output(output, 1).build();
         final PatternProviderNetworkNode patternProvider = new PatternProviderNetworkNode(0, 1);
         patternProvider.setPattern(0, pattern);
         final NetworkNodeContainer container = () -> patternProvider;
