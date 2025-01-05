@@ -133,7 +133,7 @@ class ListenableResourceListTest {
         private final List<MutableResourceList.OperationResult> changes = new ArrayList<>();
 
         @Override
-        public void onChanged(final MutableResourceList.OperationResult change) {
+        public void changed(final MutableResourceList.OperationResult change) {
             changes.add(change);
         }
     }

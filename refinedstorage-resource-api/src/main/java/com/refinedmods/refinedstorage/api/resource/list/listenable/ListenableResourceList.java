@@ -13,7 +13,7 @@ import org.apiguardian.api.API;
 /**
  * A resource list that can have listeners to track changes.
  * Can easily be used with an existing list by passing it in the constructor.
- * The {@link ResourceListListener#onChanged(OperationResult)} method is only called when the change
+ * The {@link ResourceListListener#changed(OperationResult)} method is only called when the change
  * is being performed through this list, not the delegate list.
  */
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.1.2")
@@ -40,7 +40,7 @@ public class ListenableResourceList extends AbstractProxyMutableResourceList {
     }
 
     private void notifyListeners(final OperationResult result) {
-        listeners.forEach(listener -> listener.onChanged(result));
+        listeners.forEach(listener -> listener.changed(result));
     }
 
     public void addListener(final ResourceListListener listener) {

@@ -3,14 +3,15 @@ package com.refinedmods.refinedstorage.api.storage.root;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
-import com.refinedmods.refinedstorage.api.resource.list.listenable.ResourceListListener;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.composite.PriorityStorage;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedStorageImpl;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,11 +21,13 @@ import org.mockito.ArgumentCaptor;
 import static com.refinedmods.refinedstorage.api.storage.TestResource.A;
 import static com.refinedmods.refinedstorage.api.storage.TestResource.B;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class RootStorageImplTest {
     private RootStorage sut;
@@ -101,7 +104,7 @@ class RootStorageImplTest {
         sut.addSource(new LimitedStorageImpl(10));
         sut.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
 
-        final ResourceListListener listener = mock(ResourceListListener.class);
+        final RootStorageListener listener = mock(RootStorageListener.class);
         sut.addListener(listener);
 
         final var changedResource = ArgumentCaptor.forClass(MutableResourceList.OperationResult.class);
@@ -111,13 +114,13 @@ class RootStorageImplTest {
 
         // Assert
         if (action == Action.EXECUTE) {
-            verify(listener, atMost(1)).onChanged(changedResource.capture());
+            verify(listener, atMost(1)).changed(changedResource.capture());
 
             assertThat(changedResource.getValue().change()).isEqualTo(8);
             assertThat(changedResource.getValue().resource()).isEqualTo(A);
             assertThat(changedResource.getValue().amount()).isEqualTo(10);
         } else {
-            verify(listener, never()).onChanged(any());
+            verify(listener, never()).changed(any());
         }
     }
 
@@ -131,7 +134,7 @@ class RootStorageImplTest {
         sut.addSource(storage);
         sut.extract(A, 2, Action.EXECUTE, Actor.EMPTY);
 
-        final ResourceListListener listener = mock(ResourceListListener.class);
+        final RootStorageListener listener = mock(RootStorageListener.class);
         sut.addListener(listener);
 
         final var changedResource = ArgumentCaptor.forClass(MutableResourceList.OperationResult.class);
@@ -141,13 +144,13 @@ class RootStorageImplTest {
 
         // Assert
         if (action == Action.EXECUTE) {
-            verify(listener, atMost(1)).onChanged(changedResource.capture());
+            verify(listener, atMost(1)).changed(changedResource.capture());
 
             assertThat(changedResource.getValue().change()).isEqualTo(-5);
             assertThat(changedResource.getValue().resource()).isEqualTo(A);
             assertThat(changedResource.getValue().amount()).isEqualTo(3);
         } else {
-            verify(listener, never()).onChanged(any());
+            verify(listener, never()).changed(any());
         }
     }
 
@@ -157,7 +160,7 @@ class RootStorageImplTest {
         sut.addSource(new LimitedStorageImpl(10));
         sut.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
 
-        final ResourceListListener listener = mock(ResourceListListener.class);
+        final RootStorageListener listener = mock(RootStorageListener.class);
         sut.addListener(listener);
 
         // Act
@@ -165,7 +168,7 @@ class RootStorageImplTest {
         sut.insert(A, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
-        verify(listener, never()).onChanged(any());
+        verify(listener, never()).changed(any());
     }
 
     @Test
@@ -185,6 +188,171 @@ class RootStorageImplTest {
         assertThat(inserted1).isEqualTo(5);
         assertThat(inserted2).isEqualTo(4);
         assertThat(sut.getStored()).isEqualTo(9);
+    }
+
+    @Test
+    void shouldDetectWhenInterceptorIsIndicatingItInterceptedMoreThanOriginallyProvided() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener = mock(RootStorageListener.class, "listener mock");
+        sut.addListener(listener);
+        when(listener.beforeInsert(A, 10, Actor.EMPTY)).thenReturn(11L);
+
+        // Act
+        final ThrowableAssert.ThrowingCallable action = () -> sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThatThrownBy(action).isInstanceOf(IllegalStateException.class).hasMessage(
+            "Listener listener mock indicated it intercepted 11 while the original amount to be intercepted was 10"
+        );
+    }
+
+    @Test
+    void shouldDetectWhenInterceptorIsIndicatingItInterceptedANegativeAmount() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener = mock(RootStorageListener.class, "listener mock");
+        sut.addListener(listener);
+        when(listener.beforeInsert(A, 10, Actor.EMPTY)).thenReturn(-1L);
+
+        // Act
+        final ThrowableAssert.ThrowingCallable action = () -> sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThatThrownBy(action).isInstanceOf(IllegalStateException.class).hasMessage(
+            "Listener listener mock indicated it intercepted -1 while the original amount to be intercepted was 10"
+        );
+    }
+
+    @Test
+    void shouldNotModifyInsertionAmountWhenSimulating() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener = mock(RootStorageListener.class);
+        sut.addListener(listener);
+
+        // Act
+        final long inserted = sut.insert(A, 10, Action.SIMULATE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).isEmpty();
+        assertThat(inserted).isEqualTo(10);
+        assertThat(sut.getStored()).isZero();
+        verify(listener, never()).beforeInsert(A, 10, Actor.EMPTY);
+    }
+
+    @Test
+    void shouldModifyInsertionAmountPartiallyWithSingleListener() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener = mock(RootStorageListener.class);
+        sut.addListener(listener);
+        when(listener.beforeInsert(A, 10, Actor.EMPTY)).thenReturn(7L);
+
+        // Act
+        final long inserted = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 3)
+        );
+        assertThat(inserted).isEqualTo(10);
+        assertThat(sut.getStored()).isEqualTo(3);
+        verify(listener).beforeInsert(A, 10, Actor.EMPTY);
+    }
+
+    @Test
+    void shouldNotModifyInsertionAmountPartiallyWithSingleListenerWhenInterceptedNothing() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener = mock(RootStorageListener.class);
+        sut.addListener(listener);
+        when(listener.beforeInsert(A, 10, Actor.EMPTY)).thenReturn(0L);
+
+        // Act
+        final long inserted = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 10)
+        );
+        assertThat(inserted).isEqualTo(10);
+        assertThat(sut.getStored()).isEqualTo(10);
+        verify(listener).beforeInsert(A, 10, Actor.EMPTY);
+    }
+
+    @Test
+    void shouldModifyInsertionAmountPartiallyWithMultipleListeners() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener1 = mock(RootStorageListener.class);
+        sut.addListener(listener1);
+        when(listener1.beforeInsert(A, 10, Actor.EMPTY)).thenReturn(7L);
+
+        final RootStorageListener listener2 = mock(RootStorageListener.class);
+        sut.addListener(listener2);
+        when(listener2.beforeInsert(A, 3, Actor.EMPTY)).thenReturn(1L);
+
+        // Act
+        final long inserted = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 2)
+        );
+        assertThat(inserted).isEqualTo(10);
+        assertThat(sut.getStored()).isEqualTo(2);
+        verify(listener1).beforeInsert(A, 10, Actor.EMPTY);
+        verify(listener2).beforeInsert(A, 3, Actor.EMPTY);
+    }
+
+    @Test
+    void shouldModifyInsertionAmountCompletelyWithMultipleListeners() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener1 = mock(RootStorageListener.class);
+        sut.addListener(listener1);
+        when(listener1.beforeInsert(A, 10, Actor.EMPTY)).thenReturn(7L);
+
+        final RootStorageListener listener2 = mock(RootStorageListener.class);
+        sut.addListener(listener2);
+        when(listener2.beforeInsert(A, 3, Actor.EMPTY)).thenReturn(3L);
+
+        // Act
+        final long inserted = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).isEmpty();
+        assertThat(inserted).isEqualTo(10);
+        assertThat(sut.getStored()).isZero();
+        verify(listener1).beforeInsert(A, 10, Actor.EMPTY);
+        verify(listener2).beforeInsert(A, 3, Actor.EMPTY);
+    }
+
+    @Test
+    void shouldModifyInsertionAmountCompletelyWithSingleListener() {
+        // Arrange
+        sut.addSource(new StorageImpl());
+
+        final RootStorageListener listener = mock(RootStorageListener.class);
+        sut.addListener(listener);
+        when(listener.beforeInsert(A, 10, Actor.EMPTY)).thenReturn(10L);
+
+        // Act
+        final long inserted = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).isEmpty();
+        assertThat(inserted).isEqualTo(10);
+        assertThat(sut.getStored()).isZero();
+        verify(listener).beforeInsert(A, 10, Actor.EMPTY);
     }
 
     @Test
