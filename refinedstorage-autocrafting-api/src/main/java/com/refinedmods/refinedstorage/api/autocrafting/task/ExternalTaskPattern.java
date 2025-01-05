@@ -26,11 +26,15 @@ class ExternalTaskPattern extends AbstractTaskPattern {
 
     @Override
     boolean step(final MutableResourceList internalStorage, final ExternalPatternInputSink externalPatternInputSink) {
-
+        if (expectedOutputs.isEmpty()) {
+            return true;
+        }
         if (iterationsToSendToSink == 0) {
+            // TODO: coverage
             return false;
         }
         if (!acceptsIterationInputs(internalStorage, externalPatternInputSink)) {
+            // TODO: coverage
             return false;
         }
         LOGGER.info("Stepped {} with {} iterations remaining", pattern, iterationsToSendToSink);
@@ -46,6 +50,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             expectedOutputs.remove(resource, available);
             return available;
         }
+        // TODO: coverage
         return 0;
     }
 
@@ -53,15 +58,17 @@ class ExternalTaskPattern extends AbstractTaskPattern {
                                            final ExternalPatternInputSink externalPatternInputSink) {
         final ResourceList iterationInputsSimulated = calculateIterationInputs(Action.SIMULATE);
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
+            // TODO: coverage
             return false;
         }
         if (!externalPatternInputSink.accept(pattern, iterationInputsSimulated.copyState(), Action.SIMULATE)) {
+            // TODO: coverage
             return false;
         }
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
         extractAll(iterationInputs, internalStorage, Action.EXECUTE);
         if (!externalPatternInputSink.accept(pattern, iterationInputs.copyState(), Action.EXECUTE)) {
-            // TODO: return here.
+            // TODO: coverage
             return false;
         }
         return true;

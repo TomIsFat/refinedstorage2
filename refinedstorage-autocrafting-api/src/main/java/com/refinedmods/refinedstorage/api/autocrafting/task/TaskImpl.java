@@ -138,6 +138,7 @@ public class TaskImpl implements Task, RootStorageListener {
 
     @Override
     public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        // TODO: coverage
         long totalIntercepted = 0;
         for (final AbstractTaskPattern pattern : patterns.values()) {
             final long remaining = amount - totalIntercepted;

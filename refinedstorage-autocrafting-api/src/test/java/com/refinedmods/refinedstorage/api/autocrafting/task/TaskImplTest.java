@@ -268,6 +268,7 @@ class TaskImplTest {
 
         task.step(storage, sink);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(storage.getAll()).isEmpty();
         assertThat(task.copyInternalStorageState())
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactlyInAnyOrder(
@@ -288,12 +289,23 @@ class TaskImplTest {
             );
 
         task.step(storage, sink);
-        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_INGOT, 3)
+        );
         assertThat(task.copyInternalStorageState())
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactly(
                 new ResourceAmount(IRON_PICKAXE, 1)
             );
+
+        task.step(storage, sink);
+        assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(IRON_INGOT, 3),
+            new ResourceAmount(IRON_PICKAXE, 1)
+        );
+        assertThat(task.copyInternalStorageState()).isEmpty();
     }
 
     @Test
