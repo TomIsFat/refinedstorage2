@@ -597,7 +597,7 @@ class ExternalStorageNetworkNodeTest {
         networkStorage.addListener(new RootStorageListener() {
             @Override
             public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
-                return amount;
+                return 0;
             }
 
             @Override

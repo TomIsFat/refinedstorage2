@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.core.Action;
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
 
@@ -32,6 +33,11 @@ class InternalTaskPattern extends AbstractTaskPattern {
             internalStorage.add(output);
         });
         return useIteration();
+    }
+
+    @Override
+    long interceptInsertion(final ResourceKey resource, final long amount) {
+        return 0;
     }
 
     protected boolean useIteration() {

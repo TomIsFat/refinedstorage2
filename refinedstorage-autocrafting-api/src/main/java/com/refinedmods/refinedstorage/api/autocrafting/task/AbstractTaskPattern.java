@@ -30,6 +30,8 @@ abstract class AbstractTaskPattern {
 
     abstract boolean step(MutableResourceList internalStorage, ExternalPatternInputSink externalPatternInputSink);
 
+    abstract long interceptInsertion(ResourceKey resource, long amount);
+
     protected final boolean extractAll(final ResourceList inputs,
                                        final MutableResourceList internalStorage,
                                        final Action action) {

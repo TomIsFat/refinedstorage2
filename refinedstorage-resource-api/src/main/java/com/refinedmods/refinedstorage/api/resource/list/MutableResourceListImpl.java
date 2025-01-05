@@ -105,6 +105,11 @@ public class MutableResourceListImpl implements MutableResourceList {
     }
 
     @Override
+    public boolean isEmpty() {
+        return entries.isEmpty();
+    }
+
+    @Override
     public void clear() {
         entries.clear();
     }

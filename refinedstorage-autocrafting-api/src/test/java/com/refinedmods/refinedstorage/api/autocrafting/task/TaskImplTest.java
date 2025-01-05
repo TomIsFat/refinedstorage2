@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingHelpers.patterns;
 import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingHelpers.storage;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.CRAFTING_TABLE;
+import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.IRON_INGOT;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.IRON_ORE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.IRON_PICKAXE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_LOG;
@@ -254,6 +255,45 @@ class TaskImplTest {
         assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(IRON_ORE, 3)
         );
+
+        storage.insert(IRON_INGOT, 1, Action.EXECUTE, Actor.EMPTY);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(storage.getAll()).isEmpty();
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(IRON_INGOT, 1),
+                new ResourceAmount(STICKS, 2)
+            );
+
+        task.step(storage, sink);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(IRON_INGOT, 1),
+                new ResourceAmount(STICKS, 2)
+            );
+
+        storage.insert(IRON_INGOT, 5, Action.EXECUTE, Actor.EMPTY);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_INGOT, 3)
+        );
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(IRON_INGOT, 3),
+                new ResourceAmount(STICKS, 2)
+            );
+
+        task.step(storage, sink);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(
+                new ResourceAmount(IRON_PICKAXE, 1)
+            );
     }
 
     @Test

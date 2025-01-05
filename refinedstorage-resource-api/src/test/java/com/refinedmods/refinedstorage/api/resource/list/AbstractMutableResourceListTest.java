@@ -25,6 +25,13 @@ abstract class AbstractMutableResourceListTest {
     protected abstract MutableResourceList createList();
 
     @Test
+    void testInitialState() {
+        // Assert
+        assertThat(list.copyState()).isEmpty();
+        assertThat(list.isEmpty()).isTrue();
+    }
+
+    @Test
     void shouldAddNewResource() {
         // Act
         final MutableResourceList.OperationResult result = list.add(TestResource.A, 10);
@@ -40,7 +47,7 @@ abstract class AbstractMutableResourceListTest {
         );
         assertThat(list.get(TestResource.A)).isEqualTo(10);
         assertThat(list.contains(TestResource.A)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactly(TestResource.A);
     }
 
@@ -60,7 +67,7 @@ abstract class AbstractMutableResourceListTest {
         );
         assertThat(list.get(TestResource.A)).isEqualTo(10);
         assertThat(list.contains(TestResource.A)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactly(TestResource.A);
     }
 
@@ -86,7 +93,7 @@ abstract class AbstractMutableResourceListTest {
         );
         assertThat(list.get(TestResource.A)).isEqualTo(15);
         assertThat(list.contains(TestResource.A)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactly(TestResource.A);
     }
 
@@ -121,7 +128,7 @@ abstract class AbstractMutableResourceListTest {
         assertThat(list.contains(TestResource.A)).isTrue();
         assertThat(list.get(TestResource.B)).isEqualTo(3);
         assertThat(list.contains(TestResource.B)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactlyInAnyOrder(TestResource.A, TestResource.B);
     }
 
@@ -173,12 +180,12 @@ abstract class AbstractMutableResourceListTest {
         assertThat(list.contains(TestResource.A)).isTrue();
         assertThat(list.get(TestResource.B)).isEqualTo(6);
         assertThat(list.contains(TestResource.B)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactlyInAnyOrder(TestResource.A, TestResource.B);
     }
 
     @Test
-    void shouldRemoveResourcePartlyWithResourceAmountDirectly() {
+    void shouldRemoveResourcePartlyWithResourceAmount() {
         // Arrange
         list.add(TestResource.A, 20);
         list.add(TestResource.B, 6);
@@ -205,7 +212,7 @@ abstract class AbstractMutableResourceListTest {
         assertThat(list.contains(TestResource.A)).isTrue();
         assertThat(list.get(TestResource.B)).isEqualTo(6);
         assertThat(list.contains(TestResource.B)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactlyInAnyOrder(TestResource.A, TestResource.B);
     }
 
@@ -233,12 +240,12 @@ abstract class AbstractMutableResourceListTest {
         assertThat(list.contains(TestResource.A)).isFalse();
         assertThat(list.get(TestResource.B)).isEqualTo(6);
         assertThat(list.contains(TestResource.B)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactly(TestResource.B);
     }
 
     @Test
-    void shouldRemoveResourceCompletelyWithResourceAmountDirectly() {
+    void shouldRemoveResourceCompletelyWithResourceAmount() {
         // Arrange
         list.add(TestResource.A, 20);
         list.add(TestResource.B, 6);
@@ -264,8 +271,30 @@ abstract class AbstractMutableResourceListTest {
         assertThat(list.contains(TestResource.A)).isFalse();
         assertThat(list.get(TestResource.B)).isEqualTo(6);
         assertThat(list.contains(TestResource.B)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactly(TestResource.B);
+    }
+
+    @Test
+    void shouldRemoveLastResourceOfResourceList() {
+        // Arrange
+        list.add(TestResource.A, 1);
+
+        // Act
+        final Optional<MutableResourceList.OperationResult> result = list.remove(TestResource.A, 1);
+
+        // Assert
+        assertThat(result).isPresent();
+        assertThat(result.get().change()).isEqualTo(-1);
+        assertThat(result.get().amount()).isZero();
+        assertThat(result.get().resource()).isEqualTo(TestResource.A);
+        assertThat(result.get().available()).isFalse();
+
+        assertThat(list.copyState()).isEmpty();
+        assertThat(list.get(TestResource.A)).isZero();
+        assertThat(list.contains(TestResource.A)).isFalse();
+        assertThat(list.isEmpty()).isTrue();
+        assertThat(list.getAll()).isEmpty();
     }
 
     @Test
@@ -292,7 +321,7 @@ abstract class AbstractMutableResourceListTest {
         assertThat(list.contains(TestResource.A)).isFalse();
         assertThat(list.get(TestResource.B)).isEqualTo(6);
         assertThat(list.contains(TestResource.B)).isTrue();
-
+        assertThat(list.isEmpty()).isFalse();
         assertThat(list.getAll()).containsExactly(TestResource.B);
     }
 
@@ -329,7 +358,7 @@ abstract class AbstractMutableResourceListTest {
 
         assertThat(list.get(TestResource.A)).isZero();
         assertThat(list.get(TestResource.B)).isZero();
-
+        assertThat(list.isEmpty()).isTrue();
         assertThat(list.getAll()).isEmpty();
     }
 
@@ -359,5 +388,7 @@ abstract class AbstractMutableResourceListTest {
             new ResourceAmount(TestResource.B, 5),
             new ResourceAmount(TestResource.D, 3)
         );
+        assertThat(list.isEmpty()).isFalse();
+        assertThat(copy.isEmpty()).isFalse();
     }
 }

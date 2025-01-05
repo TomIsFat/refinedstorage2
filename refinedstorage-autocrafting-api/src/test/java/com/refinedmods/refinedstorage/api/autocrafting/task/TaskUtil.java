@@ -57,7 +57,9 @@ final class TaskUtil {
                             final ResourceKey resource,
                             final long amount) {
         final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
-        return calculatePlan(sut, resource, amount).map(TaskImpl::new).orElseThrow();
+        final TaskImpl task = calculatePlan(sut, resource, amount).map(TaskImpl::new).orElseThrow();
+        storage.addListener(task);
+        return task;
     }
 
     static TaskImpl getRunningTask(final RootStorage storage,

@@ -8,6 +8,7 @@ import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TaskImpl implements Task {
+public class TaskImpl implements Task, RootStorageListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskImpl.class);
 
     private final TaskId id = TaskId.create();
@@ -133,5 +134,27 @@ public class TaskImpl implements Task {
             }
         }
         return returnedAll;
+    }
+
+    @Override
+    public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        long totalIntercepted = 0;
+        for (final AbstractTaskPattern pattern : patterns.values()) {
+            final long remaining = amount - totalIntercepted;
+            final long intercepted = pattern.interceptInsertion(resource, remaining);
+            if (intercepted > 0) {
+                internalStorage.add(resource, intercepted);
+            }
+            totalIntercepted += intercepted;
+            if (totalIntercepted == amount) {
+                break;
+            }
+        }
+        return totalIntercepted;
+    }
+
+    @Override
+    public void changed(final MutableResourceList.OperationResult change) {
+        // no op
     }
 }
