@@ -43,7 +43,7 @@ abstract class AbstractTaskPattern {
             }
             if (action == Action.EXECUTE) {
                 internalStorage.remove(inputResource, inputAmount);
-                LOGGER.info("Extracted {}x {} from internal storage", inputAmount, inputResource);
+                LOGGER.debug("Extracted {}x {} from internal storage", inputAmount, inputResource);
             }
         }
         return true;

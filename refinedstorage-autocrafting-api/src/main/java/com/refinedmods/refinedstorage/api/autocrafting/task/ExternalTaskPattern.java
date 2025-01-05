@@ -30,14 +30,12 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             return true;
         }
         if (iterationsToSendToSink == 0) {
-            // TODO: coverage
             return false;
         }
         if (!acceptsIterationInputs(internalStorage, externalPatternInputSink)) {
-            // TODO: coverage
             return false;
         }
-        LOGGER.info("Stepped {} with {} iterations remaining", pattern, iterationsToSendToSink);
+        LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsToSendToSink);
         iterationsToSendToSink--;
         return false;
     }
@@ -50,7 +48,6 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             expectedOutputs.remove(resource, available);
             return available;
         }
-        // TODO: coverage
         return 0;
     }
 
@@ -58,18 +55,24 @@ class ExternalTaskPattern extends AbstractTaskPattern {
                                            final ExternalPatternInputSink externalPatternInputSink) {
         final ResourceList iterationInputsSimulated = calculateIterationInputs(Action.SIMULATE);
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
-            // TODO: coverage
             return false;
         }
         if (!externalPatternInputSink.accept(pattern, iterationInputsSimulated.copyState(), Action.SIMULATE)) {
-            // TODO: coverage
             return false;
         }
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
         extractAll(iterationInputs, internalStorage, Action.EXECUTE);
+        // If the sink does not accept the inputs
+        // we cannot return the extracted resources to the internal storage
+        // because we have already deducted from the iteration inputs
+        // and because the sink might have still accepted some resources halfway.
+        // If we returned the extracted resources to the internal storage and correct the
+        // iteration inputs, it would potentially duplicate the resources
+        // across the sink and the internal storage.
+        // The end result is that we lie, do as if the insertion was successful,
+        // and potentially void the extracted resources from the internal storage.
         if (!externalPatternInputSink.accept(pattern, iterationInputs.copyState(), Action.EXECUTE)) {
-            // TODO: coverage
-            return false;
+            LOGGER.warn("External sink {} did not accept all inputs for pattern {}", externalPatternInputSink, pattern);
         }
         return true;
     }

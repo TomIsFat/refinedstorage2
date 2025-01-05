@@ -1,26 +1,19 @@
 package com.refinedmods.refinedstorage.api.network.impl.autocrafting;
 
-import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewItem;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType;
-import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
-import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
-import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
-import com.refinedmods.refinedstorage.network.test.fixtures.FakeTaskStatusProvider;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
@@ -40,49 +33,7 @@ class AutocraftingNetworkComponentImplTest {
     @BeforeEach
     void setUp() {
         rootStorage = new RootStorageImpl();
-        sut = new AutocraftingNetworkComponentImpl(
-            () -> rootStorage,
-            new FakeTaskStatusProvider(),
-            Executors.newSingleThreadExecutor()
-        );
-    }
-
-    @Test
-    void temporaryCoverage() {
-        final PatternListener listener = new PatternListener() {
-            @Override
-            public void onAdded(final Pattern pattern) {
-                // no op
-            }
-
-            @Override
-            public void onRemoved(final Pattern pattern) {
-                // no op
-            }
-        };
-        sut.addListener(listener);
-        sut.removeListener(listener);
-        final TaskStatusListener listener2 = new TaskStatusListener() {
-            @Override
-            public void taskStatusChanged(final TaskStatus status) {
-                // no op
-            }
-
-            @Override
-            public void taskRemoved(final TaskId id) {
-                // no op
-            }
-
-            @Override
-            public void taskAdded(final TaskStatus status) {
-                // no op
-            }
-        };
-        sut.addListener(listener2);
-        sut.removeListener(listener2);
-        sut.getStatuses();
-        sut.cancel(new TaskId(UUID.randomUUID()));
-        sut.cancelAll();
+        sut = new AutocraftingNetworkComponentImpl(() -> rootStorage, Executors.newSingleThreadExecutor());
     }
 
     @Test
@@ -113,11 +64,6 @@ class AutocraftingNetworkComponentImplTest {
 
         // Assert
         assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().isEmpty();
-    }
-
-    @Test
-    void shouldStartTask() {
-        sut.startTask(A, 10, Actor.EMPTY, true);
     }
 
     @Test
@@ -157,5 +103,40 @@ class AutocraftingNetworkComponentImplTest {
 
         // Assert
         assertThat(maxAmount).isEqualTo(16);
+    }
+
+    @Test
+    void shouldStartTask() throws ExecutionException, InterruptedException {
+        // Arrange
+        rootStorage.addSource(new StorageImpl());
+        rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
+        provider.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
+        final NetworkNodeContainer container = () -> provider;
+        sut.onContainerAdded(container);
+
+        // Act
+        final boolean success = sut.startTask(B, 1, Actor.EMPTY, false).get();
+
+        // Assert
+        assertThat(success).isTrue();
+        assertThat(provider.getTasks()).hasSize(1);
+    }
+
+    @Test
+    void shouldNotStartTaskWhenThereAreMissingIngredients() throws ExecutionException, InterruptedException {
+        // Arrange
+        final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
+        provider.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
+        final NetworkNodeContainer container = () -> provider;
+        sut.onContainerAdded(container);
+
+        // Act
+        final boolean success = sut.startTask(B, 2, Actor.EMPTY, false).get();
+
+        // Assert
+        assertThat(success).isFalse();
+        assertThat(provider.getTasks()).isEmpty();
     }
 }

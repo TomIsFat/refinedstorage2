@@ -131,9 +131,12 @@ class WirelessGrid implements Grid {
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
+                                                final long amount,
+                                                final Actor actor,
+                                                final boolean notify) {
         return getAutocrafting()
             .map(autocrafting -> autocrafting.startTask(resource, amount, actor, notify))
-            .orElse(false);
+            .orElse(CompletableFuture.completedFuture(false));
     }
 }

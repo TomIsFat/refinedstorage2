@@ -391,4 +391,22 @@ abstract class AbstractMutableResourceListTest {
         assertThat(list.isEmpty()).isFalse();
         assertThat(copy.isEmpty()).isFalse();
     }
+
+    @Test
+    void testToString() {
+        // Arrange
+        list.add(TestResource.A, 10);
+        list.add(TestResource.B, 5);
+
+        // Act
+        final String result = list.toString();
+
+        // Assert
+        assertThat(result)
+            .startsWith("{")
+            .contains("A=10")
+            .contains(",")
+            .contains("B=5")
+            .endsWith("}");
+    }
 }

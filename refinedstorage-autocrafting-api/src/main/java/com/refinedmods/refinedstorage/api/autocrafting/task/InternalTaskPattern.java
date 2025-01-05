@@ -25,11 +25,11 @@ class InternalTaskPattern extends AbstractTaskPattern {
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
             return false;
         }
-        LOGGER.info("Stepping {}", pattern);
+        LOGGER.debug("Stepping {}", pattern);
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
         extractAll(iterationInputs, internalStorage, Action.EXECUTE);
         pattern.outputs().forEach(output -> {
-            LOGGER.info("Inserting {}x {} into internal storage", output.amount(), output.resource());
+            LOGGER.debug("Inserting {}x {} into internal storage", output.amount(), output.resource());
             internalStorage.add(output);
         });
         return useIteration();
@@ -42,7 +42,7 @@ class InternalTaskPattern extends AbstractTaskPattern {
 
     protected boolean useIteration() {
         iterationsRemaining--;
-        LOGGER.info("Stepped {} with {} iterations remaining", pattern, iterationsRemaining);
+        LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsRemaining);
         return iterationsRemaining == 0;
     }
 }

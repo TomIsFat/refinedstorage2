@@ -39,10 +39,8 @@ public record AutocraftingRequestPacket(UUID id,
         final Player player = ctx.getPlayer();
         if (player.containerMenu instanceof PreviewProvider provider) {
             final PlayerActor playerActor = new PlayerActor(player);
-            final boolean started = provider.startTask(
-                packet.resource, packet.amount, playerActor, packet.notifyPlayer
-            );
-            S2CPackets.sendAutocraftingResponse((ServerPlayer) player, packet.id, started);
+            provider.startTask(packet.resource, packet.amount, playerActor, packet.notifyPlayer)
+                .thenAccept(success -> S2CPackets.sendAutocraftingResponse((ServerPlayer) player, packet.id, success));
         }
     }
 

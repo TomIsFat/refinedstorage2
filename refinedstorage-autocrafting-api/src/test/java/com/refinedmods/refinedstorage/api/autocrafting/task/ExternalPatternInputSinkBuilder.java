@@ -21,10 +21,10 @@ class ExternalPatternInputSinkBuilder {
         return new ExternalPatternInputSinkBuilder();
     }
 
-    Storage storageSink(final Pattern pattern) {
-        final Storage storage = new StorageImpl();
-        sinks.put(pattern, new StorageSink(storage));
-        return storage;
+    Sink storageSink(final Pattern pattern) {
+        final Sink sink = new Sink(new StorageImpl());
+        sinks.put(pattern, sink);
+        return sink;
     }
 
     ExternalPatternInputSink build() {
@@ -34,19 +34,26 @@ class ExternalPatternInputSinkBuilder {
         };
     }
 
-    private interface Sink {
-        boolean accept(Collection<ResourceAmount> resources, Action action);
-    }
-
-    private static class StorageSink implements Sink {
+    static class Sink {
         private final Storage storage;
+        private boolean enabled = true;
 
-        private StorageSink(final Storage storage) {
+        private Sink(final Storage storage) {
             this.storage = storage;
         }
 
-        @Override
-        public boolean accept(final Collection<ResourceAmount> resources, final Action action) {
+        Collection<ResourceAmount> getAll() {
+            return storage.getAll();
+        }
+
+        void setEnabled(final boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        private boolean accept(final Collection<ResourceAmount> resources, final Action action) {
+            if (!enabled) {
+                return false;
+            }
             if (action == Action.EXECUTE) {
                 return accept(resources);
             }

@@ -15,5 +15,9 @@ public enum ResourceFixtures implements ResourceKey {
     SIGN,
     IRON_ORE,
     IRON_INGOT,
-    IRON_PICKAXE
+    IRON_PICKAXE,
+    COBBLESTONE,
+    STONE,
+    STONE_BRICKS,
+    SMOOTH_STONE
 }

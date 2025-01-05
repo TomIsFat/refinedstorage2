@@ -42,7 +42,7 @@ public class PreviewCraftingCalculatorListener implements CraftingCalculatorList
     }
 
     @Override
-    public CraftingCalculatorListener<PreviewBuilder> childCalculationStarted(final Pattern pattern,
+    public CraftingCalculatorListener<PreviewBuilder> childCalculationStarted(final Pattern childPattern,
                                                                               final ResourceKey resource,
                                                                               final Amount amount) {
         LOGGER.debug("{} - Child calculation starting for {}x {}", listenerId, amount, resource);
@@ -64,7 +64,7 @@ public class PreviewCraftingCalculatorListener implements CraftingCalculatorList
     }
 
     @Override
-    public void ingredientUsed(final Pattern pattern,
+    public void ingredientUsed(final Pattern ingredientPattern,
                                final int ingredientIndex,
                                final ResourceKey resource,
                                final long amount) {

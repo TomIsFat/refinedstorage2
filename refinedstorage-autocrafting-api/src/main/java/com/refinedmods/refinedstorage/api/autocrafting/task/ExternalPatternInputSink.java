@@ -11,7 +11,5 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.4.12")
 @FunctionalInterface
 public interface ExternalPatternInputSink {
-    ExternalPatternInputSink EMPTY = (pattern, resources, action) -> false;
-
     boolean accept(Pattern pattern, Collection<ResourceAmount> resources, Action action);
 }

@@ -8,28 +8,32 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 import java.util.Optional;
 
-public class TaskCraftingCalculatorListener implements CraftingCalculatorListener<MutableTaskPlan> {
+public class TaskPlanCraftingCalculatorListener implements CraftingCalculatorListener<MutableTaskPlan> {
     private MutableTaskPlan task;
 
-    private TaskCraftingCalculatorListener(final MutableTaskPlan task) {
+    private TaskPlanCraftingCalculatorListener(final MutableTaskPlan task) {
         this.task = task;
+    }
+
+    private TaskPlanCraftingCalculatorListener() {
+        this(new MutableTaskPlan());
     }
 
     public static Optional<TaskPlan> calculatePlan(final CraftingCalculator calculator,
                                                    final ResourceKey resource,
                                                    final long amount) {
-        final TaskCraftingCalculatorListener listener = new TaskCraftingCalculatorListener(new MutableTaskPlan());
+        final TaskPlanCraftingCalculatorListener listener = new TaskPlanCraftingCalculatorListener();
         calculator.calculate(resource, amount, listener);
         return listener.task.getPlan();
     }
 
     @Override
-    public CraftingCalculatorListener<MutableTaskPlan> childCalculationStarted(final Pattern pattern,
+    public CraftingCalculatorListener<MutableTaskPlan> childCalculationStarted(final Pattern childPattern,
                                                                                final ResourceKey resource,
                                                                                final Amount amount) {
-        final MutableTaskPlan copy = task.copy();
-        copy.addOrUpdatePattern(pattern, amount.iterations());
-        return new TaskCraftingCalculatorListener(copy);
+        final MutableTaskPlan copy = task.copy(childPattern);
+        copy.addOrUpdatePattern(childPattern, amount.iterations());
+        return new TaskPlanCraftingCalculatorListener(copy);
     }
 
     @Override
@@ -43,11 +47,11 @@ public class TaskCraftingCalculatorListener implements CraftingCalculatorListene
     }
 
     @Override
-    public void ingredientUsed(final Pattern pattern,
+    public void ingredientUsed(final Pattern ingredientPattern,
                                final int ingredientIndex,
                                final ResourceKey resource,
                                final long amount) {
-        task.addUsedIngredient(pattern, ingredientIndex, resource, amount);
+        task.addUsedIngredient(ingredientPattern, ingredientIndex, resource, amount);
     }
 
     @Override

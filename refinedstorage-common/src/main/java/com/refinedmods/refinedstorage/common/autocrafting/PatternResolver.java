@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import net.minecraft.world.item.ItemStack;
@@ -29,15 +30,18 @@ public class PatternResolver {
     PatternResolver() {
     }
 
-    Optional<ResolvedCraftingPattern> getCraftingPattern(final ItemStack stack, final Level level) {
+    Optional<ResolvedCraftingPattern> getCraftingPattern(final ItemStack stack,
+                                                         final Level level,
+                                                         final PatternState patternState) {
         final CraftingPatternState craftingState = stack.get(DataComponents.INSTANCE.getCraftingPatternState());
         if (craftingState == null) {
             return Optional.empty();
         }
-        return getCraftingPattern(level, craftingState);
+        return getCraftingPattern(level, patternState, craftingState);
     }
 
     private Optional<ResolvedCraftingPattern> getCraftingPattern(final Level level,
+                                                                 final PatternState patternState,
                                                                  final CraftingPatternState state) {
         final RecipeMatrixContainer craftingMatrix = getFilledCraftingMatrix(state);
         final CraftingInput.Positioned positionedCraftingInput = craftingMatrix.asPositionedCraftInput();
@@ -45,7 +49,7 @@ public class PatternResolver {
         return level.getRecipeManager()
             .getRecipeFor(RecipeType.CRAFTING, craftingInput, level)
             .map(RecipeHolder::value)
-            .map(recipe -> toCraftingPattern(level, recipe, craftingInput, state));
+            .map(recipe -> toCraftingPattern(level, recipe, craftingInput, state, patternState));
     }
 
     private RecipeMatrixContainer getFilledCraftingMatrix(final CraftingPatternState state) {
@@ -61,11 +65,12 @@ public class PatternResolver {
     private ResolvedCraftingPattern toCraftingPattern(final Level level,
                                                       final CraftingRecipe recipe,
                                                       final CraftingInput craftingInput,
-                                                      final CraftingPatternState state) {
+                                                      final CraftingPatternState state,
+                                                      final PatternState patternState) {
         final List<List<ResourceKey>> inputs = getInputs(recipe, state);
         final ResourceAmount output = getOutput(level, recipe, craftingInput);
         final List<ResourceAmount> byproducts = getByproducts(recipe, craftingInput);
-        return new ResolvedCraftingPattern(inputs, output, byproducts);
+        return new ResolvedCraftingPattern(patternState.id(), inputs, output, byproducts);
     }
 
     private List<List<ResourceKey>> getInputs(final CraftingRecipe recipe, final CraftingPatternState state) {
@@ -101,7 +106,7 @@ public class PatternResolver {
             .toList();
     }
 
-    Optional<ResolvedProcessingPattern> getProcessingPattern(final ItemStack stack) {
+    Optional<ResolvedProcessingPattern> getProcessingPattern(final PatternState patternState, final ItemStack stack) {
         final ProcessingPatternState state = stack.get(
             DataComponents.INSTANCE.getProcessingPatternState()
         );
@@ -109,20 +114,22 @@ public class PatternResolver {
             return Optional.empty();
         }
         return Optional.of(
-            new ResolvedProcessingPattern(state.getIngredients(), state.getFlatOutputs())
+            new ResolvedProcessingPattern(patternState.id(), state.getIngredients(), state.getFlatOutputs())
         );
     }
 
     Optional<ResolvedStonecutterPattern> getStonecutterPattern(final ItemStack stack,
-                                                               final Level level) {
+                                                               final Level level,
+                                                               final PatternState patternState) {
         final StonecutterPatternState state = stack.get(DataComponents.INSTANCE.getStonecutterPatternState());
         if (state == null) {
             return Optional.empty();
         }
-        return getStonecutterPattern(level, state);
+        return getStonecutterPattern(level, patternState, state);
     }
 
     private Optional<ResolvedStonecutterPattern> getStonecutterPattern(final Level level,
+                                                                       final PatternState patternState,
                                                                        final StonecutterPatternState state) {
         final SingleRecipeInput input = new SingleRecipeInput(state.input().toItemStack());
         final ItemStack selectedOutput = state.selectedOutput().toItemStack();
@@ -131,6 +138,7 @@ public class PatternResolver {
             final ItemStack output = recipe.value().assemble(input, level.registryAccess());
             if (ItemStack.isSameItemSameComponents(output, selectedOutput)) {
                 return Optional.of(new ResolvedStonecutterPattern(
+                    patternState.id(),
                     state.input(),
                     ItemResource.ofItemStack(output)
                 ));
@@ -139,16 +147,18 @@ public class PatternResolver {
         return Optional.empty();
     }
 
-    Optional<ResolvedSmithingTablePattern> getSmithingTablePattern(final ItemStack stack,
+    Optional<ResolvedSmithingTablePattern> getSmithingTablePattern(final PatternState patternState,
+                                                                   final ItemStack stack,
                                                                    final Level level) {
         final SmithingTablePatternState state = stack.get(DataComponents.INSTANCE.getSmithingTablePatternState());
         if (state == null) {
             return Optional.empty();
         }
-        return getSmithingTablePattern(level, state);
+        return getSmithingTablePattern(level, patternState, state);
     }
 
     private Optional<ResolvedSmithingTablePattern> getSmithingTablePattern(final Level level,
+                                                                           final PatternState patternState,
                                                                            final SmithingTablePatternState state) {
         final SmithingRecipeInput input = new SmithingRecipeInput(
             state.template().toItemStack(),
@@ -158,6 +168,7 @@ public class PatternResolver {
         return level.getRecipeManager()
             .getRecipeFor(RecipeType.SMITHING, input, level)
             .map(recipe -> new ResolvedSmithingTablePattern(
+                patternState.id(),
                 state.template(),
                 state.base(),
                 state.addition(),
@@ -168,10 +179,12 @@ public class PatternResolver {
     public record ResolvedCraftingPattern(List<List<ResourceKey>> inputs,
                                           ResourceAmount output,
                                           Pattern pattern) {
-        ResolvedCraftingPattern(final List<List<ResourceKey>> inputs,
+        ResolvedCraftingPattern(final UUID id,
+                                final List<List<ResourceKey>> inputs,
                                 final ResourceAmount output,
                                 final List<ResourceAmount> byproducts) {
             this(inputs, output, new Pattern(
+                id,
                 inputs.stream()
                     .filter(i -> !i.isEmpty())
                     .map(i -> new Ingredient(1, i))
@@ -183,16 +196,19 @@ public class PatternResolver {
     }
 
     public record ResolvedProcessingPattern(Pattern pattern) {
-        ResolvedProcessingPattern(final List<Ingredient> ingredients, final List<ResourceAmount> outputs) {
-            this(new Pattern(ingredients, outputs, PatternType.EXTERNAL));
+        ResolvedProcessingPattern(final UUID id,
+                                  final List<Ingredient> ingredients,
+                                  final List<ResourceAmount> outputs) {
+            this(new Pattern(id, ingredients, outputs, PatternType.EXTERNAL));
         }
     }
 
     public record ResolvedStonecutterPattern(ItemResource input,
                                              ItemResource output,
                                              Pattern pattern) {
-        ResolvedStonecutterPattern(final ItemResource input, final ItemResource output) {
+        ResolvedStonecutterPattern(final UUID id, final ItemResource input, final ItemResource output) {
             this(input, output, new Pattern(
+                id,
                 List.of(new Ingredient(1, List.of(input))),
                 List.of(new ResourceAmount(output, 1)),
                 PatternType.INTERNAL
@@ -205,11 +221,13 @@ public class PatternResolver {
                                                ItemResource addition,
                                                ItemResource output,
                                                Pattern pattern) {
-        ResolvedSmithingTablePattern(final ItemResource template,
+        ResolvedSmithingTablePattern(final UUID id,
+                                     final ItemResource template,
                                      final ItemResource base,
                                      final ItemResource addition,
                                      final ItemResource output) {
             this(template, base, addition, output, new Pattern(
+                id,
                 List.of(single(template), single(base), single(addition)),
                 List.of(new ResourceAmount(output, 1)),
                 PatternType.INTERNAL

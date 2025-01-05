@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.common.support.packet.s2c;
 
-import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.common.Platform;
@@ -105,8 +105,8 @@ public final class S2CPackets {
 
     public static void sendAutocraftingResponse(final ServerPlayer player,
                                                 final UUID id,
-                                                final boolean started) {
-        Platform.INSTANCE.sendPacketToClient(player, new AutocraftingResponsePacket(id, started));
+                                                final boolean success) {
+        Platform.INSTANCE.sendPacketToClient(player, new AutocraftingResponsePacket(id, success));
     }
 
     public static void sendAutocraftingMonitorTaskAdded(final ServerPlayer player, final TaskStatus taskStatus) {

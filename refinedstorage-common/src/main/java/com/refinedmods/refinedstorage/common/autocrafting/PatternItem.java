@@ -142,13 +142,13 @@ public class PatternItem extends Item implements PatternProviderItem {
             return Optional.empty();
         }
         return switch (state.type()) {
-            case CRAFTING -> resolver.getCraftingPattern(stack, level)
+            case CRAFTING -> resolver.getCraftingPattern(stack, level, state)
                 .map(PatternResolver.ResolvedCraftingPattern::pattern);
-            case PROCESSING -> resolver.getProcessingPattern(stack)
+            case PROCESSING -> resolver.getProcessingPattern(state, stack)
                 .map(PatternResolver.ResolvedProcessingPattern::pattern);
-            case STONECUTTER -> resolver.getStonecutterPattern(stack, level)
+            case STONECUTTER -> resolver.getStonecutterPattern(stack, level, state)
                 .map(PatternResolver.ResolvedStonecutterPattern::pattern);
-            case SMITHING_TABLE -> resolver.getSmithingTablePattern(stack, level)
+            case SMITHING_TABLE -> resolver.getSmithingTablePattern(state, stack, level)
                 .map(PatternResolver.ResolvedSmithingTablePattern::pattern);
         };
     }
@@ -187,7 +187,7 @@ public class PatternItem extends Item implements PatternProviderItem {
                                                                                        final Level level) {
         final PatternResolver.ResolvedCraftingPattern pattern = CRAFTING_PATTERN_CACHE.get(state.id());
         if (pattern == null) {
-            return resolver.getCraftingPattern(stack, level).map(resolved -> {
+            return resolver.getCraftingPattern(stack, level, state).map(resolved -> {
                 CRAFTING_PATTERN_CACHE.put(state.id(), resolved);
                 return resolved;
             });
@@ -202,7 +202,7 @@ public class PatternItem extends Item implements PatternProviderItem {
     ) {
         final PatternResolver.ResolvedSmithingTablePattern pattern = SMITHING_TABLE_PATTERN_CACHE.get(state.id());
         if (pattern == null) {
-            return resolver.getSmithingTablePattern(stack, level).map(resolved -> {
+            return resolver.getSmithingTablePattern(state, stack, level).map(resolved -> {
                 SMITHING_TABLE_PATTERN_CACHE.put(state.id(), resolved);
                 return resolved;
             });
@@ -217,7 +217,7 @@ public class PatternItem extends Item implements PatternProviderItem {
     ) {
         final PatternResolver.ResolvedStonecutterPattern pattern = STONE_CUTTER_PATTERN_CACHE.get(state.id());
         if (pattern == null) {
-            return resolver.getStonecutterPattern(stack, level).map(resolved -> {
+            return resolver.getStonecutterPattern(stack, level, state).map(resolved -> {
                 STONE_CUTTER_PATTERN_CACHE.put(state.id(), resolved);
                 return resolved;
             });
@@ -231,7 +231,7 @@ public class PatternItem extends Item implements PatternProviderItem {
     ) {
         final PatternResolver.ResolvedProcessingPattern pattern = PROCESSING_PATTERN_CACHE.get(state.id());
         if (pattern == null) {
-            return resolver.getProcessingPattern(stack).map(resolved -> {
+            return resolver.getProcessingPattern(state, stack).map(resolved -> {
                 PROCESSING_PATTERN_CACHE.put(state.id(), resolved);
                 return resolved;
             });

@@ -1,10 +1,16 @@
 package com.refinedmods.refinedstorage.api.autocrafting.calculation;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 public record Amount(long iterations, long amountPerIteration) {
+    public Amount {
+        CoreValidations.validateLargerThanZero(iterations, "Iterations");
+        CoreValidations.validateLargerThanZero(amountPerIteration, "Amount per iteration");
+    }
+
     public long getTotal() {
         return iterations * amountPerIteration;
     }

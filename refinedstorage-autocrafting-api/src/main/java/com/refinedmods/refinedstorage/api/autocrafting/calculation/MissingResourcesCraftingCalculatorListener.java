@@ -20,7 +20,7 @@ class MissingResourcesCraftingCalculatorListener implements CraftingCalculatorLi
     }
 
     @Override
-    public CraftingCalculatorListener<Boolean> childCalculationStarted(final Pattern pattern,
+    public CraftingCalculatorListener<Boolean> childCalculationStarted(final Pattern childPattern,
                                                                        final ResourceKey resource,
                                                                        final Amount amount) {
         return new MissingResourcesCraftingCalculatorListener(missingResources);
@@ -37,7 +37,7 @@ class MissingResourcesCraftingCalculatorListener implements CraftingCalculatorLi
     }
 
     @Override
-    public void ingredientUsed(final Pattern pattern,
+    public void ingredientUsed(final Pattern ingredientPattern,
                                final int ingredientIndex,
                                final ResourceKey resource,
                                final long amount) {

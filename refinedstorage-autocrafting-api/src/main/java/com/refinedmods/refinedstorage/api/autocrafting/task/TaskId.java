@@ -9,4 +9,9 @@ public record TaskId(UUID id) {
     public static TaskId create() {
         return new TaskId(UUID.randomUUID());
     }
+
+    @Override
+    public String toString() {
+        return id.toString();
+    }
 }

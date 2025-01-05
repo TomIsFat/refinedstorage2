@@ -8,7 +8,6 @@ import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
-import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TaskImpl implements Task, RootStorageListener {
+public class TaskImpl implements Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskImpl.class);
 
     private final TaskId id = TaskId.create();
@@ -29,7 +28,7 @@ public class TaskImpl implements Task, RootStorageListener {
     private final MutableResourceList internalStorage = MutableResourceListImpl.create();
     private TaskState state = TaskState.READY;
 
-    public TaskImpl(final TaskPlan plan) {
+    private TaskImpl(final TaskPlan plan) {
         this.patterns = plan.patterns().entrySet().stream().collect(Collectors.toMap(
             Map.Entry::getKey,
             e -> createTaskPattern(e.getKey(), e.getValue()),
@@ -37,6 +36,10 @@ public class TaskImpl implements Task, RootStorageListener {
             LinkedHashMap::new
         ));
         plan.initialRequirements().forEach(initialRequirements::add);
+    }
+
+    public static Task fromPlan(final TaskPlan plan) {
+        return new TaskImpl(plan);
     }
 
     private static AbstractTaskPattern createTaskPattern(final Pattern pattern,
@@ -48,12 +51,17 @@ public class TaskImpl implements Task, RootStorageListener {
     }
 
     @Override
+    public TaskId getId() {
+        return id;
+    }
+
+    @Override
     public TaskState getState() {
         return state;
     }
 
     private void updateState(final TaskState newState) {
-        LOGGER.info("Task {} state changed from {} to {}", id.id(), state, newState);
+        LOGGER.debug("Task {} state changed from {} to {}", id.id(), state, newState);
         this.state = newState;
     }
 
@@ -82,7 +90,7 @@ public class TaskImpl implements Task, RootStorageListener {
         patterns.entrySet().removeIf(pattern -> {
             final boolean completed = pattern.getValue().step(internalStorage, externalPatternInputSink);
             if (completed) {
-                LOGGER.info("{} completed", pattern.getKey());
+                LOGGER.debug("{} completed", pattern.getKey());
             }
             return completed;
         });
@@ -97,7 +105,8 @@ public class TaskImpl implements Task, RootStorageListener {
         }
     }
 
-    Collection<ResourceAmount> copyInternalStorageState() {
+    @Override
+    public Collection<ResourceAmount> copyInternalStorageState() {
         return internalStorage.copyState();
     }
 
@@ -107,7 +116,7 @@ public class TaskImpl implements Task, RootStorageListener {
         for (final ResourceKey resource : resources) {
             final long needed = initialRequirements.get(resource);
             final long extracted = rootStorage.extract(resource, needed, Action.EXECUTE, Actor.EMPTY);
-            LOGGER.info("Extracted {}x {} from storage", extracted, resource);
+            LOGGER.debug("Extracted {}x {} from storage", extracted, resource);
             if (extracted != needed) {
                 extractedAll = false;
             }
@@ -125,7 +134,7 @@ public class TaskImpl implements Task, RootStorageListener {
         for (final ResourceKey resource : resources) {
             final long amount = internalStorage.get(resource);
             final long inserted = rootStorage.insert(resource, amount, Action.EXECUTE, Actor.EMPTY);
-            LOGGER.info("Returned {}x {} into storage", inserted, resource);
+            LOGGER.debug("Returned {}x {} into storage", inserted, resource);
             if (inserted != amount) {
                 returnedAll = false;
             }
@@ -138,20 +147,18 @@ public class TaskImpl implements Task, RootStorageListener {
 
     @Override
     public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
-        // TODO: coverage
-        long totalIntercepted = 0;
+        long remaining = amount;
         for (final AbstractTaskPattern pattern : patterns.values()) {
-            final long remaining = amount - totalIntercepted;
             final long intercepted = pattern.interceptInsertion(resource, remaining);
             if (intercepted > 0) {
                 internalStorage.add(resource, intercepted);
             }
-            totalIntercepted += intercepted;
-            if (totalIntercepted == amount) {
-                break;
+            remaining -= intercepted;
+            if (remaining == 0) {
+                return amount;
             }
         }
-        return totalIntercepted;
+        return amount - remaining;
     }
 
     @Override

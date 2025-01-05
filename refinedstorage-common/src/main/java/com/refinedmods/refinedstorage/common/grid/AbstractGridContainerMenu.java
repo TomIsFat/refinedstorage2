@@ -471,7 +471,10 @@ public abstract class AbstractGridContainerMenu extends AbstractResourceContaine
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
+                                                final long amount,
+                                                final Actor actor,
+                                                final boolean notify) {
         return requireNonNull(grid).startTask(resource, amount, actor, notify);
     }
 
