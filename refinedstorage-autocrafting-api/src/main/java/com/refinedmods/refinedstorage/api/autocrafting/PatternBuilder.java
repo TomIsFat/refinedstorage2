@@ -5,25 +5,36 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import org.apiguardian.api.API;
+
+@API(status = API.Status.STABLE, since = "2.0.0-milestone.4.12")
 public class PatternBuilder {
+    private final PatternType type;
+    private final UUID id;
     private final List<Ingredient> ingredients = new ArrayList<>();
     private final List<ResourceAmount> outputs = new ArrayList<>();
 
-    private PatternBuilder() {
+    private PatternBuilder(final UUID id, final PatternType type) {
+        this.id = id;
+        this.type = type;
     }
 
     public static PatternBuilder pattern() {
-        return new PatternBuilder();
+        return pattern(PatternType.INTERNAL);
+    }
+
+    public static PatternBuilder pattern(final PatternType type) {
+        return pattern(UUID.randomUUID(), type);
+    }
+
+    public static PatternBuilder pattern(final UUID id, final PatternType type) {
+        return new PatternBuilder(id, type);
     }
 
     public IngredientBuilder ingredient(final long amount) {
         return new IngredientBuilder(amount);
-    }
-
-    public PatternBuilder ingredient(final Ingredient ingredient) {
-        ingredients.add(ingredient);
-        return this;
     }
 
     public PatternBuilder ingredient(final ResourceKey input, final long amount) {
@@ -37,7 +48,7 @@ public class PatternBuilder {
     }
 
     public Pattern build() {
-        return new Pattern(ingredients, outputs);
+        return new Pattern(id, ingredients, outputs, type);
     }
 
     public class IngredientBuilder {

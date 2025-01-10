@@ -12,5 +12,12 @@ public enum ResourceFixtures implements ResourceKey {
     SPRUCE_PLANKS,
     CRAFTING_TABLE,
     STICKS,
-    SIGN
+    SIGN,
+    IRON_ORE,
+    IRON_INGOT,
+    IRON_PICKAXE,
+    COBBLESTONE,
+    STONE,
+    STONE_BRICKS,
+    SMOOTH_STONE
 }

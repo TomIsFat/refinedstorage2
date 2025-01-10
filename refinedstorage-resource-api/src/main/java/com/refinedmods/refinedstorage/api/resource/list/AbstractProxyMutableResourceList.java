@@ -59,4 +59,14 @@ public abstract class AbstractProxyMutableResourceList implements MutableResourc
     public void clear() {
         delegate.clear();
     }
+
+    @Override
+    public boolean isEmpty() {
+        return delegate.isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }

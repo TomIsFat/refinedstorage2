@@ -28,6 +28,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamEncoder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -300,6 +301,16 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         for (int i = 0; i < patternContainer.getContainerSize(); ++i) {
             patternChanged(i);
         }
+    }
+
+    @Override
+    protected void initialize(final ServerLevel level, final Direction direction) {
+        super.initialize(level, direction);
+        final Direction incomingDirection = direction.getOpposite();
+        final BlockPos sourcePosition = worldPosition.relative(direction);
+        mainNetworkNode.setExternalPatternInputSink(
+            RefinedStorageApi.INSTANCE.getPatternProviderExternalPatternInputSinkFactory()
+                .create(level, sourcePosition, incomingDirection));
     }
 
     @Override

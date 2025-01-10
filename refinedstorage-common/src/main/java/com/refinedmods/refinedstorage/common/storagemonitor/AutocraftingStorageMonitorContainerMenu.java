@@ -51,7 +51,10 @@ public class AutocraftingStorageMonitorContainerMenu extends AutocraftingPreview
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
+                                                final long amount,
+                                                final Actor actor,
+                                                final boolean notify) {
         return requireNonNull(storageMonitor).startTask(resource, amount, actor, notify);
     }
 }

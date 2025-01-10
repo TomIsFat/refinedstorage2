@@ -85,6 +85,7 @@ import com.refinedmods.refinedstorage.common.util.ServerListener;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStorageFabricApi;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStorageFabricApiProxy;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStoragePlugin;
+import com.refinedmods.refinedstorage.fabric.autocrafting.FabricStorageExternalPatternInputSinkStrategyFactoryImpl;
 import com.refinedmods.refinedstorage.fabric.constructordestructor.FabricConstructorBlockEntity;
 import com.refinedmods.refinedstorage.fabric.constructordestructor.FabricDestructorBlockEntity;
 import com.refinedmods.refinedstorage.fabric.exporter.FabricExporterBlockEntity;
@@ -190,7 +191,7 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
         PlatformProxy.loadPlatform(new PlatformImpl());
         initializePlatformApi();
         ((RefinedStorageFabricApiProxy) RefinedStorageFabricApi.INSTANCE).setDelegate(
-            new RefinedStorageFabricApiImpl()
+            new RefinedStorageFabricApiImpl(RefinedStorageApi.INSTANCE)
         );
         registerAdditionalGridInsertionStrategyFactories();
         registerGridExtractionStrategyFactories();
@@ -198,6 +199,7 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
         registerImporterTransferStrategyFactories();
         registerExporterTransferStrategyFactories();
         registerExternalStorageProviderFactories();
+        registerExternalPatternInputSinkStrategyFactories();
         registerContent();
         registerPackets();
         registerPacketHandlers();
@@ -293,6 +295,23 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
                 resource -> resource instanceof FluidResource fluidResource
                     ? toFluidVariant(fluidResource) : null,
                 -1
+            )
+        );
+    }
+
+    private void registerExternalPatternInputSinkStrategyFactories() {
+        RefinedStorageFabricApi.INSTANCE.addStorageExternalPatternInputSinkStrategyFactory(
+            new FabricStorageExternalPatternInputSinkStrategyFactoryImpl<>(
+                ItemStorage.SIDED,
+                resource -> resource instanceof ItemResource itemResource
+                    ? toItemVariant(itemResource) : null
+            )
+        );
+        RefinedStorageFabricApi.INSTANCE.addStorageExternalPatternInputSinkStrategyFactory(
+            new FabricStorageExternalPatternInputSinkStrategyFactoryImpl<>(
+                FluidStorage.SIDED,
+                resource -> resource instanceof FluidResource fluidResource
+                    ? toFluidVariant(fluidResource) : null
             )
         );
     }

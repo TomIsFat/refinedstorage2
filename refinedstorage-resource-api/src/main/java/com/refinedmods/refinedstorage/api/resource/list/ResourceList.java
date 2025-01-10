@@ -36,4 +36,9 @@ public interface ResourceList {
      * @return whether the list contains this resource
      */
     boolean contains(ResourceKey resource);
+
+    /**
+     * @return whether the list is empty
+     */
+    boolean isEmpty();
 }

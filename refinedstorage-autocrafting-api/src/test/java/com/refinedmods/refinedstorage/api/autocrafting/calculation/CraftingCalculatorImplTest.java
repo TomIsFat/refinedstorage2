@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingHelpers.patterns;
-import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingHelpers.storage;
+import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingUtil.patterns;
+import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingUtil.storage;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.CRAFTING_TABLE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_LOG;

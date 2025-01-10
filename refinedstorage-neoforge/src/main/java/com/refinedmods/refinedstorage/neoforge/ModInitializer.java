@@ -84,6 +84,8 @@ import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
 import com.refinedmods.refinedstorage.common.util.ServerListener;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApi;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApiProxy;
+import com.refinedmods.refinedstorage.neoforge.autocrafting.FluidHandlerExternalPatternProviderInputSinkFactory;
+import com.refinedmods.refinedstorage.neoforge.autocrafting.ItemHandlerExternalPatternProviderInputSinkFactory;
 import com.refinedmods.refinedstorage.neoforge.constructordestructor.ForgeConstructorBlockEntity;
 import com.refinedmods.refinedstorage.neoforge.constructordestructor.ForgeDestructorBlockEntity;
 import com.refinedmods.refinedstorage.neoforge.exporter.FluidHandlerExporterTransferStrategyFactory;
@@ -214,6 +216,7 @@ public class ModInitializer extends AbstractModInitializer {
         registerImporterTransferStrategyFactories();
         registerExporterTransferStrategyFactories();
         registerExternalStorageProviderFactories();
+        registerPatternProviderInputSinkFactories();
         registerContent(eventBus);
         registerSounds(eventBus);
         registerRecipeSerializers(eventBus);
@@ -282,6 +285,15 @@ public class ModInitializer extends AbstractModInitializer {
             new ItemHandlerPlatformExternalStorageProviderFactory());
         RefinedStorageApi.INSTANCE.addExternalStorageProviderFactory(
             new FluidHandlerPlatformExternalStorageProviderFactory()
+        );
+    }
+
+    private void registerPatternProviderInputSinkFactories() {
+        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternInputSinkFactory(
+            new ItemHandlerExternalPatternProviderInputSinkFactory()
+        );
+        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternInputSinkFactory(
+            new FluidHandlerExternalPatternProviderInputSinkFactory()
         );
     }
 

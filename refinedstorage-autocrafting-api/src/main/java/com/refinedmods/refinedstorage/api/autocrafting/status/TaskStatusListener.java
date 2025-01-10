@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.api.autocrafting.status;
 
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 
 import org.apiguardian.api.API;
 

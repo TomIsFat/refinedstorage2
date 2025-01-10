@@ -37,8 +37,9 @@ public class CraftingCalculatorImpl implements CraftingCalculator {
                 throw new NumberOverflowDuringCalculationException();
             }
             final CraftingCalculatorListener<T> childListener = listener.childCalculationStarted(
+                pattern,
                 resource,
-                patternAmount.getTotal()
+                patternAmount
             );
             final CraftingTree<T> tree = root(pattern, rootStorage, patternAmount, patternRepository, childListener);
             final CraftingTree.CalculationResult calculationResult = tree.calculate();

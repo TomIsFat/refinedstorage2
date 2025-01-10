@@ -94,8 +94,8 @@ public class AutocraftingPreviewContainerMenu extends AbstractResourceContainerM
         currentRequest.sendRequest(amount, notify);
     }
 
-    public void responseReceived(final UUID id, final boolean started) {
-        if (!currentRequest.getId().equals(id) || !started) {
+    public void responseReceived(final UUID id, final boolean success) {
+        if (!currentRequest.getId().equals(id) || !success) {
             return;
         }
         requests.remove(currentRequest);

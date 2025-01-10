@@ -46,9 +46,9 @@ public final class ClientPlatformUtil {
         }
     }
 
-    public static void autocraftingResponseReceived(final UUID id, final boolean started) {
+    public static void autocraftingResponseReceived(final UUID id, final boolean success) {
         if (Minecraft.getInstance().screen instanceof AutocraftingPreviewScreen screen) {
-            screen.getMenu().responseReceived(id, started);
+            screen.getMenu().responseReceived(id, success);
         }
     }
 

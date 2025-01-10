@@ -29,4 +29,10 @@ public class RefinedStorageFabricApiProxy implements RefinedStorageFabricApi {
     public BlockApiLookup<NetworkNodeContainerProvider, Direction> getNetworkNodeContainerProviderLookup() {
         return ensureLoaded().getNetworkNodeContainerProviderLookup();
     }
+
+    @Override
+    public void addStorageExternalPatternInputSinkStrategyFactory(
+        final FabricStorageExternalPatternInputSinkStrategyFactory factory) {
+        ensureLoaded().addStorageExternalPatternInputSinkStrategyFactory(factory);
+    }
 }

@@ -118,10 +118,13 @@ public abstract class AbstractGridBlockEntity extends AbstractBaseNetworkNodeCon
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount, final Actor actor, final boolean notify) {
+    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
+                                                final long amount,
+                                                final Actor actor,
+                                                final boolean notify) {
         final Network network = mainNetworkNode.getNetwork();
         if (network == null) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
         return network.getComponent(AutocraftingNetworkComponent.class).startTask(resource, amount, actor, notify);
     }

@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.status;
 
 import com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures;
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 
 import java.util.List;
 import java.util.UUID;

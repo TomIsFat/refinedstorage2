@@ -14,5 +14,5 @@ public interface PreviewProvider {
 
     CompletableFuture<Long> getMaxAmount(ResourceKey resource);
 
-    boolean startTask(ResourceKey resource, long amount, Actor actor, boolean notify);
+    CompletableFuture<Boolean> startTask(ResourceKey resource, long amount, Actor actor, boolean notify);
 }

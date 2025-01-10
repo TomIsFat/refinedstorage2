@@ -28,7 +28,6 @@ import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.Aut
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorBlockEntity;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorContainerMenu;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorData;
-import com.refinedmods.refinedstorage.common.autocrafting.monitor.TaskStatusProviderImpl;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.WirelessAutocraftingMonitorContainerMenu;
 import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridBlockEntity;
 import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridContainerMenu;
@@ -277,7 +276,6 @@ public abstract class AbstractModInitializer {
             AutocraftingNetworkComponent.class,
             network -> new AutocraftingNetworkComponentImpl(
                 () -> network.getComponent(StorageNetworkComponent.class),
-                new TaskStatusProviderImpl(),
                 ServerListener.getAutocraftingPool()
             )
         );

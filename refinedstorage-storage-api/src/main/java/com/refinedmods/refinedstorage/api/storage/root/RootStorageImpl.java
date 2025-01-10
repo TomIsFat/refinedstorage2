@@ -6,14 +6,15 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.resource.list.listenable.ListenableResourceList;
-import com.refinedmods.refinedstorage.api.resource.list.listenable.ResourceListListener;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.composite.CompositeStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.apiguardian.api.API;
@@ -22,6 +23,7 @@ import org.apiguardian.api.API;
 public class RootStorageImpl implements RootStorage {
     protected final CompositeStorageImpl storage;
     private final ListenableResourceList list;
+    private final Set<RootStorageListener> listeners = new LinkedHashSet<>();
 
     public RootStorageImpl() {
         this(MutableResourceListImpl.create());
@@ -53,13 +55,15 @@ public class RootStorageImpl implements RootStorage {
     }
 
     @Override
-    public void addListener(final ResourceListListener listener) {
+    public void addListener(final RootStorageListener listener) {
         list.addListener(listener);
+        listeners.add(listener);
     }
 
     @Override
-    public void removeListener(final ResourceListListener listener) {
+    public void removeListener(final RootStorageListener listener) {
         list.removeListener(listener);
+        listeners.remove(listener);
     }
 
     @Override
@@ -79,7 +83,30 @@ public class RootStorageImpl implements RootStorage {
 
     @Override
     public long insert(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
-        return storage.insert(resource, amount, action, actor);
+        final long intercepted = action == Action.EXECUTE ? interceptInsert(resource, amount, actor) : 0;
+        if (intercepted == amount) {
+            return amount;
+        }
+        final long inserted = storage.insert(resource, amount - intercepted, action, actor);
+        return inserted + intercepted;
+    }
+
+    private long interceptInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        long totalIntercepted = 0;
+        for (final RootStorageListener listener : listeners) {
+            final long amountRemaining = amount - totalIntercepted;
+            final long intercepted = listener.beforeInsert(resource, amountRemaining, actor);
+            if (intercepted > amountRemaining || intercepted < 0) {
+                throw new IllegalStateException(
+                    "Listener %s indicated it intercepted %d while the original amount to be intercepted was %d"
+                        .formatted(listener, intercepted, amountRemaining));
+            }
+            totalIntercepted += intercepted;
+            if (totalIntercepted == amount) {
+                return amount;
+            }
+        }
+        return totalIntercepted;
     }
 
     @Override

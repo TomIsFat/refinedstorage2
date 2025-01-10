@@ -7,8 +7,8 @@ import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 
-public final class AutocraftingHelpers {
-    private AutocraftingHelpers() {
+public final class AutocraftingUtil {
+    private AutocraftingUtil() {
     }
 
     public static RootStorage storage(final ResourceAmount... resourceAmounts) {
