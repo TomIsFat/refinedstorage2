@@ -289,7 +289,7 @@ public class BlockStateProviderImpl extends BlockStateProvider {
                 } else {
                     model.modelFile(inactive);
                 }
-                final Direction direction = blockState.getValue(DefaultDirectionType.FACE_PLAYER.getProperty());
+                final Direction direction = blockState.getValue(DefaultDirectionType.FACE_CLICKED.getProperty());
                 final BiDirection biDirection = BiDirection.forDirection(direction);
                 addRotationFrontFacingNorth(model, biDirection);
                 return model.build();
@@ -321,7 +321,7 @@ public class BlockStateProviderImpl extends BlockStateProvider {
                 } else {
                     model.modelFile(inactive);
                 }
-                final Direction direction = blockState.getValue(DefaultDirectionType.FACE_PLAYER.getProperty());
+                final Direction direction = blockState.getValue(DefaultDirectionType.FACE_CLICKED.getProperty());
                 addAutocrafterRotation(model, direction);
                 return model.build();
             });

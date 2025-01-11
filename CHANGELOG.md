@@ -17,6 +17,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 -   Autocrafting now handles multiple patterns with the same output correctly by trying to use the pattern with the
     highest priority first. If there are missing resources, lower priority patterns are checked.
+-   The Autocrafter now faces the block you're clicking when placing it, like the other cable blocks (like the Exporter or Importer).
 
 ### Fixed
 

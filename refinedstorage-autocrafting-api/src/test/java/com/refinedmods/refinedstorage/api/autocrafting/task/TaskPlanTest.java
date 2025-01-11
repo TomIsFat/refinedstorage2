@@ -61,7 +61,7 @@ class TaskPlanTest {
         assertThat(optionalPlan).isPresent();
         final TaskPlan plan = optionalPlan.get();
 
-        assertThat(plan.pattern()).isEqualTo(CRAFTING_TABLE_PATTERN);
+        assertThat(plan.rootPattern()).isEqualTo(CRAFTING_TABLE_PATTERN);
         assertThat(plan.initialRequirements()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(OAK_PLANKS, 4),
             new ResourceAmount(OAK_LOG, 1),
@@ -70,7 +70,7 @@ class TaskPlanTest {
         assertThat(plan.patterns()).containsOnlyKeys(CRAFTING_TABLE_PATTERN, OAK_PLANKS_PATTERN, SPRUCE_PLANKS_PATTERN);
         assertThat(plan.getPattern(CRAFTING_TABLE_PATTERN))
             .usingRecursiveComparison()
-            .isEqualTo(new TaskPlan.PatternPlan(3, Map.of(
+            .isEqualTo(new TaskPlan.PatternPlan(true, 3, Map.of(
                 0, Map.of(OAK_PLANKS, 3L),
                 1, Map.of(OAK_PLANKS, 3L),
                 2, Map.of(OAK_PLANKS, 2L, SPRUCE_PLANKS, 1L),
@@ -78,12 +78,12 @@ class TaskPlanTest {
             )));
         assertThat(plan.getPattern(OAK_PLANKS_PATTERN))
             .usingRecursiveComparison()
-            .isEqualTo(new TaskPlan.PatternPlan(1, Map.of(
+            .isEqualTo(new TaskPlan.PatternPlan(false, 1, Map.of(
                 0, Map.of(OAK_LOG, 1L)
             )));
         assertThat(plan.getPattern(SPRUCE_PLANKS_PATTERN))
             .usingRecursiveComparison()
-            .isEqualTo(new TaskPlan.PatternPlan(1, Map.of(
+            .isEqualTo(new TaskPlan.PatternPlan(false, 1, Map.of(
                 0, Map.of(SPRUCE_LOG, 1L)
             )));
     }

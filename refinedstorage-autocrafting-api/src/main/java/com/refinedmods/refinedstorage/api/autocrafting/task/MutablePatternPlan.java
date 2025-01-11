@@ -11,11 +11,13 @@ import java.util.stream.Collectors;
 
 class MutablePatternPlan {
     private final Pattern pattern;
+    private final boolean root;
     private final Map<Integer, Map<ResourceKey, Long>> ingredients = new HashMap<>();
     private long iterations;
 
-    MutablePatternPlan(final Pattern pattern) {
+    MutablePatternPlan(final Pattern pattern, final boolean root) {
         this.pattern = pattern;
+        this.root = root;
     }
 
     void addIterations(final long it) {
@@ -31,7 +33,7 @@ class MutablePatternPlan {
     }
 
     MutablePatternPlan copy() {
-        final MutablePatternPlan copy = new MutablePatternPlan(pattern);
+        final MutablePatternPlan copy = new MutablePatternPlan(pattern, root);
         copy.iterations = iterations;
         for (final Map.Entry<Integer, Map<ResourceKey, Long>> entry : ingredients.entrySet()) {
             final Map<ResourceKey, Long> resourcesCopy = new LinkedHashMap<>(entry.getValue());
@@ -41,7 +43,7 @@ class MutablePatternPlan {
     }
 
     TaskPlan.PatternPlan getPlan() {
-        return new TaskPlan.PatternPlan(iterations, ingredients.entrySet().stream()
+        return new TaskPlan.PatternPlan(root, iterations, ingredients.entrySet().stream()
             .collect(Collectors.toUnmodifiableMap(
                 Map.Entry::getKey,
                 e -> Collections.unmodifiableMap(e.getValue()

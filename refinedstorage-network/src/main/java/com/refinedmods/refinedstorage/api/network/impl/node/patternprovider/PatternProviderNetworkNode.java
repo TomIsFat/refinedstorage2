@@ -21,10 +21,8 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
-// TODO(feat): return root results as soon as finished
 // TODO(feat): persistence of tasks
 // TODO(feat): autocrafter locking support
-// TODO(feat): autocrafting monitor support
 // TODO(feat): throttling and step behavior control
 public class PatternProviderNetworkNode extends SimpleNetworkNode implements PatternProvider {
     private final Pattern[] patterns;

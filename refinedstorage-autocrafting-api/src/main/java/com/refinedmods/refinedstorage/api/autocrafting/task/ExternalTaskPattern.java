@@ -6,6 +6,8 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +27,9 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     }
 
     @Override
-    boolean step(final MutableResourceList internalStorage, final ExternalPatternInputSink externalPatternInputSink) {
+    boolean step(final MutableResourceList internalStorage,
+                 final RootStorage rootStorage,
+                 final ExternalPatternInputSink externalPatternInputSink) {
         if (expectedOutputs.isEmpty()) {
             return true;
         }
@@ -41,14 +45,15 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     }
 
     @Override
-    long interceptInsertion(final ResourceKey resource, final long amount) {
+    RootStorageListener.InterceptResult interceptInsertion(final ResourceKey resource, final long amount) {
         final long needed = expectedOutputs.get(resource);
-        if (needed > 0) {
-            final long available = Math.min(needed, amount);
-            expectedOutputs.remove(resource, available);
-            return available;
+        if (needed == 0) {
+            return RootStorageListener.InterceptResult.EMPTY;
         }
-        return 0;
+        final long reserved = Math.min(needed, amount);
+        expectedOutputs.remove(resource, reserved);
+        final long intercepted = root ? 0 : reserved;
+        return new RootStorageListener.InterceptResult(reserved, intercepted);
     }
 
     private boolean acceptsIterationInputs(final MutableResourceList internalStorage,

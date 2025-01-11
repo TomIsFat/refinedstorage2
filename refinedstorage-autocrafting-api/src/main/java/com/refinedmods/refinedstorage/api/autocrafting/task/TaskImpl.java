@@ -70,7 +70,7 @@ public class TaskImpl implements Task {
         switch (state) {
             case READY -> startTask(rootStorage);
             case EXTRACTING_INITIAL_RESOURCES -> extractInitialResourcesAndTryStartRunningTask(rootStorage);
-            case RUNNING -> stepPatterns(externalPatternInputSink);
+            case RUNNING -> stepPatterns(rootStorage, externalPatternInputSink);
             case RETURNING_INTERNAL_STORAGE -> returnInternalStorageAndTryCompleteTask(rootStorage);
         }
     }
@@ -86,16 +86,20 @@ public class TaskImpl implements Task {
         }
     }
 
-    private void stepPatterns(final ExternalPatternInputSink externalPatternInputSink) {
+    private void stepPatterns(final RootStorage rootStorage, final ExternalPatternInputSink externalPatternInputSink) {
         patterns.entrySet().removeIf(pattern -> {
-            final boolean completed = pattern.getValue().step(internalStorage, externalPatternInputSink);
+            final boolean completed = pattern.getValue().step(internalStorage, rootStorage, externalPatternInputSink);
             if (completed) {
                 LOGGER.debug("{} completed", pattern.getKey());
             }
             return completed;
         });
         if (patterns.isEmpty()) {
-            updateState(TaskState.RETURNING_INTERNAL_STORAGE);
+            if (internalStorage.isEmpty()) {
+                updateState(TaskState.COMPLETED);
+            } else {
+                updateState(TaskState.RETURNING_INTERNAL_STORAGE);
+            }
         }
     }
 
@@ -146,19 +150,25 @@ public class TaskImpl implements Task {
     }
 
     @Override
-    public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
-        long remaining = amount;
+    public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        // TODO: variations in reserved and intercepted are not well tested for a single task
+        //  (try it, tweak the numbers)
+        // TODO: variants in reserved and intercepted are not well tested across multiple tasks
+        long reserved = 0;
+        long intercepted = 0;
         for (final AbstractTaskPattern pattern : patterns.values()) {
-            final long intercepted = pattern.interceptInsertion(resource, remaining);
-            if (intercepted > 0) {
-                internalStorage.add(resource, intercepted);
+            final long remainder = amount - reserved;
+            final InterceptResult result = pattern.interceptInsertion(resource, remainder);
+            if (result.intercepted() > 0) {
+                internalStorage.add(resource, result.intercepted());
             }
-            remaining -= intercepted;
-            if (remaining == 0) {
-                return amount;
+            reserved += result.reserved();
+            intercepted += result.intercepted();
+            if (reserved == amount) {
+                return new InterceptResult(reserved, intercepted);
             }
         }
-        return amount - remaining;
+        return new InterceptResult(reserved, intercepted);
     }
 
     @Override

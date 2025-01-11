@@ -122,8 +122,8 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
         final Task task = TaskImpl.fromPlan(plan);
         LOGGER.debug("Created task {} for {}x {} for {}", task.getId(), amount, resource, actor);
         final PatternProvider patternProvider = CoreValidations.validateNotNull(
-            providerByPattern.get(plan.pattern()),
-            "No provider for pattern " + plan.pattern()
+            providerByPattern.get(plan.rootPattern()),
+            "No provider for pattern " + plan.rootPattern()
         );
         patternProvider.addTask(task);
         return true;

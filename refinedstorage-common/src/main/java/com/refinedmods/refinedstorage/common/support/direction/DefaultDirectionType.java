@@ -5,7 +5,6 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 public class DefaultDirectionType implements DirectionType<Direction> {
     public static final DirectionType<Direction> FACE_CLICKED = new DefaultDirectionType(false);
-    public static final DirectionType<Direction> FACE_PLAYER = new DefaultDirectionType(true);
 
     private static final EnumProperty<Direction> PROPERTY = EnumProperty.create("direction", Direction.class);
 

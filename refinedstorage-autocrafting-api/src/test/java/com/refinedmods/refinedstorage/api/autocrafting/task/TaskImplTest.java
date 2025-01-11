@@ -17,6 +17,7 @@ import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingUtil.p
 import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingUtil.storage;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.CRAFTING_TABLE_PATTERN;
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.CRAFTING_TABLE_YIELD_2X_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.IRON_INGOT_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.IRON_PICKAXE_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.OAK_PLANKS_PATTERN;
@@ -41,7 +42,6 @@ import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.S
 import static com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkBuilder.externalPatternInputSink;
 import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.getRunningTask;
 import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.getTask;
-import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.getTaskReadyToReturnInternalStorage;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskImplTest {
@@ -63,6 +63,7 @@ class TaskImplTest {
         // Assert
         assertThat(task.getState()).isEqualTo(TaskState.READY);
         assertThat(task.getId()).isNotNull();
+        assertThat(task.getId().toString()).isEqualTo(task.getId().id().toString());
     }
 
     @Test
@@ -145,6 +146,9 @@ class TaskImplTest {
         // Act & assert
         task.step(storage, EMPTY_SINK);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(SIGN, 10)
+        );
         assertThat(task.copyInternalStorageState())
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactlyInAnyOrder(
@@ -154,42 +158,37 @@ class TaskImplTest {
 
         task.step(storage, EMPTY_SINK);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(SIGN, 10),
+            new ResourceAmount(CRAFTING_TABLE, 1)
+        );
         assertThat(task.copyInternalStorageState())
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactlyInAnyOrder(
-                new ResourceAmount(CRAFTING_TABLE, 1),
                 new ResourceAmount(SPRUCE_PLANKS, 3),
                 new ResourceAmount(OAK_PLANKS, 5)
             );
 
         task.step(storage, EMPTY_SINK);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(SIGN, 10),
+            new ResourceAmount(CRAFTING_TABLE, 2)
+        );
         assertThat(task.copyInternalStorageState())
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactlyInAnyOrder(
-                new ResourceAmount(CRAFTING_TABLE, 2),
                 new ResourceAmount(SPRUCE_PLANKS, 2),
                 new ResourceAmount(OAK_PLANKS, 2)
             );
 
         task.step(storage, EMPTY_SINK);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
-        assertThat(task.copyInternalStorageState())
-            .usingRecursiveFieldByFieldElementComparator()
-            .containsExactlyInAnyOrder(
-                new ResourceAmount(CRAFTING_TABLE, 3)
-            );
-        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(SIGN, 10)
-        );
-
-        task.step(storage, EMPTY_SINK);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
-        assertThat(task.copyInternalStorageState()).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10),
             new ResourceAmount(CRAFTING_TABLE, 3)
         );
+        assertThat(task.copyInternalStorageState()).isEmpty();
 
         task.step(storage, EMPTY_SINK);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
@@ -201,7 +200,84 @@ class TaskImplTest {
     }
 
     @Test
-    void shouldCompleteTaskWithExternalPattern() {
+    void shouldPartiallyReturnOutputsWithInternalPatterns() {
+        // Arrange
+        final RootStorage storage = storage(
+            new ResourceAmount(OAK_LOG, 1),
+            new ResourceAmount(SPRUCE_LOG, 1),
+            new ResourceAmount(SIGN, 10)
+        );
+        final PatternRepository patterns = patterns(
+            OAK_PLANKS_PATTERN,
+            SPRUCE_PLANKS_PATTERN,
+            CRAFTING_TABLE_YIELD_2X_PATTERN
+        );
+        final Task task = getRunningTask(storage, patterns, EMPTY_SINK, CRAFTING_TABLE, 4);
+
+        final RootStorage returnStorage = new RootStorageImpl();
+        returnStorage.addSource(new LimitedStorageImpl(3));
+
+        // Act & assert
+        task.step(returnStorage, EMPTY_SINK);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(returnStorage.getAll()).isEmpty();
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(SPRUCE_PLANKS, 4),
+                new ResourceAmount(OAK_PLANKS, 4)
+            );
+
+        task.step(returnStorage, EMPTY_SINK);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(CRAFTING_TABLE, 2)
+        );
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(OAK_PLANKS, 2),
+                new ResourceAmount(SPRUCE_PLANKS, 2)
+            );
+
+        task.step(returnStorage, EMPTY_SINK);
+        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
+        assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(CRAFTING_TABLE, 3)
+        );
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(
+                new ResourceAmount(CRAFTING_TABLE, 1)
+            );
+
+        task.step(returnStorage, EMPTY_SINK);
+        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
+        assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(CRAFTING_TABLE, 3)
+        );
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactly(
+                new ResourceAmount(CRAFTING_TABLE, 1)
+            );
+
+        final RootStorage finalReturnStorage = new RootStorageImpl();
+        finalReturnStorage.addSource(new StorageImpl());
+
+        task.step(finalReturnStorage, EMPTY_SINK);
+        assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
+        assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(CRAFTING_TABLE, 3)
+        );
+        assertThat(finalReturnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(CRAFTING_TABLE, 1)
+        );
+        assertThat(task.copyInternalStorageState()).isEmpty();
+    }
+
+    @Test
+    void shouldCompleteTaskWithExternalPatternAsChildPatternOfInternalPattern() {
         // Arrange
         final RootStorage storage = storage(
             new ResourceAmount(STICKS, 2),
@@ -303,22 +379,10 @@ class TaskImplTest {
             );
 
         task.step(storage, sink);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
-        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(IRON_INGOT, 3),
-            new ResourceAmount(STONE, 2)
-        );
-        assertThat(task.copyInternalStorageState())
-            .usingRecursiveFieldByFieldElementComparator()
-            .containsExactly(
-                new ResourceAmount(IRON_PICKAXE, 1)
-            );
-
-        task.step(storage, sink);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(IRON_INGOT, 3),
             new ResourceAmount(IRON_PICKAXE, 1),
+            new ResourceAmount(IRON_INGOT, 3),
             new ResourceAmount(STONE, 2)
         );
         assertThat(task.copyInternalStorageState()).isEmpty();
@@ -447,21 +511,27 @@ class TaskImplTest {
 
         storage.insert(SMOOTH_STONE, 4, Action.EXECUTE, Actor.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
-        assertThat(task.copyInternalStorageState()).usingRecursiveFieldByFieldElementComparator().containsExactly(
-            new ResourceAmount(SMOOTH_STONE, 4)
-        );
+        assertThat(task.copyInternalStorageState()).isEmpty();
         assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(COBBLESTONE, 4)
         );
         assertThat(stoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(STONE, 4)
         );
-
-        task.step(storage, sink);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(COBBLESTONE, 60),
+            new ResourceAmount(SMOOTH_STONE, 4)
+        );
 
         task.step(storage, sink);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
+        assertThat(task.copyInternalStorageState()).isEmpty();
+        assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(COBBLESTONE, 4)
+        );
+        assertThat(stoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(STONE, 4)
+        );
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(COBBLESTONE, 60),
             new ResourceAmount(SMOOTH_STONE, 4)
@@ -511,11 +581,11 @@ class TaskImplTest {
             new ResourceAmount(A, 1)
         );
 
-        storage.insert(STONE, 1, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(STONE, 2, Action.EXECUTE, Actor.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).isEmpty();
         assertThat(task.copyInternalStorageState()).usingRecursiveFieldByFieldElementComparator().containsExactly(
-            new ResourceAmount(STONE, 1)
+            new ResourceAmount(STONE, 2)
         );
         assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(COBBLESTONE, 1)
@@ -623,47 +693,5 @@ class TaskImplTest {
         assertThat(task.copyInternalStorageState())
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactly(new ResourceAmount(STICKS, 2));
-    }
-
-    @Test
-    void shouldPartiallyReturnInternalStorage() {
-        // Arrange
-        final RootStorage storage = storage(
-            new ResourceAmount(OAK_LOG, 1),
-            new ResourceAmount(SPRUCE_LOG, 1),
-            new ResourceAmount(OAK_PLANKS, 4),
-            new ResourceAmount(SIGN, 10)
-        );
-        final PatternRepository patterns = patterns(OAK_PLANKS_PATTERN, SPRUCE_PLANKS_PATTERN, CRAFTING_TABLE_PATTERN);
-        final Task task = getTaskReadyToReturnInternalStorage(
-            storage, patterns, EMPTY_SINK, CRAFTING_TABLE, 3
-        );
-
-        // Act & assert
-        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(SIGN, 10)
-        );
-
-        final RootStorage returnStorage = new RootStorageImpl();
-        returnStorage.addSource(new LimitedStorageImpl(2));
-
-        task.step(returnStorage, EMPTY_SINK);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
-        assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(CRAFTING_TABLE, 2)
-        );
-
-        task.step(returnStorage, EMPTY_SINK);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
-        assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(CRAFTING_TABLE, 2)
-        );
-
-        returnStorage.addSource(new StorageImpl());
-        task.step(returnStorage, EMPTY_SINK);
-        assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
-        assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(CRAFTING_TABLE, 3)
-        );
     }
 }
