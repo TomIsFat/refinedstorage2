@@ -14,7 +14,6 @@ import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +66,7 @@ class AutocraftingNetworkComponentImplTest {
     }
 
     @Test
-    void shouldGetPreview() throws ExecutionException, InterruptedException {
+    void shouldGetPreview() {
         // Arrange
         rootStorage.addSource(new StorageImpl());
         rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
@@ -78,7 +77,7 @@ class AutocraftingNetworkComponentImplTest {
         sut.onContainerAdded(container);
 
         // Act
-        final Optional<Preview> preview = sut.getPreview(B, 2).get();
+        final Optional<Preview> preview = sut.getPreview(B, 2).join();
 
         // Assert
         assertThat(preview).get().usingRecursiveComparison().isEqualTo(new Preview(PreviewType.SUCCESS, List.of(
@@ -88,7 +87,7 @@ class AutocraftingNetworkComponentImplTest {
     }
 
     @Test
-    void shouldGetMaxAmount() throws ExecutionException, InterruptedException {
+    void shouldGetMaxAmount() {
         // Arrange
         rootStorage.addSource(new StorageImpl());
         rootStorage.insert(A, 64, Action.EXECUTE, Actor.EMPTY);
@@ -99,14 +98,14 @@ class AutocraftingNetworkComponentImplTest {
         sut.onContainerAdded(container);
 
         // Act
-        final long maxAmount = sut.getMaxAmount(B).get();
+        final long maxAmount = sut.getMaxAmount(B).join();
 
         // Assert
         assertThat(maxAmount).isEqualTo(16);
     }
 
     @Test
-    void shouldStartTask() throws ExecutionException, InterruptedException {
+    void shouldStartTask() {
         // Arrange
         rootStorage.addSource(new StorageImpl());
         rootStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
@@ -117,7 +116,7 @@ class AutocraftingNetworkComponentImplTest {
         sut.onContainerAdded(container);
 
         // Act
-        final boolean success = sut.startTask(B, 1, Actor.EMPTY, false).get();
+        final boolean success = sut.startTask(B, 1, Actor.EMPTY, false).join();
 
         // Assert
         assertThat(success).isTrue();
@@ -125,7 +124,7 @@ class AutocraftingNetworkComponentImplTest {
     }
 
     @Test
-    void shouldNotStartTaskWhenThereAreMissingIngredients() throws ExecutionException, InterruptedException {
+    void shouldNotStartTaskWhenThereAreMissingIngredients() {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
         provider.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
@@ -133,7 +132,7 @@ class AutocraftingNetworkComponentImplTest {
         sut.onContainerAdded(container);
 
         // Act
-        final boolean success = sut.startTask(B, 2, Actor.EMPTY, false).get();
+        final boolean success = sut.startTask(B, 2, Actor.EMPTY, false).join();
 
         // Assert
         assertThat(success).isFalse();

@@ -12,7 +12,7 @@ import com.refinedmods.refinedstorage.api.storage.composite.CompositeStorageImpl
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -23,15 +23,20 @@ import org.apiguardian.api.API;
 public class RootStorageImpl implements RootStorage {
     protected final CompositeStorageImpl storage;
     private final ListenableResourceList list;
-    private final Set<RootStorageListener> listeners = new LinkedHashSet<>();
+    private final Set<RootStorageListener> listeners;
 
     public RootStorageImpl() {
-        this(MutableResourceListImpl.create());
+        this(MutableResourceListImpl.create(), new HashSet<>());
     }
 
     public RootStorageImpl(final MutableResourceList list) {
+        this(list, new HashSet<>());
+    }
+
+    public RootStorageImpl(final MutableResourceList list, final Set<RootStorageListener> listeners) {
         this.list = new ListenableResourceList(list);
         this.storage = new CompositeStorageImpl(this.list);
+        this.listeners = listeners;
     }
 
     @Override
@@ -92,18 +97,20 @@ public class RootStorageImpl implements RootStorage {
     }
 
     private long interceptInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        long totalReserved = 0;
         long totalIntercepted = 0;
         for (final RootStorageListener listener : listeners) {
-            final long amountRemaining = amount - totalIntercepted;
-            final long intercepted = listener.beforeInsert(resource, amountRemaining, actor);
-            if (intercepted > amountRemaining || intercepted < 0) {
+            final long amountRemaining = amount - totalReserved;
+            final RootStorageListener.InterceptResult result = listener.beforeInsert(resource, amountRemaining, actor);
+            if (result.reserved() > amountRemaining) {
                 throw new IllegalStateException(
-                    "Listener %s indicated it intercepted %d while the original amount to be intercepted was %d"
-                        .formatted(listener, intercepted, amountRemaining));
+                    "Listener %s indicated it reserved %d while the original available amount was %d"
+                        .formatted(listener, result.reserved(), amountRemaining));
             }
-            totalIntercepted += intercepted;
-            if (totalIntercepted == amount) {
-                return amount;
+            totalReserved += result.reserved();
+            totalIntercepted += result.intercepted();
+            if (totalReserved == amount) {
+                return totalIntercepted;
             }
         }
         return totalIntercepted;

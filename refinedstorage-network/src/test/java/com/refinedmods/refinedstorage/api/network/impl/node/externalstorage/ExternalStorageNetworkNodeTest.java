@@ -596,8 +596,8 @@ class ExternalStorageNetworkNodeTest {
         final AtomicBoolean found = new AtomicBoolean();
         networkStorage.addListener(new RootStorageListener() {
             @Override
-            public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
-                return 0;
+            public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+                return InterceptResult.EMPTY;
             }
 
             @Override

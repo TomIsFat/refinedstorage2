@@ -7,6 +7,7 @@ import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -35,7 +36,7 @@ abstract class AbstractTaskPattern {
                           RootStorage rootStorage,
                           ExternalPatternInputSink externalPatternInputSink);
 
-    abstract long interceptInsertion(ResourceKey resource, long amount);
+    abstract RootStorageListener.InterceptResult interceptInsertion(ResourceKey resource, long amount);
 
     protected final boolean extractAll(final ResourceList inputs,
                                        final MutableResourceList internalStorage,

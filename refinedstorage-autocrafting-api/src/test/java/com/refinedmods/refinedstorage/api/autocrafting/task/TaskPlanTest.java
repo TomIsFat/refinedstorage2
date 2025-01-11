@@ -61,7 +61,7 @@ class TaskPlanTest {
         assertThat(optionalPlan).isPresent();
         final TaskPlan plan = optionalPlan.get();
 
-        assertThat(plan.pattern()).isEqualTo(CRAFTING_TABLE_PATTERN);
+        assertThat(plan.rootPattern()).isEqualTo(CRAFTING_TABLE_PATTERN);
         assertThat(plan.initialRequirements()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(OAK_PLANKS, 4),
             new ResourceAmount(OAK_LOG, 1),

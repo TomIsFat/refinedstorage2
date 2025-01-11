@@ -145,23 +145,23 @@ public class TaskImpl implements Task {
         return returnedAll;
     }
 
-    // return pair of [reserved, intercepted]
-    // reserved is the total amount that may not be reused for other patterns or, on a higher level, tasks (other listeners)
-    // intercepted is the total amount that went into the internal storage and may not return to the root storage.
     @Override
-    public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
-        long remaining = amount;
+    public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        long reserved = 0;
+        long intercepted = 0;
         for (final AbstractTaskPattern pattern : patterns.values()) {
-            final long intercepted = pattern.interceptInsertion(resource, remaining);
-            if (intercepted > 0) {
-                internalStorage.add(resource, intercepted);
+            final long remainder = amount - reserved;
+            final InterceptResult result = pattern.interceptInsertion(resource, remainder);
+            if (result.intercepted() > 0) {
+                internalStorage.add(resource, result.intercepted());
             }
-            remaining -= intercepted;
-            if (remaining == 0) {
-                return amount;
+            reserved += result.reserved();
+            intercepted += result.intercepted();
+            if (reserved == amount) {
+                return new InterceptResult(reserved, intercepted);
             }
         }
-        return amount - remaining;
+        return new InterceptResult(reserved, intercepted);
     }
 
     @Override

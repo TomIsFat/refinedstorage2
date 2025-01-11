@@ -18,8 +18,6 @@ import com.refinedmods.refinedstorage.network.test.NetworkTest;
 import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import com.refinedmods.refinedstorage.network.test.nodefactory.PatternProviderNetworkNodeFactory;
 
-import java.util.concurrent.ExecutionException;
-
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -120,13 +118,13 @@ class PatternProviderNetworkNodeTest {
     void shouldNotStepTasksWithoutNetwork(
         @InjectNetworkStorageComponent final StorageNetworkComponent storage,
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
-    ) throws ExecutionException, InterruptedException {
+    ) {
         // Arrange
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).get()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
 
         // Act
         sut.setNetwork(null);
@@ -143,13 +141,13 @@ class PatternProviderNetworkNodeTest {
     void shouldNotStepTasksWhenInactive(
         @InjectNetworkStorageComponent final StorageNetworkComponent storage,
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
-    ) throws ExecutionException, InterruptedException {
+    ) {
         // Arrange
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).get()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
 
         // Act
         sut.setActive(false);
@@ -166,13 +164,13 @@ class PatternProviderNetworkNodeTest {
     void shouldStepTasks(
         @InjectNetworkStorageComponent final StorageNetworkComponent storage,
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
-    ) throws ExecutionException, InterruptedException {
+    ) {
         // Arrange
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).get()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -188,7 +186,8 @@ class PatternProviderNetworkNodeTest {
 
         sut.doWork();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(A, 7)
+            new ResourceAmount(A, 7),
+            new ResourceAmount(B, 1)
         );
         assertThat(sut.getTasks()).hasSize(1);
 
@@ -204,7 +203,7 @@ class PatternProviderNetworkNodeTest {
     void shouldUseProviderAsSinkForExternalPatternInputsWhenSinkIsAttached(
         @InjectNetworkStorageComponent final StorageNetworkComponent storage,
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
-    ) throws ExecutionException, InterruptedException {
+    ) {
         // Arrange
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
@@ -219,7 +218,7 @@ class PatternProviderNetworkNodeTest {
             }
             return true;
         });
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).get()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -254,14 +253,14 @@ class PatternProviderNetworkNodeTest {
     void shouldUseProviderAsSinkForExternalPatternInputsWhenSinkIsAttachedAndDoesNotAcceptResources(
         @InjectNetworkStorageComponent final StorageNetworkComponent storage,
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
-    ) throws ExecutionException, InterruptedException {
+    ) {
         // Arrange
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 1).build());
         sut.setExternalPatternInputSink((resources, action) -> false);
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).get()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -293,13 +292,13 @@ class PatternProviderNetworkNodeTest {
     void shouldNotUseProviderAsSinkForExternalPatternInputsWhenThereIsNoSinkAttached(
         @InjectNetworkStorageComponent final StorageNetworkComponent storage,
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
-    ) throws ExecutionException, InterruptedException {
+    ) {
         // Arrange
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).get()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -331,7 +330,7 @@ class PatternProviderNetworkNodeTest {
     void shouldInterceptNetworkInsertionsWhenWaitingForExternalPatternOutputs(
         @InjectNetworkStorageComponent final StorageNetworkComponent storage,
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
-    ) throws ExecutionException, InterruptedException {
+    ) {
         // Arrange
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
@@ -341,7 +340,7 @@ class PatternProviderNetworkNodeTest {
         sut.setExternalPatternInputSink((resources, action) -> true);
 
         // Act & assert
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).get()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
 
         sut.doWork();
         assertThat(sut.getTasks()).hasSize(1);
@@ -361,31 +360,26 @@ class PatternProviderNetworkNodeTest {
 
         storage.insert(B, 3, Action.EXECUTE, Actor.EMPTY);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState())
-            .usingRecursiveFieldByFieldElementComparator()
-            .containsExactlyInAnyOrder(new ResourceAmount(B, 3));
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(A, 7)
+            new ResourceAmount(A, 7),
+            new ResourceAmount(B, 3)
         );
 
         storage.insert(B, 4, Action.EXECUTE, Actor.EMPTY);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState())
-            .usingRecursiveFieldByFieldElementComparator()
-            .containsExactlyInAnyOrder(new ResourceAmount(B, 5));
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7),
-            new ResourceAmount(B, 2)
+            new ResourceAmount(B, 7)
         );
 
         sut.doWork();
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState())
-            .usingRecursiveFieldByFieldElementComparator()
-            .containsExactlyInAnyOrder(new ResourceAmount(B, 5));
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7),
-            new ResourceAmount(B, 2)
+            new ResourceAmount(B, 7)
         );
 
         sut.doWork();
@@ -447,26 +441,24 @@ class PatternProviderNetworkNodeTest {
 
             otherStorage.insert(B, 4, Action.EXECUTE, Actor.EMPTY);
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState())
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactlyInAnyOrder(new ResourceAmount(B, 4));
-            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-                new ResourceAmount(A, 7),
-                new ResourceAmount(B, 3)
-            );
-            assertThat(otherStorage.getAll()).isEmpty();
-
-            otherStorage.insert(B, 2, Action.EXECUTE, Actor.EMPTY);
-            assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState())
-                .usingRecursiveFieldByFieldElementComparator()
-                .containsExactlyInAnyOrder(new ResourceAmount(B, 5));
+            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
                 new ResourceAmount(A, 7),
                 new ResourceAmount(B, 3)
             );
             assertThat(otherStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-                new ResourceAmount(B, 1)
+                new ResourceAmount(B, 4)
+            );
+
+            otherStorage.insert(B, 2, Action.EXECUTE, Actor.EMPTY);
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+                new ResourceAmount(A, 7),
+                new ResourceAmount(B, 3)
+            );
+            assertThat(otherStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+                new ResourceAmount(B, 6)
             );
 
             sut.doWork();

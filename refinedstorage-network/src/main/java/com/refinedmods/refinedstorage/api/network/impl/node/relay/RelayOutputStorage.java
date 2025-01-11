@@ -190,7 +190,7 @@ class RelayOutputStorage implements CompositeAwareChild, RootStorageListener, Pr
     }
 
     @Override
-    public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
-        return 0;
+    public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        return InterceptResult.EMPTY;
     }
 }

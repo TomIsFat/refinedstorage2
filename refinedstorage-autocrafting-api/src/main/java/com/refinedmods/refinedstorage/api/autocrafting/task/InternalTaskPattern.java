@@ -8,6 +8,7 @@ import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +56,8 @@ class InternalTaskPattern extends AbstractTaskPattern {
     }
 
     @Override
-    long interceptInsertion(final ResourceKey resource, final long amount) {
-        return 0;
+    RootStorageListener.InterceptResult interceptInsertion(final ResourceKey resource, final long amount) {
+        return RootStorageListener.InterceptResult.EMPTY;
     }
 
     protected boolean useIteration() {
