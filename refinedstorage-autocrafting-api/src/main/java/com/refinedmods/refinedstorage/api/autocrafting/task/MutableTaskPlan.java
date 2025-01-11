@@ -16,7 +16,7 @@ import static java.util.Objects.requireNonNull;
 
 public class MutableTaskPlan {
     @Nullable
-    private final Pattern pattern;
+    private final Pattern rootPattern;
     private final Map<Pattern, MutablePatternPlan> patterns;
     private final MutableResourceList initialRequirements;
     private boolean missing;
@@ -25,18 +25,21 @@ public class MutableTaskPlan {
         this(null, new LinkedHashMap<>(), MutableResourceListImpl.create(), false);
     }
 
-    private MutableTaskPlan(@Nullable final Pattern pattern,
+    private MutableTaskPlan(@Nullable final Pattern rootPattern,
                             final Map<Pattern, MutablePatternPlan> patterns,
                             final MutableResourceList initialRequirements,
                             final boolean missing) {
-        this.pattern = pattern;
+        this.rootPattern = rootPattern;
         this.patterns = patterns;
         this.initialRequirements = initialRequirements;
         this.missing = missing;
     }
 
     void addOrUpdatePattern(final Pattern usedPattern, final long iterations) {
-        patterns.computeIfAbsent(usedPattern, MutablePatternPlan::new).addIterations(iterations);
+        patterns.computeIfAbsent(usedPattern, p -> new MutablePatternPlan(
+            p,
+            p.equals(rootPattern)
+        )).addIterations(iterations);
     }
 
     void addToExtract(final ResourceKey resource, final long amount) {
@@ -57,7 +60,7 @@ public class MutableTaskPlan {
             patternsCopy.put(entry.getKey(), entry.getValue().copy());
         }
         return new MutableTaskPlan(
-            pattern == null ? childPattern : pattern,
+            rootPattern == null ? childPattern : rootPattern,
             patternsCopy,
             initialRequirements.copy(),
             missing
@@ -65,7 +68,7 @@ public class MutableTaskPlan {
     }
 
     Optional<TaskPlan> getPlan() {
-        if (missing || pattern == null) {
+        if (missing || rootPattern == null) {
             return Optional.empty();
         }
         final Map<Pattern, TaskPlan.PatternPlan> finalPatterns = Collections.unmodifiableMap(patterns.entrySet()
@@ -76,7 +79,7 @@ public class MutableTaskPlan {
                 (a, b) -> a,
                 LinkedHashMap::new
             )));
-        return Optional.of(new TaskPlan(pattern, finalPatterns, initialRequirements.copyState()));
+        return Optional.of(new TaskPlan(rootPattern, finalPatterns, initialRequirements.copyState()));
     }
 
     void setMissing() {

@@ -17,6 +17,6 @@ public record TaskPlan(Pattern pattern,
         return patterns.get(p);
     }
 
-    public record PatternPlan(long iterations, Map<Integer, Map<ResourceKey, Long>> ingredients) {
+    public record PatternPlan(boolean root, long iterations, Map<Integer, Map<ResourceKey, Long>> ingredients) {
     }
 }
