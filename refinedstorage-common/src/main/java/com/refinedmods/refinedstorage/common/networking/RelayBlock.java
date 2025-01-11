@@ -56,7 +56,7 @@ public class RelayBlock extends AbstractActiveColoredDirectionalBlock<Direction,
 
     @Override
     protected DirectionType<Direction> getDirectionType() {
-        return DefaultDirectionType.FACE_PLAYER;
+        return DefaultDirectionType.FACE_CLICKED;
     }
 
     @Override
