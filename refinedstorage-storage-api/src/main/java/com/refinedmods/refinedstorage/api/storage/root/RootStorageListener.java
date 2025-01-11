@@ -12,9 +12,10 @@ public interface RootStorageListener extends ResourceListListener {
      * Called before a resource is actually inserted into the storage.
      * This is useful for modifying the amount before it is inserted.
      *
-     * @param resource the resource
-     * @param amount   the amount about to be inserted
-     * @param actor    the actor
+     * @param rootStorage the root storage
+     * @param resource    the resource
+     * @param amount      the amount about to be inserted
+     * @param actor       the actor
      * @return the amount intercepted
      */
     long beforeInsert(ResourceKey resource, long amount, Actor actor);

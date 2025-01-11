@@ -30,6 +30,13 @@ public final class PatternFixtures {
         .ingredient(1).input(OAK_PLANKS).input(SPRUCE_PLANKS).end()
         .output(CRAFTING_TABLE, 1)
         .build();
+    public static final Pattern CRAFTING_TABLE_YIELD_2X_PATTERN = pattern()
+        .ingredient(1).input(OAK_PLANKS).input(SPRUCE_PLANKS).end()
+        .ingredient(1).input(OAK_PLANKS).input(SPRUCE_PLANKS).end()
+        .ingredient(1).input(OAK_PLANKS).input(SPRUCE_PLANKS).end()
+        .ingredient(1).input(OAK_PLANKS).input(SPRUCE_PLANKS).end()
+        .output(CRAFTING_TABLE, 2)
+        .build();
     public static final Pattern IRON_INGOT_PATTERN = pattern(PatternType.EXTERNAL)
         .ingredient(IRON_ORE, 1)
         .output(IRON_INGOT, 1)

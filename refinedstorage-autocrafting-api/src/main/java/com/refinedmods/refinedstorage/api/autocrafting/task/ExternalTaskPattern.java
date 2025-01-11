@@ -6,6 +6,7 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,9 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     }
 
     @Override
-    boolean step(final MutableResourceList internalStorage, final ExternalPatternInputSink externalPatternInputSink) {
+    boolean step(final MutableResourceList internalStorage,
+                 final RootStorage rootStorage,
+                 final ExternalPatternInputSink externalPatternInputSink) {
         if (expectedOutputs.isEmpty()) {
             return true;
         }

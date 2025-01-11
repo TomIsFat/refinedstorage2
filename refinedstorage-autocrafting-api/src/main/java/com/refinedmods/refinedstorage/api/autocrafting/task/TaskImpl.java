@@ -70,7 +70,7 @@ public class TaskImpl implements Task {
         switch (state) {
             case READY -> startTask(rootStorage);
             case EXTRACTING_INITIAL_RESOURCES -> extractInitialResourcesAndTryStartRunningTask(rootStorage);
-            case RUNNING -> stepPatterns(externalPatternInputSink);
+            case RUNNING -> stepPatterns(rootStorage, externalPatternInputSink);
             case RETURNING_INTERNAL_STORAGE -> returnInternalStorageAndTryCompleteTask(rootStorage);
         }
     }
@@ -86,9 +86,9 @@ public class TaskImpl implements Task {
         }
     }
 
-    private void stepPatterns(final ExternalPatternInputSink externalPatternInputSink) {
+    private void stepPatterns(final RootStorage rootStorage, final ExternalPatternInputSink externalPatternInputSink) {
         patterns.entrySet().removeIf(pattern -> {
-            final boolean completed = pattern.getValue().step(internalStorage, externalPatternInputSink);
+            final boolean completed = pattern.getValue().step(internalStorage, rootStorage, externalPatternInputSink);
             if (completed) {
                 LOGGER.debug("{} completed", pattern.getKey());
             }
@@ -145,6 +145,9 @@ public class TaskImpl implements Task {
         return returnedAll;
     }
 
+    // return pair of [reserved, intercepted]
+    // reserved is the total amount that may not be reused for other patterns or, on a higher level, tasks (other listeners)
+    // intercepted is the total amount that went into the internal storage and may not return to the root storage.
     @Override
     public long beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
         long remaining = amount;

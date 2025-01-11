@@ -34,21 +34,4 @@ final class TaskUtil {
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         return task;
     }
-
-    static Task getTaskReadyToReturnInternalStorage(final RootStorage storage,
-                                                    final PatternRepository patterns,
-                                                    final ExternalPatternInputSink externalPatternInputSink,
-                                                    final ResourceKey resource,
-                                                    final long amount) {
-        final Task task = getRunningTask(storage, patterns, externalPatternInputSink, resource, amount);
-        int tries = 0;
-        while (task.getState() != TaskState.RETURNING_INTERNAL_STORAGE && tries < 10) {
-            task.step(storage, externalPatternInputSink);
-            tries++;
-        }
-        assertThat(task.getState())
-            .withFailMessage("Task did not reach RETURNING_INTERNAL_STORAGE state in " + tries + " tries")
-            .isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
-        return task;
-    }
 }
