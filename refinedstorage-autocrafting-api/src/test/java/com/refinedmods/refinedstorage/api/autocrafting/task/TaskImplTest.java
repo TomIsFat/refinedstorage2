@@ -183,14 +183,6 @@ class TaskImplTest {
             );
 
         task.step(storage, EMPTY_SINK);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
-        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(SIGN, 10),
-            new ResourceAmount(CRAFTING_TABLE, 3)
-        );
-        assertThat(task.copyInternalStorageState()).isEmpty();
-
-        task.step(storage, EMPTY_SINK);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10),
@@ -387,15 +379,6 @@ class TaskImplTest {
             );
 
         task.step(storage, sink);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
-        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
-            new ResourceAmount(IRON_PICKAXE, 1),
-            new ResourceAmount(IRON_INGOT, 3),
-            new ResourceAmount(STONE, 2)
-        );
-        assertThat(task.copyInternalStorageState()).isEmpty();
-
-        task.step(storage, sink);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(IRON_PICKAXE, 1),
@@ -541,7 +524,7 @@ class TaskImplTest {
         );
 
         task.step(storage, sink);
-        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
+        assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(task.copyInternalStorageState()).isEmpty();
         assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(COBBLESTONE, 4)

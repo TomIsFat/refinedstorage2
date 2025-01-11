@@ -95,7 +95,11 @@ public class TaskImpl implements Task {
             return completed;
         });
         if (patterns.isEmpty()) {
-            updateState(TaskState.RETURNING_INTERNAL_STORAGE);
+            if (internalStorage.isEmpty()) {
+                updateState(TaskState.COMPLETED);
+            } else {
+                updateState(TaskState.RETURNING_INTERNAL_STORAGE);
+            }
         }
     }
 
@@ -147,6 +151,9 @@ public class TaskImpl implements Task {
 
     @Override
     public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        // TODO: variations in reserved and intercepted are not well tested for a single task
+        //  (try it, tweak the numbers)
+        // TODO: variants in reserved and intercepted are not well tested across multiple tasks
         long reserved = 0;
         long intercepted = 0;
         for (final AbstractTaskPattern pattern : patterns.values()) {
