@@ -55,15 +55,16 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     @Override
     public void setNetwork(@Nullable final Network network) {
         if (this.network != null) {
+            final StorageNetworkComponent storage = this.network.getComponent(StorageNetworkComponent.class);
             for (final Task task : tasks) {
-                this.network.getComponent(StorageNetworkComponent.class).removeListener(task);
+                cleanupTask(task, storage);
             }
         }
         super.setNetwork(network);
         if (network != null) {
             final StorageNetworkComponent storage = network.getComponent(StorageNetworkComponent.class);
             for (final Task task : tasks) {
-                storage.addListener(task);
+                setupTask(task, storage);
             }
         }
     }
@@ -110,8 +111,16 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     public void addTask(final Task task) {
         tasks.add(task);
         if (network != null) {
-            network.getComponent(StorageNetworkComponent.class).addListener(task);
+            setupTask(task, network.getComponent(StorageNetworkComponent.class));
         }
+    }
+
+    private void setupTask(final Task task, final StorageNetworkComponent storage) {
+        storage.addListener(task);
+    }
+
+    private void cleanupTask(final Task task, final StorageNetworkComponent storage) {
+        storage.removeListener(task);
     }
 
     @Override
@@ -133,11 +142,16 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
             return;
         }
         final StorageNetworkComponent storage = network.getComponent(StorageNetworkComponent.class);
-        final ExternalPatternInputSink outerExternalPatternInputSink =
-            network.getComponent(AutocraftingNetworkComponent.class);
+        final ExternalPatternInputSink outerExternalPatternInputSink = network.getComponent(
+            AutocraftingNetworkComponent.class
+        );
         tasks.removeIf(task -> {
             task.step(storage, outerExternalPatternInputSink);
-            return task.getState() == TaskState.COMPLETED;
+            final boolean completed = task.getState() == TaskState.COMPLETED;
+            if (completed) {
+                cleanupTask(task, storage);
+            }
+            return completed;
         });
     }
 
