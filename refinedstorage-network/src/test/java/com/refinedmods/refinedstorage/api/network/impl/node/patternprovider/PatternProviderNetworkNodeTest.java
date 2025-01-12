@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
+import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
@@ -188,6 +189,48 @@ class PatternProviderNetworkNodeTest {
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7),
             new ResourceAmount(B, 1)
+        );
+        assertThat(sut.getTasks()).isEmpty();
+    }
+
+    @Test
+    void shouldStepTasksWithCustomStepBehavior(
+        @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+        @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+    ) {
+        // Arrange
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 60, Action.EXECUTE, Actor.EMPTY);
+
+        sut.setStepBehavior(new StepBehavior() {
+            @Override
+            public int getSteps(final Pattern pattern) {
+                return 10;
+            }
+        });
+
+        sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
+        assertThat(autocrafting.startTask(B, 20, Actor.EMPTY, false).join()).isTrue();
+
+        // Act & assert
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 60)
+        );
+        assertThat(sut.getTasks()).hasSize(1);
+
+        sut.doWork();
+        assertThat(storage.getAll()).isEmpty();
+        assertThat(sut.getTasks()).hasSize(1);
+
+        sut.doWork();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(B, 10)
+        );
+        assertThat(sut.getTasks()).hasSize(1);
+
+        sut.doWork();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(B, 20)
         );
         assertThat(sut.getTasks()).isEmpty();
     }

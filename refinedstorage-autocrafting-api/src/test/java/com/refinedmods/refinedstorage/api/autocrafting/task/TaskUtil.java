@@ -30,7 +30,7 @@ final class TaskUtil {
                                final long amount) {
         final Task task = getTask(storage, patterns, resource, amount);
         assertThat(task.getState()).isEqualTo(TaskState.READY);
-        task.step(storage, externalPatternInputSink);
+        task.step(storage, externalPatternInputSink, StepBehavior.DEFAULT);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         return task;
     }

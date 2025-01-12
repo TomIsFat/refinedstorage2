@@ -35,6 +35,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,6 +82,12 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     @Override
     public boolean contains(final AutocraftingNetworkComponent component) {
         return providers.stream().anyMatch(provider -> provider.contains(component));
+    }
+
+    @Nullable
+    @Override
+    public PatternProvider getProviderByPattern(final Pattern pattern) {
+        return providerByPattern.get(pattern);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskState;
 import com.refinedmods.refinedstorage.api.core.Action;
@@ -23,7 +24,6 @@ import javax.annotation.Nullable;
 
 // TODO(feat): persistence of tasks
 // TODO(feat): autocrafter locking support
-// TODO(feat): throttling and step behavior control
 public class PatternProviderNetworkNode extends SimpleNetworkNode implements PatternProvider {
     private final Pattern[] patterns;
     private final Set<ParentContainer> parents = new HashSet<>();
@@ -31,6 +31,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     private int priority;
     @Nullable
     private PatternProviderExternalPatternInputSink externalPatternInputSink;
+    private StepBehavior stepBehavior = StepBehavior.DEFAULT;
 
     public PatternProviderNetworkNode(final long energyUsage, final int patterns) {
         super(energyUsage);
@@ -146,7 +147,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
             AutocraftingNetworkComponent.class
         );
         tasks.removeIf(task -> {
-            task.step(storage, outerExternalPatternInputSink);
+            task.step(storage, outerExternalPatternInputSink, stepBehavior);
             final boolean completed = task.getState() == TaskState.COMPLETED;
             if (completed) {
                 cleanupTask(task, storage);
@@ -166,5 +167,9 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
                 parents.forEach(parent -> parent.update(pattern, priority));
             }
         }
+    }
+
+    public void setStepBehavior(final StepBehavior stepBehavior) {
+        this.stepBehavior = stepBehavior;
     }
 }

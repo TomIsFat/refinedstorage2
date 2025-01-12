@@ -8,6 +8,7 @@ import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.I
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.IRON_PICKAXE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_LOG;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_PLANKS;
+import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SIGN;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SMOOTH_STONE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SPRUCE_LOG;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.SPRUCE_PLANKS;
@@ -55,6 +56,15 @@ public final class PatternFixtures {
     public static final Pattern SMOOTH_STONE_PATTERN = pattern(PatternType.EXTERNAL)
         .ingredient(STONE, 1)
         .output(SMOOTH_STONE, 1)
+        .build();
+    public static final Pattern STICKS_PATTERN = pattern()
+        .ingredient(OAK_PLANKS, 2)
+        .output(STICKS, 4)
+        .build();
+    public static final Pattern SIGN_PATTERN = pattern()
+        .ingredient(OAK_PLANKS, 6)
+        .ingredient(STICKS, 1)
+        .output(SIGN, 3)
         .build();
 
     private PatternFixtures() {

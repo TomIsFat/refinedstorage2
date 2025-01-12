@@ -66,11 +66,13 @@ public class TaskImpl implements Task {
     }
 
     @Override
-    public void step(final RootStorage rootStorage, final ExternalPatternInputSink externalPatternInputSink) {
+    public void step(final RootStorage rootStorage,
+                     final ExternalPatternInputSink externalPatternInputSink,
+                     final StepBehavior stepBehavior) {
         switch (state) {
             case READY -> startTask(rootStorage);
             case EXTRACTING_INITIAL_RESOURCES -> extractInitialResourcesAndTryStartRunningTask(rootStorage);
-            case RUNNING -> stepPatterns(rootStorage, externalPatternInputSink);
+            case RUNNING -> stepPatterns(rootStorage, externalPatternInputSink, stepBehavior);
             case RETURNING_INTERNAL_STORAGE -> returnInternalStorageAndTryCompleteTask(rootStorage);
         }
     }
@@ -86,14 +88,12 @@ public class TaskImpl implements Task {
         }
     }
 
-    private void stepPatterns(final RootStorage rootStorage, final ExternalPatternInputSink externalPatternInputSink) {
-        patterns.entrySet().removeIf(pattern -> {
-            final boolean completed = pattern.getValue().step(internalStorage, rootStorage, externalPatternInputSink);
-            if (completed) {
-                LOGGER.debug("{} completed", pattern.getKey());
-            }
-            return completed;
-        });
+    private void stepPatterns(final RootStorage rootStorage,
+                              final ExternalPatternInputSink externalPatternInputSink,
+                              final StepBehavior stepBehavior) {
+        patterns.entrySet().removeIf(
+            pattern -> stepPattern(rootStorage, externalPatternInputSink, stepBehavior, pattern)
+        );
         if (patterns.isEmpty()) {
             if (internalStorage.isEmpty()) {
                 updateState(TaskState.COMPLETED);
@@ -101,6 +101,24 @@ public class TaskImpl implements Task {
                 updateState(TaskState.RETURNING_INTERNAL_STORAGE);
             }
         }
+    }
+
+    private boolean stepPattern(final RootStorage rootStorage,
+                                final ExternalPatternInputSink externalPatternInputSink,
+                                final StepBehavior stepBehavior,
+                                final Map.Entry<Pattern, AbstractTaskPattern> pattern) {
+        if (!stepBehavior.canStep(pattern.getKey())) {
+            return false;
+        }
+        final int steps = stepBehavior.getSteps(pattern.getKey());
+        for (int i = 0; i < steps; ++i) {
+            final boolean completed = pattern.getValue().step(internalStorage, rootStorage, externalPatternInputSink);
+            if (completed) {
+                LOGGER.debug("{} completed", pattern.getKey());
+                return true;
+            }
+        }
+        return false;
     }
 
     private void returnInternalStorageAndTryCompleteTask(final RootStorage rootStorage) {

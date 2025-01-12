@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.api.network.impl.autocrafting;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewItem;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType;
@@ -39,7 +40,8 @@ class AutocraftingNetworkComponentImplTest {
     void shouldAddPatternsFromPatternProvider() {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, pattern().output(A, 1).ingredient(C, 1).build());
+        final Pattern pattern = pattern().output(A, 1).ingredient(C, 1).build();
+        provider.setPattern(1, pattern);
         final NetworkNodeContainer container = () -> provider;
 
         // Act
@@ -47,13 +49,16 @@ class AutocraftingNetworkComponentImplTest {
 
         // Assert
         assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().containsExactly(A);
+        assertThat(sut.getProviderByPattern(pattern)).isEqualTo(provider);
+        assertThat(sut.getProviderByPattern(pattern().output(A, 1).ingredient(C, 1).build())).isNull();
     }
 
     @Test
     void shouldRemovePatternsFromPatternProvider() {
         // Arrange
         final PatternProviderNetworkNode provider = new PatternProviderNetworkNode(0, 5);
-        provider.setPattern(1, pattern().output(A, 1).ingredient(C, 1).build());
+        final Pattern pattern = pattern().output(A, 1).ingredient(C, 1).build();
+        provider.setPattern(1, pattern);
 
         final NetworkNodeContainer container = () -> provider;
         sut.onContainerAdded(container);
@@ -63,6 +68,7 @@ class AutocraftingNetworkComponentImplTest {
 
         // Assert
         assertThat(sut.getOutputs()).usingRecursiveFieldByFieldElementComparator().isEmpty();
+        assertThat(sut.getProviderByPattern(pattern)).isNull();
     }
 
     @Test
