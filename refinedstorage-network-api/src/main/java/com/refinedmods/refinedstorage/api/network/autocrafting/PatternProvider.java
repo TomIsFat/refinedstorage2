@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.api.network.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 
 import org.apiguardian.api.API;
 
@@ -16,4 +17,6 @@ public interface PatternProvider extends PatternProviderExternalPatternInputSink
     }
 
     void addTask(Task task);
+
+    void cancelTask(TaskId taskId);
 }

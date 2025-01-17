@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.common.grid;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.grid.operations.GridOperations;
 import com.refinedmods.refinedstorage.api.grid.operations.NoopGridOperations;
 import com.refinedmods.refinedstorage.api.grid.watcher.GridWatcher;
@@ -131,12 +132,12 @@ class WirelessGrid implements Grid {
     }
 
     @Override
-    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
-                                                final long amount,
-                                                final Actor actor,
-                                                final boolean notify) {
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) {
         return getAutocrafting()
             .map(autocrafting -> autocrafting.startTask(resource, amount, actor, notify))
-            .orElse(CompletableFuture.completedFuture(false));
+            .orElse(CompletableFuture.completedFuture(Optional.empty()));
     }
 }

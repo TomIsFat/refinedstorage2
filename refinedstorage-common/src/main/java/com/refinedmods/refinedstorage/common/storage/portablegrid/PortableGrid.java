@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.common.storage.portablegrid;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.grid.operations.GridOperations;
 import com.refinedmods.refinedstorage.api.grid.operations.NoopGridOperations;
@@ -142,10 +143,10 @@ class PortableGrid implements Grid {
     }
 
     @Override
-    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
-                                                final long amount,
-                                                final Actor actor,
-                                                final boolean notify) {
-        return CompletableFuture.completedFuture(false);
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) {
+        return CompletableFuture.completedFuture(Optional.empty());
     }
 }

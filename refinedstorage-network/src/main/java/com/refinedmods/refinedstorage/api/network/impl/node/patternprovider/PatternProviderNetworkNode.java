@@ -4,6 +4,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskState;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
@@ -114,6 +115,17 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         if (network != null) {
             setupTask(task, network.getComponent(StorageNetworkComponent.class));
         }
+    }
+
+    @Override
+    public void cancelTask(final TaskId taskId) {
+        for (final Task task : tasks) {
+            if (task.getId().equals(taskId)) {
+                task.cancel();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Task %s not found".formatted(taskId));
     }
 
     private void setupTask(final Task task, final StorageNetworkComponent storage) {

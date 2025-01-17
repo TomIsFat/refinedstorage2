@@ -15,11 +15,15 @@ public record TaskStatus(TaskInfo info, float percentageCompleted, List<Item> it
     public record Item(
         ItemType type,
         ResourceKey resource,
+        // what is stored internally?
         long stored,
         long missing,
-        long processing,
-        long scheduled,
-        long crafting
+        // what is currently processing?
+        long processing, // (originalIterationsToSendToSink - iterationsToSendToSink)*input
+        // what are we still going to process?
+        long scheduled, // iterationsToSendToSink*input
+        // what do we need to still craft?
+        long crafting // iterationsRemaining*output
     ) {
     }
 

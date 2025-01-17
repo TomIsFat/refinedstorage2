@@ -125,7 +125,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act
         sut.setNetwork(null);
@@ -148,7 +148,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act
         sut.setActive(false);
@@ -171,7 +171,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -210,7 +210,7 @@ class PatternProviderNetworkNodeTest {
         });
 
         sut.setPattern(1, pattern().ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 20, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 20, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -254,7 +254,7 @@ class PatternProviderNetworkNodeTest {
             }
             return true;
         });
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -296,7 +296,7 @@ class PatternProviderNetworkNodeTest {
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 1).build());
         sut.setExternalPatternInputSink((resources, action) -> false);
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -334,7 +334,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 1).build());
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -376,7 +376,7 @@ class PatternProviderNetworkNodeTest {
         sut.setExternalPatternInputSink((resources, action) -> true);
 
         // Act & assert
-        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isTrue();
+        assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         sut.doWork();
         assertThat(sut.getTasks()).hasSize(1);
@@ -446,7 +446,7 @@ class PatternProviderNetworkNodeTest {
             sut.setExternalPatternInputSink((resources, action) -> true);
 
             // Act & assert
-            assertThat(autocrafting.startTask(A, 3, Actor.EMPTY, false).join()).isTrue();
+            assertThat(autocrafting.startTask(A, 3, Actor.EMPTY, false).join()).isPresent();
 
             sut.doWork();
             assertThat(sut.getTasks()).hasSize(1);
@@ -574,7 +574,7 @@ class PatternProviderNetworkNodeTest {
             other.setPattern(0, patternForB);
 
             // Act & assert
-            assertThat(autocrafting.startTask(A, 1, Actor.EMPTY, false).join()).isTrue();
+            assertThat(autocrafting.startTask(A, 1, Actor.EMPTY, false).join()).isPresent();
             assertThat(sut.getTasks()).hasSize(1);
             assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(

@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.api.autocrafting.preview;
 
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 
@@ -14,5 +15,5 @@ public interface PreviewProvider {
 
     CompletableFuture<Long> getMaxAmount(ResourceKey resource);
 
-    CompletableFuture<Boolean> startTask(ResourceKey resource, long amount, Actor actor, boolean notify);
+    CompletableFuture<Optional<TaskId>> startTask(ResourceKey resource, long amount, Actor actor, boolean notify);
 }

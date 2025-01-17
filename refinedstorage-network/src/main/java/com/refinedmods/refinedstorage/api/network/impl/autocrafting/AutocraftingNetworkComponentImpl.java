@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
-
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -49,6 +48,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     private final ExecutorService executorService;
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Map<Pattern, PatternProvider> providerByPattern = new HashMap<>();
+    private final Map<TaskId, PatternProvider> providerByTaskId = new HashMap<>();
     private final Set<PatternListener> listeners = new HashSet<>();
     private final PatternRepositoryImpl patternRepository = new PatternRepositoryImpl();
 
@@ -110,31 +110,30 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
-    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
-                                                final long amount,
-                                                final Actor actor,
-                                                final boolean notify) { // TODO: implement notify
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) { // TODO: implement notify
         return CompletableFuture.supplyAsync(() -> {
             final RootStorage rootStorage = rootStorageProvider.get();
             final CraftingCalculator calculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
-            return calculatePlan(calculator, resource, amount)
-                .map(plan -> startTask(resource, amount, actor, plan))
-                .orElse(false);
+            return calculatePlan(calculator, resource, amount).map(plan -> startTask(resource, amount, actor, plan));
         }, executorService);
     }
 
-    private boolean startTask(final ResourceKey resource,
-                              final long amount,
-                              final Actor actor,
-                              final TaskPlan plan) {
+    private TaskId startTask(final ResourceKey resource,
+                             final long amount,
+                             final Actor actor,
+                             final TaskPlan plan) {
         final Task task = TaskImpl.fromPlan(plan);
         LOGGER.debug("Created task {} for {}x {} for {}", task.getId(), amount, resource, actor);
-        final PatternProvider patternProvider = CoreValidations.validateNotNull(
+        final PatternProvider provider = CoreValidations.validateNotNull(
             providerByPattern.get(plan.rootPattern()),
             "No provider for pattern " + plan.rootPattern()
         );
-        patternProvider.addTask(task);
-        return true;
+        provider.addTask(task);
+        providerByTaskId.put(task.getId(), provider);
+        return task.getId();
     }
 
     @Override
@@ -175,11 +174,23 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
 
     @Override
     public void cancel(final TaskId taskId) {
+        final PatternProvider provider = providerByTaskId.get(taskId);
+        if (provider == null) {
+            return;
+        }
+        provider.cancelTask(taskId);
+        providerByTaskId.remove(taskId);
         // TODO(feat): autocrafting monitor
     }
 
     @Override
     public void cancelAll() {
+        for (final Map.Entry<TaskId, PatternProvider> entry : providerByTaskId.entrySet()) {
+            final PatternProvider provider = entry.getValue();
+            final TaskId taskId = entry.getKey();
+            provider.cancelTask(taskId);
+        }
+        providerByTaskId.clear();
         // TODO(feat): autocrafting monitor
     }
 

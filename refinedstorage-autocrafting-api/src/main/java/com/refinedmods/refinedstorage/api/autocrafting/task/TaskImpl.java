@@ -77,6 +77,11 @@ public class TaskImpl implements Task {
         }
     }
 
+    @Override
+    public void cancel() {
+        state = TaskState.RETURNING_INTERNAL_STORAGE;
+    }
+
     private void startTask(final RootStorage rootStorage) {
         updateState(TaskState.EXTRACTING_INITIAL_RESOURCES);
         extractInitialResourcesAndTryStartRunningTask(rootStorage);

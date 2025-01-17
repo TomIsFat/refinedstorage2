@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
@@ -135,6 +136,11 @@ public class RelayOutputNetworkNode extends AbstractNetworkNode
 
     @Override
     public void addTask(final Task task) {
+        // TODO(feat): relay support
+    }
+
+    @Override
+    public void cancelTask(final TaskId taskId) {
         // TODO(feat): relay support
     }
 
