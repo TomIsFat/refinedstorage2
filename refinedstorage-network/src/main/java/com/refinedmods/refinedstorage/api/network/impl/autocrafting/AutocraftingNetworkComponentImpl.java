@@ -113,14 +113,14 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public CompletableFuture<Boolean> startTask(final ResourceKey resource,
                                                 final long amount,
                                                 final Actor actor,
-                                                final boolean notify) {
+                                                final boolean notify) { // TODO: implement notify
         return CompletableFuture.supplyAsync(() -> {
             final RootStorage rootStorage = rootStorageProvider.get();
             final CraftingCalculator calculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
             return calculatePlan(calculator, resource, amount)
                 .map(plan -> startTask(resource, amount, actor, plan))
                 .orElse(false);
-        });
+        }, executorService);
     }
 
     private boolean startTask(final ResourceKey resource,
