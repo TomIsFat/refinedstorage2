@@ -5,15 +5,18 @@ import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorImpl;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusBuilder;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 
+import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
 
 import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingUtil.patterns;
@@ -26,6 +29,7 @@ import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.IR
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.OAK_PLANKS_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.SMOOTH_STONE_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.SPRUCE_PLANKS_PATTERN;
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.STICKS_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.STONE_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.A;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.COBBLESTONE;
@@ -47,6 +51,9 @@ import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskPlanCraft
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskImplTest {
+    private static final RecursiveComparisonConfiguration STATUS_CONFIG = RecursiveComparisonConfiguration.builder()
+        .withIgnoredFields("info.startTime")
+        .build();
     private static final ExternalPatternInputSink EMPTY_SINK = (pattern, resources, action) -> false;
 
     @Test
@@ -773,12 +780,181 @@ class TaskImplTest {
         assertThat(task.copyInternalStorageState()).isEmpty();
     }
 
+    @Test
+    void shouldReportStatusCorrectly() {
+        // Arrange
+        final RootStorage storage = storage(
+            new ResourceAmount(OAK_LOG, 10),
+            new ResourceAmount(IRON_ORE, 10)
+        );
+        final PatternRepository patterns = patterns(
+            OAK_PLANKS_PATTERN,
+            STICKS_PATTERN,
+            IRON_INGOT_PATTERN,
+            IRON_PICKAXE_PATTERN
+        );
+        final ExternalPatternInputSinkBuilder sinkBuilder = externalPatternInputSink();
+        final ExternalPatternInputSinkBuilder.Sink ironOreSink = sinkBuilder.storageSink(IRON_INGOT_PATTERN);
+        final ExternalPatternInputSink sink = sinkBuilder.build();
+        final Task task = getRunningTask(storage, patterns, EMPTY_SINK, IRON_PICKAXE, 1);
+
+        // Act & assert
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
+                .crafting(IRON_PICKAXE, 1)
+                .scheduled(IRON_INGOT, 2)
+                .processing(IRON_ORE, 1)
+                .crafting(STICKS, 4)
+                .stored(OAK_PLANKS, 4)
+                .stored(IRON_ORE, 2)
+                .build(0.2));
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(IRON_ORE, 2),
+                new ResourceAmount(OAK_PLANKS, 4)
+            );
+        assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_ORE, 1)
+        );
+
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
+                .crafting(IRON_PICKAXE, 1)
+                .scheduled(IRON_INGOT, 1)
+                .processing(IRON_ORE, 2)
+                .stored(OAK_PLANKS, 2)
+                .stored(IRON_ORE, 1)
+                .stored(STICKS, 4)
+                .build(0.5));
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(IRON_ORE, 1),
+                new ResourceAmount(OAK_PLANKS, 2),
+                new ResourceAmount(STICKS, 4)
+            );
+        assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_ORE, 2)
+        );
+
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
+                .crafting(IRON_PICKAXE, 1)
+                .processing(IRON_ORE, 3)
+                .stored(OAK_PLANKS, 2)
+                .stored(STICKS, 4)
+                .build(0.6666666666666666));
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(OAK_PLANKS, 2),
+                new ResourceAmount(STICKS, 4)
+            );
+        assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_ORE, 3)
+        );
+
+        storage.insert(IRON_INGOT, 2, Action.EXECUTE, Actor.EMPTY);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
+                .crafting(IRON_PICKAXE, 1)
+                .processing(IRON_ORE, 1)
+                .stored(OAK_PLANKS, 2)
+                .stored(STICKS, 4)
+                .stored(IRON_INGOT, 2)
+                .build(0.6666666666666666));
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(OAK_PLANKS, 2),
+                new ResourceAmount(STICKS, 4),
+                new ResourceAmount(IRON_INGOT, 2)
+            );
+        assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_ORE, 3)
+        );
+
+        storage.insert(IRON_INGOT, 1, Action.EXECUTE, Actor.EMPTY);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
+                .crafting(IRON_PICKAXE, 1)
+                .stored(OAK_PLANKS, 2)
+                .stored(STICKS, 4)
+                .stored(IRON_INGOT, 3)
+                .build(0.6666666666666666));
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(OAK_PLANKS, 2),
+                new ResourceAmount(STICKS, 4),
+                new ResourceAmount(IRON_INGOT, 3)
+            );
+        assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_ORE, 3)
+        );
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(OAK_LOG, 9),
+            new ResourceAmount(IRON_ORE, 7)
+        );
+
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
+                .stored(OAK_PLANKS, 2)
+                .stored(STICKS, 2)
+                .build(1.0));
+        assertThat(task.copyInternalStorageState())
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyInAnyOrder(
+                new ResourceAmount(OAK_PLANKS, 2),
+                new ResourceAmount(STICKS, 2)
+            );
+        assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_ORE, 3)
+        );
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(OAK_LOG, 9),
+            new ResourceAmount(IRON_ORE, 7),
+            new ResourceAmount(IRON_PICKAXE, 1)
+        );
+
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0).build(1.0)
+        );
+        assertThat(task.copyInternalStorageState()).isEmpty();
+        assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+            new ResourceAmount(IRON_ORE, 3)
+        );
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(OAK_LOG, 9),
+            new ResourceAmount(IRON_ORE, 7),
+            new ResourceAmount(IRON_PICKAXE, 1),
+            new ResourceAmount(OAK_PLANKS, 2),
+            new ResourceAmount(STICKS, 2)
+        );
+    }
+
     private static Task getTask(final RootStorage storage,
                                 final PatternRepository patterns,
                                 final ResourceKey resource,
                                 final long amount) {
         final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
-        final Task task = calculatePlan(sut, resource, amount).map(TaskImpl::fromPlan).orElseThrow();
+        final Task task = calculatePlan(sut, resource, amount).map(plan -> new TaskImpl(
+            plan,
+            MutableResourceListImpl.orderPreserving()
+        )).orElseThrow();
         storage.addListener(task);
         return task;
     }

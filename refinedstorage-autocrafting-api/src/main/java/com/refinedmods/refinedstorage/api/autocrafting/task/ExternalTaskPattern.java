@@ -1,7 +1,9 @@
 package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusBuilder;
 import com.refinedmods.refinedstorage.api.core.Action;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
@@ -16,14 +18,19 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalTaskPattern.class);
 
     private final MutableResourceList expectedOutputs = MutableResourceListImpl.create();
+    private final ResourceList simulatedIterationInputs;
+    private final long originalIterationsToSendToSink;
     private long iterationsToSendToSink;
+    private long iterationsReceived;
 
     ExternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
-        this.iterationsToSendToSink = plan.iterations();
+        this.originalIterationsToSendToSink = plan.iterations();
         pattern.outputs().forEach(
             output -> expectedOutputs.add(output.resource(), output.amount() * plan.iterations())
         );
+        this.iterationsToSendToSink = plan.iterations();
+        this.simulatedIterationInputs = calculateIterationInputs(Action.SIMULATE);
     }
 
     @Override
@@ -52,8 +59,49 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         }
         final long reserved = Math.min(needed, amount);
         expectedOutputs.remove(resource, reserved);
+        updateIterationsReceived();
         final long intercepted = root ? 0 : reserved;
         return new RootStorageListener.InterceptResult(reserved, intercepted);
+    }
+
+    private void updateIterationsReceived() {
+        long result = originalIterationsToSendToSink;
+        for (final ResourceAmount output : pattern.outputs()) {
+            final long expected = output.amount() * originalIterationsToSendToSink;
+            final long stillNeeded = expectedOutputs.get(output.resource());
+            final long receivedOutputs = expected - stillNeeded;
+            final long receivedOutputIterations = receivedOutputs / output.amount();
+            if (result > receivedOutputIterations) {
+                result = receivedOutputIterations;
+            }
+        }
+        this.iterationsReceived = result;
+    }
+
+    @Override
+    void appendStatus(final TaskStatusBuilder builder) {
+        if (iterationsToSendToSink > 0) {
+            for (final ResourceAmount output : pattern.outputs()) {
+                builder.scheduled(output.resource(), output.amount() * iterationsToSendToSink);
+            }
+        }
+        final long iterationsSentToSink = originalIterationsToSendToSink - iterationsToSendToSink;
+        final long iterationsProcessing = iterationsSentToSink - iterationsReceived;
+        if (iterationsProcessing > 0) {
+            for (final ResourceKey input : simulatedIterationInputs.getAll()) {
+                builder.processing(input, simulatedIterationInputs.get(input) * iterationsProcessing);
+            }
+        }
+    }
+
+    @Override
+    long getWeight() {
+        return iterationsToSendToSink;
+    }
+
+    @Override
+    double getPercentageCompleted() {
+        return iterationsReceived / (double) originalIterationsToSendToSink;
     }
 
     private boolean acceptsIterationInputs(final MutableResourceList internalStorage,

@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusBuilder;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -16,10 +17,12 @@ import org.slf4j.LoggerFactory;
 class InternalTaskPattern extends AbstractTaskPattern {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalTaskPattern.class);
 
+    private final long originalIterationsRemaining;
     private long iterationsRemaining;
 
     InternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
+        this.originalIterationsRemaining = plan.iterations();
         this.iterationsRemaining = plan.iterations();
     }
 
@@ -58,6 +61,27 @@ class InternalTaskPattern extends AbstractTaskPattern {
     @Override
     RootStorageListener.InterceptResult interceptInsertion(final ResourceKey resource, final long amount) {
         return RootStorageListener.InterceptResult.EMPTY;
+    }
+
+    @Override
+    void appendStatus(final TaskStatusBuilder builder) {
+        if (iterationsRemaining == 0) {
+            return;
+        }
+        for (final ResourceAmount output : pattern.outputs()) {
+            builder.crafting(output.resource(), output.amount() * iterationsRemaining);
+        }
+    }
+
+    @Override
+    long getWeight() {
+        return originalIterationsRemaining;
+    }
+
+    @Override
+    double getPercentageCompleted() {
+        final double iterationsCompleted = originalIterationsRemaining - iterationsRemaining;
+        return iterationsCompleted / originalIterationsRemaining;
     }
 
     protected boolean useIteration() {

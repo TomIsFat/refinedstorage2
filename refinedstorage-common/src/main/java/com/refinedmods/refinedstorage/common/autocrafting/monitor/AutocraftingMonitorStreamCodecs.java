@@ -32,7 +32,7 @@ public final class AutocraftingMonitorStreamCodecs {
     public static final StreamCodec<RegistryFriendlyByteBuf, TaskStatus> STATUS_STREAM_CODEC =
         StreamCodec.composite(
             INFO_STREAM_CODEC, TaskStatus::info,
-            ByteBufCodecs.FLOAT, TaskStatus::percentageCompleted,
+            ByteBufCodecs.DOUBLE, TaskStatus::percentageCompleted,
             ByteBufCodecs.collection(ArrayList::new, STATUS_ITEM_STREAM_CODEC), TaskStatus::items,
             TaskStatus::new
         );
@@ -48,8 +48,8 @@ public final class AutocraftingMonitorStreamCodecs {
         @Override
         public TaskStatus.Item decode(final RegistryFriendlyByteBuf buf) {
             return new TaskStatus.Item(
-                TYPE_STREAM_CODEC.decode(buf),
                 ResourceCodecs.STREAM_CODEC.decode(buf),
+                TYPE_STREAM_CODEC.decode(buf),
                 buf.readLong(),
                 buf.readLong(),
                 buf.readLong(),
@@ -59,8 +59,8 @@ public final class AutocraftingMonitorStreamCodecs {
 
         @Override
         public void encode(final RegistryFriendlyByteBuf buf, final TaskStatus.Item item) {
-            TYPE_STREAM_CODEC.encode(buf, item.type());
             ResourceCodecs.STREAM_CODEC.encode(buf, (PlatformResourceKey) item.resource());
+            TYPE_STREAM_CODEC.encode(buf, item.type());
             buf.writeLong(item.stored());
             buf.writeLong(item.processing());
             buf.writeLong(item.scheduled());

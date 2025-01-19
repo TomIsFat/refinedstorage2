@@ -1,6 +1,8 @@
 package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusBuilder;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -9,9 +11,11 @@ import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,11 +31,13 @@ public class TaskImpl implements Task {
     private final long amount;
     private final long startTime = System.currentTimeMillis();
     private final Map<Pattern, AbstractTaskPattern> patterns;
+    private final List<AbstractTaskPattern> completedPatterns = new ArrayList<>();
     private final MutableResourceList initialRequirements = MutableResourceListImpl.create();
-    private final MutableResourceList internalStorage = MutableResourceListImpl.create();
+    private final MutableResourceList internalStorage;
     private TaskState state = TaskState.READY;
 
-    private TaskImpl(final TaskPlan plan) {
+    TaskImpl(final TaskPlan plan, final MutableResourceList internalStorage) {
+        this.internalStorage = internalStorage;
         this.resource = plan.resource();
         this.amount = plan.amount();
         this.patterns = plan.patterns().entrySet().stream().collect(Collectors.toMap(
@@ -44,7 +50,7 @@ public class TaskImpl implements Task {
     }
 
     public static Task fromPlan(final TaskPlan plan) {
-        return new TaskImpl(plan);
+        return new TaskImpl(plan, MutableResourceListImpl.create());
     }
 
     private static AbstractTaskPattern createTaskPattern(final Pattern pattern,
@@ -87,6 +93,25 @@ public class TaskImpl implements Task {
         state = TaskState.RETURNING_INTERNAL_STORAGE;
     }
 
+    @Override
+    public TaskStatus getStatus() {
+        final TaskStatusBuilder builder = new TaskStatusBuilder(id, resource, amount, startTime);
+        double totalWeightedCompleted = 0;
+        double totalWeight = 0;
+        for (final AbstractTaskPattern pattern : patterns.values()) {
+            pattern.appendStatus(builder);
+            totalWeightedCompleted += pattern.getPercentageCompleted() * pattern.getWeight();
+            totalWeight += pattern.getWeight();
+        }
+        for (final AbstractTaskPattern pattern : completedPatterns) {
+            totalWeightedCompleted += pattern.getWeight();
+            totalWeight += pattern.getWeight();
+        }
+        internalStorage.getAll().forEach(internalResource ->
+            builder.stored(internalResource, internalStorage.get(internalResource)));
+        return builder.build(totalWeightedCompleted / totalWeight);
+    }
+
     private void startTask(final RootStorage rootStorage) {
         updateState(TaskState.EXTRACTING_INITIAL_RESOURCES);
         extractInitialResourcesAndTryStartRunningTask(rootStorage);
@@ -125,6 +150,7 @@ public class TaskImpl implements Task {
             final boolean completed = pattern.getValue().step(internalStorage, rootStorage, externalPatternInputSink);
             if (completed) {
                 LOGGER.debug("{} completed", pattern.getKey());
+                completedPatterns.add(pattern.getValue());
                 return true;
             }
         }
@@ -144,17 +170,17 @@ public class TaskImpl implements Task {
 
     private boolean extractInitialResources(final RootStorage rootStorage) {
         boolean extractedAll = true;
-        final Set<ResourceKey> resources = new HashSet<>(initialRequirements.getAll());
-        for (final ResourceKey resource : resources) {
-            final long needed = initialRequirements.get(resource);
-            final long extracted = rootStorage.extract(resource, needed, Action.EXECUTE, Actor.EMPTY);
-            LOGGER.debug("Extracted {}x {} from storage", extracted, resource);
+        final Set<ResourceKey> initialRequirementResources = new HashSet<>(initialRequirements.getAll());
+        for (final ResourceKey initialRequirementResource : initialRequirementResources) {
+            final long needed = initialRequirements.get(initialRequirementResource);
+            final long extracted = rootStorage.extract(initialRequirementResource, needed, Action.EXECUTE, Actor.EMPTY);
+            LOGGER.debug("Extracted {}x {} from storage", extracted, initialRequirementResource);
             if (extracted != needed) {
                 extractedAll = false;
             }
             if (extracted > 0) {
-                initialRequirements.remove(resource, extracted);
-                internalStorage.add(resource, extracted);
+                initialRequirements.remove(initialRequirementResource, extracted);
+                internalStorage.add(initialRequirementResource, extracted);
             }
         }
         return extractedAll;
@@ -162,34 +188,36 @@ public class TaskImpl implements Task {
 
     private boolean returnInternalStorage(final RootStorage rootStorage) {
         boolean returnedAll = true;
-        final Set<ResourceKey> resources = new HashSet<>(internalStorage.getAll());
-        for (final ResourceKey resource : resources) {
-            final long amount = internalStorage.get(resource);
-            final long inserted = rootStorage.insert(resource, amount, Action.EXECUTE, Actor.EMPTY);
-            LOGGER.debug("Returned {}x {} into storage", inserted, resource);
-            if (inserted != amount) {
+        final Set<ResourceKey> internalResources = new HashSet<>(internalStorage.getAll());
+        for (final ResourceKey internalResource : internalResources) {
+            final long internalAmount = internalStorage.get(internalResource);
+            final long inserted = rootStorage.insert(internalResource, internalAmount, Action.EXECUTE, Actor.EMPTY);
+            LOGGER.debug("Returned {}x {} into storage", inserted, internalResource);
+            if (inserted != internalAmount) {
                 returnedAll = false;
             }
             if (inserted > 0) {
-                internalStorage.remove(resource, inserted);
+                internalStorage.remove(internalResource, inserted);
             }
         }
         return returnedAll;
     }
 
     @Override
-    public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+    public InterceptResult beforeInsert(final ResourceKey insertedResource,
+                                        final long insertedAmount,
+                                        final Actor actor) {
         long reserved = 0;
         long intercepted = 0;
         for (final AbstractTaskPattern pattern : patterns.values()) {
-            final long remainder = amount - reserved;
-            final InterceptResult result = pattern.interceptInsertion(resource, remainder);
+            final long remainder = insertedAmount - reserved;
+            final InterceptResult result = pattern.interceptInsertion(insertedResource, remainder);
             if (result.intercepted() > 0) {
-                internalStorage.add(resource, result.intercepted());
+                internalStorage.add(insertedResource, result.intercepted());
             }
             reserved += result.reserved();
             intercepted += result.intercepted();
-            if (reserved == amount) {
+            if (reserved == insertedAmount) {
                 return new InterceptResult(reserved, intercepted);
             }
         }
