@@ -31,7 +31,7 @@ public class TaskPlanCraftingCalculatorListener implements CraftingCalculatorLis
     public CraftingCalculatorListener<MutableTaskPlan> childCalculationStarted(final Pattern childPattern,
                                                                                final ResourceKey resource,
                                                                                final Amount amount) {
-        final MutableTaskPlan copy = task.copy(childPattern);
+        final MutableTaskPlan copy = task.copy(childPattern, resource, amount.getTotal());
         copy.addOrUpdatePattern(childPattern, amount.iterations());
         return new TaskPlanCraftingCalculatorListener(copy);
     }

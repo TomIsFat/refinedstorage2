@@ -17,19 +17,26 @@ import static java.util.Objects.requireNonNull;
 public class MutableTaskPlan {
     @Nullable
     private final Pattern rootPattern;
+    @Nullable
+    private final ResourceKey resource;
+    private final long amount;
     private final Map<Pattern, MutablePatternPlan> patterns;
     private final MutableResourceList initialRequirements;
     private boolean missing;
 
     MutableTaskPlan() {
-        this(null, new LinkedHashMap<>(), MutableResourceListImpl.create(), false);
+        this(null, null, 0, new LinkedHashMap<>(), MutableResourceListImpl.create(), false);
     }
 
     private MutableTaskPlan(@Nullable final Pattern rootPattern,
+                            @Nullable final ResourceKey resource,
+                            final long amount,
                             final Map<Pattern, MutablePatternPlan> patterns,
                             final MutableResourceList initialRequirements,
                             final boolean missing) {
         this.rootPattern = rootPattern;
+        this.resource = resource;
+        this.amount = amount;
         this.patterns = patterns;
         this.initialRequirements = initialRequirements;
         this.missing = missing;
@@ -42,25 +49,27 @@ public class MutableTaskPlan {
         )).addIterations(iterations);
     }
 
-    void addToExtract(final ResourceKey resource, final long amount) {
-        initialRequirements.add(resource, amount);
+    void addToExtract(final ResourceKey toExtract, final long toExtractAmount) {
+        initialRequirements.add(toExtract, toExtractAmount);
     }
 
     void addUsedIngredient(final Pattern ingredientPattern,
                            final int ingredientIndex,
-                           final ResourceKey resource,
-                           final long amount) {
+                           final ResourceKey ingredient,
+                           final long ingredientAmount) {
         final MutablePatternPlan patternPlan = requireNonNull(patterns.get(ingredientPattern));
-        patternPlan.addUsedIngredient(ingredientIndex, resource, amount);
+        patternPlan.addUsedIngredient(ingredientIndex, ingredient, ingredientAmount);
     }
 
-    MutableTaskPlan copy(final Pattern childPattern) {
+    MutableTaskPlan copy(final Pattern childPattern, final ResourceKey childResource, final long totalAmount) {
         final Map<Pattern, MutablePatternPlan> patternsCopy = new LinkedHashMap<>();
         for (final Map.Entry<Pattern, MutablePatternPlan> entry : patterns.entrySet()) {
             patternsCopy.put(entry.getKey(), entry.getValue().copy());
         }
         return new MutableTaskPlan(
             rootPattern == null ? childPattern : rootPattern,
+            resource == null ? childResource : resource,
+            resource == null ? totalAmount : amount,
             patternsCopy,
             initialRequirements.copy(),
             missing
@@ -68,7 +77,7 @@ public class MutableTaskPlan {
     }
 
     Optional<TaskPlan> getPlan() {
-        if (missing || rootPattern == null) {
+        if (missing || rootPattern == null || resource == null) {
             return Optional.empty();
         }
         final Map<Pattern, TaskPlan.PatternPlan> finalPatterns = Collections.unmodifiableMap(patterns.entrySet()
@@ -79,7 +88,7 @@ public class MutableTaskPlan {
                 (a, b) -> a,
                 LinkedHashMap::new
             )));
-        return Optional.of(new TaskPlan(rootPattern, finalPatterns, initialRequirements.copyState()));
+        return Optional.of(new TaskPlan(resource, amount, rootPattern, finalPatterns, initialRequirements.copyState()));
     }
 
     void setMissing() {

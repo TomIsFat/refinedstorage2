@@ -10,7 +10,9 @@ import java.util.Map;
 import org.apiguardian.api.API;
 
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.4.12")
-public record TaskPlan(Pattern rootPattern,
+public record TaskPlan(ResourceKey resource,
+                       long amount,
+                       Pattern rootPattern,
                        Map<Pattern, PatternPlan> patterns,
                        Collection<ResourceAmount> initialRequirements) {
     public PatternPlan getPattern(final Pattern pattern) {

@@ -44,6 +44,24 @@ class TaskPlanTest {
     }
 
     @Test
+    void shouldPlanTaskWithCorrectResourceAndAmount() {
+        // Arrange
+        final RootStorage storage = storage(new ResourceAmount(OAK_LOG, 1));
+        final PatternRepository patterns = patterns(OAK_PLANKS_PATTERN);
+        final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
+
+        // Act
+        final Optional<TaskPlan> optionalPlan = calculatePlan(sut, OAK_PLANKS, 1);
+
+        // Assert
+        assertThat(optionalPlan).isPresent();
+        final TaskPlan plan = optionalPlan.get();
+        assertThat(plan.rootPattern()).isEqualTo(OAK_PLANKS_PATTERN);
+        assertThat(plan.resource()).isEqualTo(OAK_PLANKS);
+        assertThat(plan.amount()).isEqualTo(4);
+    }
+
+    @Test
     void testPlanTaskWithIngredientsUsedFromRootStorageAndInternalStorageWithChildPattern() {
         // Arrange
         final RootStorage storage = storage(
@@ -60,8 +78,9 @@ class TaskPlanTest {
         // Assert
         assertThat(optionalPlan).isPresent();
         final TaskPlan plan = optionalPlan.get();
-
         assertThat(plan.rootPattern()).isEqualTo(CRAFTING_TABLE_PATTERN);
+        assertThat(plan.resource()).isEqualTo(CRAFTING_TABLE);
+        assertThat(plan.amount()).isEqualTo(3);
         assertThat(plan.initialRequirements()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(OAK_PLANKS, 4),
             new ResourceAmount(OAK_LOG, 1),
