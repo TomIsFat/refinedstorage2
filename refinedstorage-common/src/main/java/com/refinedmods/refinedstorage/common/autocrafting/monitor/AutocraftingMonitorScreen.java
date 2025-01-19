@@ -40,7 +40,6 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     private static final int ITEMS_AREA_HEIGHT = 179;
 
     private static final int PROCESSING_COLOR = 0xFFD9EDF7;
-    private static final int MISSING_COLOR = 0xFFF2DEDE;
     private static final int SCHEDULED_COLOR = 0xFFE8E5CA;
     private static final int CRAFTING_COLOR = 0xFFADDBC6;
 
@@ -243,13 +242,6 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     }
 
     private static int getItemColor(final TaskStatus.Item item) {
-        if (item.missing() > 0) {
-            return MISSING_COLOR;
-        }
-        return getItemColor2(item);
-    }
-
-    private static int getItemColor2(final TaskStatus.Item item) {
         if (item.processing() > 0) {
             return PROCESSING_COLOR;
         }
@@ -329,10 +321,6 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         int yy = y;
         if (item.stored() > 0) {
             renderItemText(graphics, "stored", rendering, x, yy, item.stored());
-            yy += 7;
-        }
-        if (item.missing() > 0) {
-            renderItemText(graphics, "missing", rendering, x, yy, item.missing());
             yy += 7;
         }
         if (item.processing() > 0) {

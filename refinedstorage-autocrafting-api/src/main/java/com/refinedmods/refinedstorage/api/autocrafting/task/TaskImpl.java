@@ -23,12 +23,17 @@ public class TaskImpl implements Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskImpl.class);
 
     private final TaskId id = TaskId.create();
+    private final ResourceKey resource;
+    private final long amount;
+    private final long startTime = System.currentTimeMillis();
     private final Map<Pattern, AbstractTaskPattern> patterns;
     private final MutableResourceList initialRequirements = MutableResourceListImpl.create();
     private final MutableResourceList internalStorage = MutableResourceListImpl.create();
     private TaskState state = TaskState.READY;
 
     private TaskImpl(final TaskPlan plan) {
+        this.resource = plan.resource();
+        this.amount = plan.amount();
         this.patterns = plan.patterns().entrySet().stream().collect(Collectors.toMap(
             Map.Entry::getKey,
             e -> createTaskPattern(e.getKey(), e.getValue()),

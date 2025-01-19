@@ -3,8 +3,11 @@ package com.refinedmods.refinedstorage.api.autocrafting.task;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepository;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorImpl;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
@@ -40,8 +43,7 @@ import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.S
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.STONE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.STONE_BRICKS;
 import static com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkBuilder.externalPatternInputSink;
-import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.getRunningTask;
-import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskUtil.getTask;
+import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskPlanCraftingCalculatorListener.calculatePlan;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TaskImplTest {
@@ -769,5 +771,27 @@ class TaskImplTest {
             new ResourceAmount(CRAFTING_TABLE, 10)
         );
         assertThat(task.copyInternalStorageState()).isEmpty();
+    }
+
+    private static Task getTask(final RootStorage storage,
+                                final PatternRepository patterns,
+                                final ResourceKey resource,
+                                final long amount) {
+        final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
+        final Task task = calculatePlan(sut, resource, amount).map(TaskImpl::fromPlan).orElseThrow();
+        storage.addListener(task);
+        return task;
+    }
+
+    private static Task getRunningTask(final RootStorage storage,
+                                       final PatternRepository patterns,
+                                       final ExternalPatternInputSink externalPatternInputSink,
+                                       final ResourceKey resource,
+                                       final long amount) {
+        final Task task = getTask(storage, patterns, resource, amount);
+        assertThat(task.getState()).isEqualTo(TaskState.READY);
+        task.step(storage, externalPatternInputSink, StepBehavior.DEFAULT);
+        assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
+        return task;
     }
 }

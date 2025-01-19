@@ -17,7 +17,6 @@ public record TaskStatus(TaskInfo info, float percentageCompleted, List<Item> it
         ResourceKey resource,
         // what is stored internally?
         long stored,
-        long missing,
         // what is currently processing?
         long processing, // (originalIterationsToSendToSink - iterationsToSendToSink)*input
         // what are we still going to process?

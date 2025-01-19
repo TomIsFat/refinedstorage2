@@ -53,7 +53,6 @@ public final class AutocraftingMonitorStreamCodecs {
                 buf.readLong(),
                 buf.readLong(),
                 buf.readLong(),
-                buf.readLong(),
                 buf.readLong()
             );
         }
@@ -63,7 +62,6 @@ public final class AutocraftingMonitorStreamCodecs {
             TYPE_STREAM_CODEC.encode(buf, item.type());
             ResourceCodecs.STREAM_CODEC.encode(buf, (PlatformResourceKey) item.resource());
             buf.writeLong(item.stored());
-            buf.writeLong(item.missing());
             buf.writeLong(item.processing());
             buf.writeLong(item.scheduled());
             buf.writeLong(item.crafting());
