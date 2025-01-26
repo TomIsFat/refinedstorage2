@@ -127,7 +127,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
                              final long amount,
                              final Actor actor,
                              final TaskPlan plan) {
-        final Task task = TaskImpl.fromPlan(plan);
+        final Task task = new TaskImpl(plan);
         LOGGER.debug("Created task {} for {}x {} for {}", task.getId(), amount, resource, actor);
         final PatternProvider provider = CoreValidations.validateNotNull(
             providerByPattern.get(plan.rootPattern()),

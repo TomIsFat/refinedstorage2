@@ -36,6 +36,10 @@ public class TaskImpl implements Task {
     private final MutableResourceList internalStorage;
     private TaskState state = TaskState.READY;
 
+    public TaskImpl(final TaskPlan plan) {
+        this(plan, MutableResourceListImpl.create());
+    }
+
     TaskImpl(final TaskPlan plan, final MutableResourceList internalStorage) {
         this.internalStorage = internalStorage;
         this.resource = plan.resource();
@@ -47,10 +51,6 @@ public class TaskImpl implements Task {
             LinkedHashMap::new
         ));
         plan.initialRequirements().forEach(initialRequirements::add);
-    }
-
-    public static Task fromPlan(final TaskPlan plan) {
-        return new TaskImpl(plan, MutableResourceListImpl.create());
     }
 
     private static AbstractTaskPattern createTaskPattern(final Pattern pattern,

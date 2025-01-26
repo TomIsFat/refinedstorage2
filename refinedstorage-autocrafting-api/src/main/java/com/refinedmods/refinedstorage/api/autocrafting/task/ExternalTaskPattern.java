@@ -55,6 +55,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         }
         LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsToSendToSink);
         iterationsToSendToSink--;
+        interceptedAnythingSinceLastStep = false;
         return PatternStepResult.RUNNING;
     }
 

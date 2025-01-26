@@ -20,16 +20,6 @@ public interface ExternalPatternInputSink {
         ACCEPTED,
         REJECTED,
         SKIPPED,
-        LOCKED;
-
-        public Result and(final Result other) {
-            if (this == SKIPPED) {
-                return other;
-            } else if (this == REJECTED || other == REJECTED) {
-                return REJECTED;
-            } else {
-                return ACCEPTED;
-            }
-        }
+        LOCKED
     }
 }

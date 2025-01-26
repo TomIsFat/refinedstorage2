@@ -29,12 +29,23 @@ class FabricStoragePatternProviderExternalPatternInputSink implements PatternPro
                 if (strategyResult == ExternalPatternInputSink.Result.REJECTED) {
                     return strategyResult;
                 }
-                result = result.and(strategyResult);
+                result = and(result, strategyResult);
             }
             if (action == Action.EXECUTE) {
                 tx.commit();
             }
         }
         return result;
+    }
+
+    private ExternalPatternInputSink.Result and(final ExternalPatternInputSink.Result a,
+                                                final ExternalPatternInputSink.Result b) {
+        if (a == ExternalPatternInputSink.Result.SKIPPED) {
+            return b;
+        } else if (a == ExternalPatternInputSink.Result.REJECTED || b == ExternalPatternInputSink.Result.REJECTED) {
+            return ExternalPatternInputSink.Result.REJECTED;
+        } else {
+            return ExternalPatternInputSink.Result.ACCEPTED;
+        }
     }
 }
