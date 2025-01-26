@@ -93,6 +93,10 @@ class TaskImplTest {
         assertThat(task.getState()).isEqualTo(TaskState.READY);
         assertThat(task.getId()).isNotNull();
         assertThat(task.getId().toString()).isEqualTo(task.getId().id().toString());
+        assertThat(task.shouldNotify()).isTrue();
+        assertThat(task.getActor()).isEqualTo(Actor.EMPTY);
+        assertThat(task.getResource()).isEqualTo(CRAFTING_TABLE);
+        assertThat(task.getAmount()).isEqualTo(3);
     }
 
     @Test
@@ -116,8 +120,13 @@ class TaskImplTest {
                 new ResourceAmount(OAK_PLANKS, 4)
             );
         assertThat(storage.getAll()).isEmpty();
+        assertThat(task.shouldNotify()).isTrue();
+        assertThat(task.getActor()).isEqualTo(Actor.EMPTY);
 
         task.cancel();
+
+        assertThat(task.shouldNotify()).isFalse();
+        assertThat(task.getActor()).isEqualTo(Actor.EMPTY);
 
         assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
         assertThat(task.copyInternalStorageState())
@@ -1183,7 +1192,9 @@ class TaskImplTest {
         final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
         final Task task = calculatePlan(sut, resource, amount).map(plan -> new TaskImpl(
             plan,
-            MutableResourceListImpl.orderPreserving()
+            MutableResourceListImpl.orderPreserving(),
+            Actor.EMPTY,
+            true
         )).orElseThrow();
         storage.addListener(task);
         return task;

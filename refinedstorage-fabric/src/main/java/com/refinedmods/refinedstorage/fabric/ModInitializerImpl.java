@@ -68,6 +68,7 @@ import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMoni
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewMaxAmountResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingResponsePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingTaskCompletedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.EnergyInfoPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridClearPacket;
@@ -537,6 +538,10 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
             AutocraftingMonitorActivePacket.PACKET_TYPE,
             AutocraftingMonitorActivePacket.STREAM_CODEC
         );
+        PayloadTypeRegistry.playS2C().register(
+            AutocraftingTaskCompletedPacket.PACKET_TYPE,
+            AutocraftingTaskCompletedPacket.STREAM_CODEC
+        );
     }
 
     private void registerClientToServerPackets() {
@@ -887,7 +892,7 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
     }
 
     private void registerTickHandler() {
-        ServerTickEvents.START_SERVER_TICK.register(server -> ServerListener.tick());
+        ServerTickEvents.START_SERVER_TICK.register(ServerListener::tick);
         ServerLifecycleEvents.SERVER_STARTING.register(server -> ServerListener.starting());
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> ServerListener.stopped());
     }

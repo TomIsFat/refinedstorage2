@@ -115,19 +115,21 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
                                                          final long amount,
                                                          final Actor actor,
-                                                         final boolean notify) { // TODO: implement notify
+                                                         final boolean notify) {
         return CompletableFuture.supplyAsync(() -> {
             final RootStorage rootStorage = rootStorageProvider.get();
             final CraftingCalculator calculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
-            return calculatePlan(calculator, resource, amount).map(plan -> startTask(resource, amount, actor, plan));
+            return calculatePlan(calculator, resource, amount)
+                .map(plan -> startTask(resource, amount, actor, plan, notify));
         }, executorService);
     }
 
     private TaskId startTask(final ResourceKey resource,
                              final long amount,
                              final Actor actor,
-                             final TaskPlan plan) {
-        final Task task = new TaskImpl(plan);
+                             final TaskPlan plan,
+                             final boolean notify) {
+        final Task task = new TaskImpl(plan, actor, notify);
         LOGGER.debug("Created task {} for {}x {} for {}", task.getId(), amount, resource, actor);
         final PatternProvider provider = CoreValidations.validateNotNull(
             providerByPattern.get(plan.rootPattern()),

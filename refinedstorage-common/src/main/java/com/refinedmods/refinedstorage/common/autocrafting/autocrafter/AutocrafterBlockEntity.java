@@ -433,11 +433,11 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
             invalidateExternalPatternInputSinkKey();
             return;
         }
-        final BlockState state = connectedMachine.getBlockState();
+        final BlockState connectedMachineState = connectedMachine.getBlockState();
         final Player fakePlayer = getFakePlayer(serverLevel);
-        final ItemStack stack = Platform.INSTANCE.getBlockAsItemStack(
-            state.getBlock(),
-            state,
+        final ItemStack connectedMachineStack = Platform.INSTANCE.getBlockAsItemStack(
+            connectedMachineState.getBlock(),
+            connectedMachineState,
             direction.getOpposite(),
             serverLevel,
             connectedMachine.getBlockPos(),
@@ -445,7 +445,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         );
         externalPatternInputSinkKey = new InWorldExternalPatternInputSinkKey(
             getName().getString(),
-            stack
+            connectedMachineStack
         );
     }
 

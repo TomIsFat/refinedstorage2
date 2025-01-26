@@ -2,6 +2,8 @@ package com.refinedmods.refinedstorage.common.util;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
+import com.refinedmods.refinedstorage.common.autocrafting.TaskCompletedToast;
 import com.refinedmods.refinedstorage.common.autocrafting.preview.AutocraftingPreviewScreen;
 import com.refinedmods.refinedstorage.common.autocrafting.preview.AutocraftingRequest;
 
@@ -69,5 +71,9 @@ public final class ClientPlatformUtil {
             inventory,
             requests.stream().map(AutocraftingRequest::of).toList()
         ));
+    }
+
+    public static void autocraftingTaskCompleted(final PlatformResourceKey resource, final long amount) {
+        Minecraft.getInstance().getToasts().addToast(new TaskCompletedToast(resource, amount));
     }
 }
