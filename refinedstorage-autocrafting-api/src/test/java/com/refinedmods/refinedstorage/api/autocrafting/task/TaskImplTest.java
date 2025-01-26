@@ -387,7 +387,7 @@ class TaskImplTest {
         final ExternalPatternInputSinkBuilder sinkBuilder = externalPatternInputSink();
         final ExternalPatternInputSinkBuilder.Sink ironOreSink = sinkBuilder.storageSink(IRON_INGOT_PATTERN);
         final ExternalPatternInputSink sink = sinkBuilder.build();
-        final Task task = getRunningTask(storage, patterns, sink, IRON_PICKAXE, 1);
+        Task task = getRunningTask(storage, patterns, sink, IRON_PICKAXE, 1);
 
         assertThat(storage.getAll()).isEmpty();
         assertThat(task.copyInternalStorageState())
@@ -443,6 +443,10 @@ class TaskImplTest {
         assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(IRON_ORE, 3)
         );
+
+        storage.removeListener(task);
+        task = new TaskImpl(((TaskImpl) task).createSnapshot());
+        storage.addListener(task);
 
         storage.insert(IRON_INGOT, 1, Action.EXECUTE, Actor.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);

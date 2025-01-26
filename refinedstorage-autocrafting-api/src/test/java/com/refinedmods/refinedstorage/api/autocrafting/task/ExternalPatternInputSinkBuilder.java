@@ -47,10 +47,6 @@ class ExternalPatternInputSinkBuilder {
     }
 
     record SinkKey(Pattern pattern) implements ExternalPatternInputSinkKey {
-        @Override
-        public String getName() {
-            return pattern.id().toString();
-        }
     }
 
     static class Sink {

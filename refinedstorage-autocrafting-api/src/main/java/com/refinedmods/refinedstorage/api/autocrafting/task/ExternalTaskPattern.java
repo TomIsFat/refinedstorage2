@@ -16,10 +16,12 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Objects.requireNonNull;
+
 class ExternalTaskPattern extends AbstractTaskPattern {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalTaskPattern.class);
 
-    private final MutableResourceList expectedOutputs = MutableResourceListImpl.create();
+    private final MutableResourceList expectedOutputs;
     private final ResourceList simulatedIterationInputs;
     private final long originalIterationsToSendToSink;
     private long iterationsToSendToSink;
@@ -33,11 +35,28 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     ExternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
         this.originalIterationsToSendToSink = plan.iterations();
+        this.expectedOutputs = MutableResourceListImpl.create();
         pattern.outputs().forEach(
             output -> expectedOutputs.add(output.resource(), output.amount() * plan.iterations())
         );
         this.iterationsToSendToSink = plan.iterations();
         this.simulatedIterationInputs = calculateIterationInputs(Action.SIMULATE);
+    }
+
+    ExternalTaskPattern(final TaskSnapshot.PatternSnapshot snapshot) {
+        super(snapshot.pattern(), new TaskPlan.PatternPlan(
+            snapshot.root(),
+            requireNonNull(snapshot.externalPattern()).originalIterationsToSendToSink(),
+            snapshot.ingredients()
+        ));
+        this.expectedOutputs = snapshot.externalPattern().copyExpectedOutputs();
+        this.simulatedIterationInputs = snapshot.externalPattern().simulatedIterationInputs();
+        this.originalIterationsToSendToSink = snapshot.externalPattern().originalIterationsToSendToSink();
+        this.iterationsToSendToSink = snapshot.externalPattern().iterationsToSendToSink();
+        this.iterationsReceived = snapshot.externalPattern().iterationsReceived();
+        this.interceptedAnythingSinceLastStep = snapshot.externalPattern().interceptedAnythingSinceLastStep();
+        this.lastSinkResult = snapshot.externalPattern().lastSinkResult();
+        this.lastSinkResultKey = snapshot.externalPattern().lastSinkResultKey();
     }
 
     @Override
@@ -167,5 +186,25 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             LOGGER.warn("External sink {} did not accept all inputs for pattern {}", externalPatternInputSink, pattern);
         }
         return true;
+    }
+
+    @Override
+    TaskSnapshot.PatternSnapshot createSnapshot() {
+        return new TaskSnapshot.PatternSnapshot(
+            root,
+            pattern,
+            ingredients,
+            null,
+            new TaskSnapshot.ExternalPatternSnapshot(
+                expectedOutputs.copy(),
+                simulatedIterationInputs,
+                originalIterationsToSendToSink,
+                iterationsToSendToSink,
+                iterationsReceived,
+                interceptedAnythingSinceLastStep,
+                lastSinkResult,
+                lastSinkResultKey
+            )
+        );
     }
 }

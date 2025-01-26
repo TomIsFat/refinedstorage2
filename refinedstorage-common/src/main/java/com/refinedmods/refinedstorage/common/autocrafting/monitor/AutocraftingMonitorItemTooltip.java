@@ -83,8 +83,8 @@ class AutocraftingMonitorItemTooltip implements ClientTooltipComponent {
     public int getWidth(final Font font) {
         final int resourceWidth = font.width(rendering.getDisplayName(item.resource()));
         final int errorWidth = item.type() != TaskStatus.ItemType.NORMAL ? font.width(getErrorTooltip(item.type())) : 0;
-        final int sinkWidth = item.sinkKey() != null
-            ? (18 + SPACING + font.width(item.sinkKey().getName()))
+        final int sinkWidth = item.sinkKey() instanceof InWorldExternalPatternInputSinkKey sinkKey
+            ? (18 + SPACING + font.width(sinkKey.name()))
             : 0;
         return Math.max(resourceWidth, Math.max(errorWidth, sinkWidth));
     }
