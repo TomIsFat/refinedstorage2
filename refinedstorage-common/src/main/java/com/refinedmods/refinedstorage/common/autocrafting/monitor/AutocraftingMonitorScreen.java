@@ -12,17 +12,14 @@ import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 
 import static com.refinedmods.refinedstorage.common.support.Sprites.ERROR;
@@ -49,19 +46,6 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     private static final ResourceLocation TEXTURE = createIdentifier("textures/gui/autocrafting_monitor.png");
     private static final ResourceLocation ROW = createIdentifier("autocrafting_monitor/row");
     private static final ResourceLocation TASKS = createIdentifier("autocrafting_monitor/tasks");
-
-    private static final MutableComponent MACHINE_DOES_NOT_ACCEPT_RESOURCE = createTranslation(
-        "gui",
-        "autocrafting_monitor.machine_does_not_accept_resource"
-    ).withStyle(ChatFormatting.RED);
-    private static final MutableComponent NO_MACHINE_FOUND = createTranslation(
-        "gui",
-        "autocrafting_monitor.no_machine_found"
-    ).withStyle(ChatFormatting.RED);
-    private static final MutableComponent AUTOCRAFTER_IS_LOCKED = createTranslation(
-        "gui",
-        "autocrafting_monitor.autocrafter_is_locked"
-    ).withStyle(ChatFormatting.RED);
 
     private static final MutableComponent CANCEL = createTranslation("gui", "autocrafting_monitor.cancel");
     private static final MutableComponent CANCEL_ALL = createTranslation("gui", "autocrafting_monitor.cancel_all");
@@ -275,7 +259,7 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         rendering.render(item.resource(), graphics, xx, yy);
         if (isHovering(x - leftPos, y - topPos, 73, 29, mouseX, mouseY)
             && isHoveringOverItems(mouseX, mouseY)) {
-            setTooltipForNextRenderPass(getItemTooltip(item, rendering));
+            setDeferredTooltip(List.of(new AutocraftingMonitorItemTooltip(item)));
         }
         if (!SmallText.isSmall()) {
             yy -= 2;
@@ -292,25 +276,6 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
             ICON_SIZE,
             ICON_SIZE
         );
-    }
-
-    private List<FormattedCharSequence> getItemTooltip(final TaskStatus.Item item, final ResourceRendering rendering) {
-        final List<FormattedCharSequence> tooltip = rendering.getTooltip(item.resource()).stream()
-            .map(Component::getVisualOrderText)
-            .collect(Collectors.toList());
-        if (item.type() != TaskStatus.ItemType.NORMAL) {
-            tooltip.add(getErrorTooltip(item.type()).getVisualOrderText());
-        }
-        return tooltip;
-    }
-
-    private Component getErrorTooltip(final TaskStatus.ItemType type) {
-        return switch (type) {
-            case REJECTED -> MACHINE_DOES_NOT_ACCEPT_RESOURCE;
-            case NONE_FOUND -> NO_MACHINE_FOUND;
-            case LOCKED -> AUTOCRAFTER_IS_LOCKED;
-            default -> Component.empty();
-        };
     }
 
     private void renderItemText(final GuiGraphics graphics,

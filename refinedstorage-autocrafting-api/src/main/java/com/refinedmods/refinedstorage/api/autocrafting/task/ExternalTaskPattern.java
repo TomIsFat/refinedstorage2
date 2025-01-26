@@ -27,6 +27,8 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     private boolean interceptedAnythingSinceLastStep;
     @Nullable
     private ExternalPatternInputSink.Result lastSinkResult;
+    @Nullable
+    private ExternalPatternInputSinkKey lastSinkResultKey;
 
     ExternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
@@ -103,7 +105,11 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         final long iterationsProcessing = iterationsSentToSink - iterationsReceived;
         if (iterationsProcessing > 0) {
             for (final ResourceKey input : simulatedIterationInputs.getAll()) {
-                builder.processing(input, simulatedIterationInputs.get(input) * iterationsProcessing);
+                builder.processing(
+                    input,
+                    simulatedIterationInputs.get(input) * iterationsProcessing,
+                    lastSinkResultKey
+                );
             }
         }
         if (lastSinkResult != null) {
@@ -111,6 +117,9 @@ class ExternalTaskPattern extends AbstractTaskPattern {
                 case REJECTED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::rejected);
                 case SKIPPED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::noneFound);
                 case LOCKED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::locked);
+                case ACCEPTED -> {
+                    // does not need to be reported
+                }
             }
         }
     }
@@ -137,6 +146,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             Action.SIMULATE
         );
         lastSinkResult = simulatedResult;
+        lastSinkResultKey = externalPatternInputSink.getKey(pattern);
         if (simulatedResult != ExternalPatternInputSink.Result.ACCEPTED) {
             return false;
         }

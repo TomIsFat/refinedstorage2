@@ -16,6 +16,9 @@ import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 
+import java.util.Collection;
+import javax.annotation.Nullable;
+
 import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.junit.jupiter.api.Test;
 
@@ -54,8 +57,24 @@ class TaskImplTest {
     private static final RecursiveComparisonConfiguration STATUS_CONFIG = RecursiveComparisonConfiguration.builder()
         .withIgnoredFields("info.startTime")
         .build();
-    private static final ExternalPatternInputSink EMPTY_SINK = (pattern, resources, action) ->
-        ExternalPatternInputSink.Result.SKIPPED;
+    private static final ExternalPatternInputSink EMPTY_SINK = fixedResultSink(ExternalPatternInputSink.Result.SKIPPED);
+
+    private static ExternalPatternInputSink fixedResultSink(final ExternalPatternInputSink.Result result) {
+        return new ExternalPatternInputSink() {
+            @Override
+            public Result accept(final Pattern pattern,
+                                 final Collection<ResourceAmount> resources,
+                                 final Action action) {
+                return result;
+            }
+
+            @Nullable
+            @Override
+            public ExternalPatternInputSinkKey getKey(final Pattern pattern) {
+                return null;
+            }
+        };
+    }
 
     @Test
     void testInitialState() {
@@ -661,10 +680,22 @@ class TaskImplTest {
             new ResourceAmount(IRON_ORE, 3)
         );
         final PatternRepository patterns = patterns(IRON_INGOT_PATTERN, IRON_PICKAXE_PATTERN);
-        final ExternalPatternInputSink sink = (pattern, resources, action) ->
-            action == Action.SIMULATE
-                ? ExternalPatternInputSink.Result.ACCEPTED
-                : ExternalPatternInputSink.Result.REJECTED;
+        final ExternalPatternInputSink sink = new ExternalPatternInputSink() {
+            @Override
+            public Result accept(final Pattern pattern,
+                                 final Collection<ResourceAmount> resources,
+                                 final Action action) {
+                return action == Action.SIMULATE
+                    ? ExternalPatternInputSink.Result.ACCEPTED
+                    : ExternalPatternInputSink.Result.REJECTED;
+            }
+
+            @Nullable
+            @Override
+            public ExternalPatternInputSinkKey getKey(final Pattern pattern) {
+                return null;
+            }
+        };
         final Task task = getRunningTask(storage, patterns, sink, IRON_PICKAXE, 1);
 
         assertThat(storage.getAll()).isEmpty();
@@ -808,7 +839,7 @@ class TaskImplTest {
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
                 .crafting(IRON_PICKAXE, 1)
                 .scheduled(IRON_INGOT, 2)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .crafting(STICKS, 4)
                 .stored(OAK_PLANKS, 4)
                 .stored(IRON_ORE, 2)
@@ -829,7 +860,7 @@ class TaskImplTest {
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
                 .crafting(IRON_PICKAXE, 1)
                 .scheduled(IRON_INGOT, 1)
-                .processing(IRON_ORE, 2)
+                .processing(IRON_ORE, 2, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .stored(OAK_PLANKS, 2)
                 .stored(IRON_ORE, 1)
                 .stored(STICKS, 4)
@@ -850,7 +881,7 @@ class TaskImplTest {
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
                 .crafting(IRON_PICKAXE, 1)
-                .processing(IRON_ORE, 3)
+                .processing(IRON_ORE, 3, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .stored(OAK_PLANKS, 2)
                 .stored(STICKS, 4)
                 .build(0.6666666666666666));
@@ -869,7 +900,7 @@ class TaskImplTest {
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
                 .crafting(IRON_PICKAXE, 1)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .stored(OAK_PLANKS, 2)
                 .stored(STICKS, 4)
                 .stored(IRON_INGOT, 2)
@@ -965,7 +996,7 @@ class TaskImplTest {
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
                 .stored(IRON_ORE, 1)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .build(0));
 
         ironOreSink.setEnabled(false);
@@ -974,7 +1005,7 @@ class TaskImplTest {
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
                 .stored(IRON_ORE, 1)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .rejected(IRON_INGOT)
                 .build(0));
     }
@@ -995,7 +1026,7 @@ class TaskImplTest {
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
                 .stored(IRON_ORE, 1)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .build(0));
 
         ironOreSink.setEnabled(false);
@@ -1004,7 +1035,7 @@ class TaskImplTest {
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
                 .stored(IRON_ORE, 1)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, null)
                 .noneFound(IRON_INGOT)
                 .build(0));
     }
@@ -1025,20 +1056,20 @@ class TaskImplTest {
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
                 .stored(IRON_ORE, 1)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, new ExternalPatternInputSinkBuilder.SinkKey(IRON_INGOT_PATTERN))
                 .build(0));
 
         ironOreSink.setEnabled(false);
         task.step(
             storage,
-            (pattern, resources, action) -> ExternalPatternInputSink.Result.LOCKED,
+            fixedResultSink(ExternalPatternInputSink.Result.LOCKED),
             StepBehavior.DEFAULT
         );
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
                 .stored(IRON_ORE, 1)
-                .processing(IRON_ORE, 1)
+                .processing(IRON_ORE, 1, null)
                 .locked(IRON_INGOT)
                 .build(0));
     }

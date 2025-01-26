@@ -1,9 +1,11 @@
 package com.refinedmods.refinedstorage.api.autocrafting.status;
 
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 import java.util.List;
+import javax.annotation.Nullable;
 
 import org.apiguardian.api.API;
 
@@ -15,6 +17,7 @@ public record TaskStatus(TaskInfo info, double percentageCompleted, List<Item> i
     public record Item(
         ResourceKey resource,
         ItemType type,
+        @Nullable ExternalPatternInputSinkKey sinkKey,
         long stored,
         long processing,
         long scheduled,

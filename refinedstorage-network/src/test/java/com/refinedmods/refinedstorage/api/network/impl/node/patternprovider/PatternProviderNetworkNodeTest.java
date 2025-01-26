@@ -501,7 +501,7 @@ class PatternProviderNetworkNodeTest {
         final ArgumentCaptor<TaskId> idCaptor = ArgumentCaptor.forClass(TaskId.class);
         verify(listener, times(1)).taskRemoved(idCaptor.capture());
         final TaskId id = idCaptor.getValue();
-        assertThat(createdId.get()).isEqualTo(id);
+        assertThat(createdId).contains(id);
     }
 
     @Test

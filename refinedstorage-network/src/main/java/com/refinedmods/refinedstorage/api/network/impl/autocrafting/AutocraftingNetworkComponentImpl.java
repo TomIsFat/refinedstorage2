@@ -8,6 +8,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewCraftingCalculatorListener;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
@@ -238,5 +239,15 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             return Result.SKIPPED;
         }
         return patternProvider.accept(resources, action);
+    }
+
+    @Nullable
+    @Override
+    public ExternalPatternInputSinkKey getKey(final Pattern pattern) {
+        final PatternProvider patternProvider = providerByPattern.get(pattern);
+        if (patternProvider == null) {
+            return null;
+        }
+        return patternProvider.getSinkKey();
     }
 }

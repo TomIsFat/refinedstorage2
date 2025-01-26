@@ -1,10 +1,12 @@
 package com.refinedmods.refinedstorage.common.autocrafting.autocrafter;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
+import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.ExternalPatternInputSinkKeyProvider;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
@@ -46,7 +48,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import static com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock.tryExtractDirection;
 
 public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntity<PatternProviderNetworkNode>
-    implements ExtendedMenuProvider<AutocrafterData>, BlockEntityWithDrops, PatternInventory.Listener, StepBehavior {
+    implements ExtendedMenuProvider<AutocrafterData>, BlockEntityWithDrops, PatternInventory.Listener, StepBehavior,
+    ExternalPatternInputSinkKeyProvider {
     static final int PATTERNS = 9;
 
     private static final int MAX_CHAINED_AUTOCRAFTERS = 8;
@@ -63,6 +66,8 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     private int ticks;
     private int steps = getSteps(0);
     private int tickRate = getTickRate(0);
+    @Nullable
+    private ExternalPatternInputSinkKey externalPatternInputSinkKey;
 
     public AutocrafterBlockEntity(final BlockPos pos, final BlockState state) {
         super(
@@ -89,6 +94,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         });
         this.patternContainer.setListener(this);
         this.mainNetworkNode.setStepBehavior(this);
+        this.mainNetworkNode.setSinkKeyProvider(this);
     }
 
     @Override
@@ -320,6 +326,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         super.initialize(level, direction);
         final Direction incomingDirection = direction.getOpposite();
         final BlockPos sourcePosition = worldPosition.relative(direction);
+        invalidateExternalPatternInputSinkKey();
         mainNetworkNode.setExternalPatternInputSink(
             RefinedStorageApi.INSTANCE.getPatternProviderExternalPatternInputSinkFactory()
                 .create(level, sourcePosition, incomingDirection));
@@ -401,5 +408,48 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     protected boolean doesBlockStateChangeWarrantNetworkNodeUpdate(final BlockState oldBlockState,
                                                                    final BlockState newBlockState) {
         return AbstractDirectionalBlock.didDirectionChange(oldBlockState, newBlockState);
+    }
+
+    @Override
+    @Nullable
+    public ExternalPatternInputSinkKey getKey() {
+        if (externalPatternInputSinkKey == null) {
+            tryUpdateKey();
+        }
+        return externalPatternInputSinkKey;
+    }
+
+    private void tryUpdateKey() {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        final Direction direction = tryExtractDirection(getBlockState());
+        if (direction == null) {
+            return;
+        }
+        final AutocrafterBlockEntity root = getChainingRoot();
+        final BlockEntity connectedMachine = root.getConnectedMachine();
+        if (connectedMachine == null) {
+            invalidateExternalPatternInputSinkKey();
+            return;
+        }
+        final BlockState state = connectedMachine.getBlockState();
+        final Player fakePlayer = getFakePlayer(serverLevel);
+        final ItemStack stack = Platform.INSTANCE.getBlockAsItemStack(
+            state.getBlock(),
+            state,
+            direction.getOpposite(),
+            serverLevel,
+            connectedMachine.getBlockPos(),
+            fakePlayer
+        );
+        externalPatternInputSinkKey = new InWorldExternalPatternInputSinkKey(
+            getName().getString(),
+            stack
+        );
+    }
+
+    private void invalidateExternalPatternInputSinkKey() {
+        externalPatternInputSinkKey = null;
     }
 }

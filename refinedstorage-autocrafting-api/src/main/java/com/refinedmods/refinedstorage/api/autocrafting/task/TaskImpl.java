@@ -108,9 +108,10 @@ public class TaskImpl implements Task {
             totalWeightedCompleted += pattern.getWeight();
             totalWeight += pattern.getWeight();
         }
-        internalStorage.getAll().forEach(internalResource ->
-            builder.stored(internalResource, internalStorage.get(internalResource)));
-        return builder.build(totalWeightedCompleted / totalWeight);
+        internalStorage.getAll().forEach(
+            internalResource -> builder.stored(internalResource, internalStorage.get(internalResource))
+        );
+        return builder.build(totalWeight == 0 ? 0 : totalWeightedCompleted / totalWeight);
     }
 
     private boolean startTask(final RootStorage rootStorage) {

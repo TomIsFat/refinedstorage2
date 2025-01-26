@@ -3,6 +3,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
@@ -33,6 +34,8 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     private int priority;
     @Nullable
     private PatternProviderExternalPatternInputSink externalPatternInputSink;
+    @Nullable
+    private ExternalPatternInputSinkKeyProvider externalPatternInputSinkKeyProvider;
     private StepBehavior stepBehavior = StepBehavior.DEFAULT;
 
     public PatternProviderNetworkNode(final long energyUsage, final int patterns) {
@@ -137,6 +140,12 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         return tasks.stream().map(Task::getStatus).toList();
     }
 
+    @Override
+    @Nullable
+    public ExternalPatternInputSinkKey getSinkKey() {
+        return externalPatternInputSinkKeyProvider != null ? externalPatternInputSinkKeyProvider.getKey() : null;
+    }
+
     private void setupTask(final Task task, final StorageNetworkComponent storage) {
         storage.addListener(task);
     }
@@ -195,5 +204,9 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
 
     public void setStepBehavior(final StepBehavior stepBehavior) {
         this.stepBehavior = stepBehavior;
+    }
+
+    public void setSinkKeyProvider(final ExternalPatternInputSinkKeyProvider provider) {
+        this.externalPatternInputSinkKeyProvider = provider;
     }
 }

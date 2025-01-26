@@ -80,8 +80,8 @@ class InternalTaskPattern extends AbstractTaskPattern {
 
     @Override
     double getPercentageCompleted() {
-        final double iterationsCompleted = originalIterationsRemaining - iterationsRemaining;
-        return iterationsCompleted / originalIterationsRemaining;
+        final long iterationsCompleted = originalIterationsRemaining - iterationsRemaining;
+        return iterationsCompleted / (double) originalIterationsRemaining;
     }
 
     protected PatternStepResult useIteration() {

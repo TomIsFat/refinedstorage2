@@ -1,18 +1,22 @@
 package com.refinedmods.refinedstorage.common.autocrafting.monitor;
 
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.InWorldExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceCodecs;
 import com.refinedmods.refinedstorage.common.util.PlatformUtil;
 
 import java.util.ArrayList;
+import javax.annotation.Nullable;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
 
 public final class AutocraftingMonitorStreamCodecs {
     public static final StreamCodec<RegistryFriendlyByteBuf, TaskId> TASK_ID_STREAM_CODEC = StreamCodec.composite(
@@ -50,6 +54,7 @@ public final class AutocraftingMonitorStreamCodecs {
             return new TaskStatus.Item(
                 ResourceCodecs.STREAM_CODEC.decode(buf),
                 TYPE_STREAM_CODEC.decode(buf),
+                decodeSinkKey(buf),
                 buf.readLong(),
                 buf.readLong(),
                 buf.readLong(),
@@ -57,14 +62,34 @@ public final class AutocraftingMonitorStreamCodecs {
             );
         }
 
+        @Nullable
+        private ExternalPatternInputSinkKey decodeSinkKey(final RegistryFriendlyByteBuf buf) {
+            if (buf.readBoolean()) {
+                return new InWorldExternalPatternInputSinkKey(buf.readUtf(), ItemStack.STREAM_CODEC.decode(buf));
+            }
+            return null;
+        }
+
         @Override
         public void encode(final RegistryFriendlyByteBuf buf, final TaskStatus.Item item) {
             ResourceCodecs.STREAM_CODEC.encode(buf, (PlatformResourceKey) item.resource());
             TYPE_STREAM_CODEC.encode(buf, item.type());
+            encodeSinkKey(buf, item.sinkKey());
             buf.writeLong(item.stored());
             buf.writeLong(item.processing());
             buf.writeLong(item.scheduled());
             buf.writeLong(item.crafting());
+        }
+
+        private void encodeSinkKey(final RegistryFriendlyByteBuf buf,
+                                   @Nullable final ExternalPatternInputSinkKey sinkKey) {
+            if (sinkKey instanceof InWorldExternalPatternInputSinkKey(String name, ItemStack stack)) {
+                buf.writeBoolean(true);
+                buf.writeUtf(name);
+                ItemStack.STREAM_CODEC.encode(buf, stack);
+            } else {
+                buf.writeBoolean(false);
+            }
         }
     }
 }

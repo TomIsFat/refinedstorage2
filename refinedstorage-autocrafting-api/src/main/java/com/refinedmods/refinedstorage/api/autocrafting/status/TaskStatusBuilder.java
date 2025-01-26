@@ -1,11 +1,13 @@
 package com.refinedmods.refinedstorage.api.autocrafting.status;
 
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public class TaskStatusBuilder {
     private final TaskStatus.TaskInfo info;
@@ -21,9 +23,12 @@ public class TaskStatusBuilder {
         return this;
     }
 
-    public TaskStatusBuilder processing(final ResourceKey resource, final long processing) {
+    public TaskStatusBuilder processing(final ResourceKey resource,
+                                        final long processing,
+                                        @Nullable final ExternalPatternInputSinkKey sinkKey) {
         CoreValidations.validateLargerThanZero(processing, "Processing");
         get(resource).processing += processing;
+        get(resource).sinkKey = sinkKey;
         return this;
     }
 
@@ -62,6 +67,7 @@ public class TaskStatusBuilder {
         return new TaskStatus(info, percentageCompleted, items.entrySet().stream().map(entry -> new TaskStatus.Item(
             entry.getKey(),
             entry.getValue().type,
+            entry.getValue().sinkKey,
             entry.getValue().stored,
             entry.getValue().processing,
             entry.getValue().scheduled,
@@ -73,6 +79,8 @@ public class TaskStatusBuilder {
         private TaskStatus.ItemType type;
         private long stored;
         private long processing;
+        @Nullable
+        private ExternalPatternInputSinkKey sinkKey;
         private long scheduled;
         private long crafting;
 
