@@ -36,6 +36,7 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     private static final int COLUMNS = 3;
     private static final int ITEMS_AREA_HEIGHT = 179;
 
+    private static final int ITEM_COLOR = 0xFFDBDBDB;
     private static final int PROCESSING_COLOR = 0xFFD9EDF7;
     private static final int SCHEDULED_COLOR = 0xFFE8E5CA;
     private static final int CRAFTING_COLOR = 0xFFADDBC6;
@@ -225,6 +226,10 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         }
     }
 
+    private static int getItemColor(final TaskStatus.Item item, final boolean hovering) {
+        return hovering ? darkenARGB(getItemColor(item), 0.1) : getItemColor(item);
+    }
+
     private static int getItemColor(final TaskStatus.Item item) {
         if (item.processing() > 0) {
             return PROCESSING_COLOR;
@@ -235,7 +240,20 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         if (item.crafting() > 0) {
             return CRAFTING_COLOR;
         }
-        return 0;
+        return ITEM_COLOR;
+    }
+
+    private static int darkenARGB(final int argb, final double percentage) {
+        final int alpha = (argb >> 24) & 0xFF;
+        int red = (argb >> 16) & 0xFF;
+        int green = (argb >> 8) & 0xFF;
+        int blue = argb & 0xFF;
+
+        red = (int) Math.max(0, red * (1 - percentage));
+        green = (int) Math.max(0, green * (1 - percentage));
+        blue = (int) Math.max(0, blue * (1 - percentage));
+
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
     private void renderItem(final GuiGraphics graphics,
@@ -244,8 +262,9 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
                             final TaskStatus.Item item,
                             final double mouseX,
                             final double mouseY) {
-        final int color = getItemColor(item);
-        if (color != 0) {
+        final boolean hovering = isHovering(x - leftPos, y - topPos, 73, 29, mouseX, mouseY);
+        final int color = getItemColor(item, hovering);
+        if (color != ITEM_COLOR) {
             graphics.fill(x, y, x + 73, y + 29, color);
         }
         if (item.type() != TaskStatus.ItemType.NORMAL) {
@@ -272,7 +291,7 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         graphics.blitSprite(
             ERROR,
             x + 73 - ICON_SIZE - 3,
-            y + (29 / 2) - (ICON_SIZE / 2),
+            y + 29 - ICON_SIZE - 3,
             ICON_SIZE,
             ICON_SIZE
         );
@@ -315,7 +334,8 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
             x,
             y,
             0x404040,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
     }
 

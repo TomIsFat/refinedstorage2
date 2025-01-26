@@ -68,7 +68,7 @@ class AutocraftingTaskButton extends AbstractButton {
             percentageCompletedProvider.getPercentageCompleted(task.id()) * 100
         );
         SmallText.render(graphics, Minecraft.getInstance().font, percentageCompleted + "%", textX, textY + ySpacing,
-            0xFFFFFF, true);
+            0xFFFFFF, true, SmallText.DEFAULT_SCALE);
         updateTooltip();
     }
 

@@ -8,11 +8,14 @@ import net.minecraft.util.FormattedCharSequence;
 import org.joml.Matrix4f;
 
 public final class SmallText {
+    public static final float DEFAULT_SCALE = 0.5F;
+    public static final float TOOLTIP_SCALE = 0.7F;
+
     private SmallText() {
     }
 
-    public static float getScale() {
-        return isSmall() ? 0.7F : 1F;
+    public static float correctScale(final float smallScale) {
+        return isSmall() ? smallScale : 1F;
     }
 
     public static boolean isSmall() {
@@ -24,8 +27,9 @@ public final class SmallText {
                               final int x,
                               final int y,
                               final Matrix4f pose,
-                              final MultiBufferSource.BufferSource buffer) {
-        render(font, text, x, y, -1, pose, buffer);
+                              final MultiBufferSource.BufferSource buffer,
+                              final float smallScale) {
+        render(font, text, x, y, -1, pose, buffer, smallScale);
     }
 
     public static void render(final Font font,
@@ -34,8 +38,9 @@ public final class SmallText {
                               final int y,
                               final int color,
                               final Matrix4f pose,
-                              final MultiBufferSource.BufferSource buffer) {
-        final float scale = getScale();
+                              final MultiBufferSource.BufferSource buffer,
+                              final float smallScale) {
+        final float scale = correctScale(smallScale);
         final Matrix4f scaled = new Matrix4f(pose);
         scaled.scale(scale, scale, 1);
         font.drawInBatch(
@@ -58,8 +63,9 @@ public final class SmallText {
                               final int x,
                               final int y,
                               final int color,
-                              final boolean dropShadow) {
-        final float scale = getScale();
+                              final boolean dropShadow,
+                              final float smallScale) {
+        final float scale = correctScale(smallScale);
         graphics.pose().pushPose();
         graphics.pose().scale(scale, scale, 1);
         graphics.drawString(font, text, (int) (x / scale), (int) (y / scale) + 1, color, dropShadow);
@@ -72,8 +78,9 @@ public final class SmallText {
                               final int x,
                               final int y,
                               final int color,
-                              final boolean dropShadow) {
-        final float scale = getScale();
+                              final boolean dropShadow,
+                              final float smallScale) {
+        final float scale = correctScale(smallScale);
         graphics.pose().pushPose();
         graphics.pose().scale(scale, scale, 1);
         graphics.drawString(font, text, (int) (x / scale), (int) (y / scale) + 1, color, dropShadow);

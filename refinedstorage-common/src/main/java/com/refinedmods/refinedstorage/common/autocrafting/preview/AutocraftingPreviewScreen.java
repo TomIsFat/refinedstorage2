@@ -350,7 +350,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             x + 4,
             yy,
             0xFF5555,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
         yy += 10;
         SmallText.render(
@@ -360,7 +361,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             x + 4,
             yy,
             0x404040,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
         yy += 10;
         for (final ResourceAmount output : preview.outputsOfPatternWithCycle()) {
@@ -376,7 +378,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
                 x + 4 + 16 + 3,
                 yy + 5,
                 0x404040,
-                false
+                false,
+                SmallText.DEFAULT_SCALE
             );
             yy += 18;
         }
@@ -388,7 +391,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             x + 4,
             yy,
             0x404040,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
     }
 
@@ -400,7 +404,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             x + 4,
             y + 4,
             0xFF5555,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
         SmallText.render(
             graphics,
@@ -409,7 +414,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             x + 4,
             y + 4 + 10,
             0x404040,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
     }
 
@@ -507,7 +513,8 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             x,
             y,
             0x404040,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
     }
 

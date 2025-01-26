@@ -19,7 +19,7 @@ public class SmallTextClientTooltipComponent implements ClientTooltipComponent {
                            final int y,
                            final Matrix4f pose,
                            final MultiBufferSource.BufferSource buffer) {
-        SmallText.render(font, text.getVisualOrderText(), x, y, pose, buffer);
+        SmallText.render(font, text.getVisualOrderText(), x, y, pose, buffer, SmallText.TOOLTIP_SCALE);
     }
 
     @Override
@@ -29,6 +29,6 @@ public class SmallTextClientTooltipComponent implements ClientTooltipComponent {
 
     @Override
     public int getWidth(final Font font) {
-        return (int) (font.width(text) * SmallText.getScale());
+        return (int) (font.width(text) * SmallText.correctScale(SmallText.TOOLTIP_SCALE));
     }
 }
