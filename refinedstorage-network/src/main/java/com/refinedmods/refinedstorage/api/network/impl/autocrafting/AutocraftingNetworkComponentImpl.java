@@ -8,6 +8,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewCraftingCalculatorListener;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,9 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     private final ExecutorService executorService;
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Map<Pattern, PatternProvider> providerByPattern = new HashMap<>();
-    private final Set<PatternListener> listeners = new HashSet<>();
+    private final Map<TaskId, PatternProvider> providerByTaskId = new HashMap<>();
+    private final Set<PatternListener> patternListeners = new HashSet<>();
+    private final Set<TaskStatusListener> statusListeners = new HashSet<>();
     private final PatternRepositoryImpl patternRepository = new PatternRepositoryImpl();
 
     public AutocraftingNetworkComponentImpl(final Supplier<RootStorage> rootStorageProvider,
@@ -82,6 +86,12 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
         return providers.stream().anyMatch(provider -> provider.contains(component));
     }
 
+    @Nullable
+    @Override
+    public PatternProvider getProviderByPattern(final Pattern pattern) {
+        return providerByPattern.get(pattern);
+    }
+
     @Override
     public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         return CompletableFuture.supplyAsync(() -> {
@@ -102,51 +112,50 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
-    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
-                                                final long amount,
-                                                final Actor actor,
-                                                final boolean notify) {
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) { // TODO: implement notify
         return CompletableFuture.supplyAsync(() -> {
             final RootStorage rootStorage = rootStorageProvider.get();
             final CraftingCalculator calculator = new CraftingCalculatorImpl(patternRepository, rootStorage);
-            return calculatePlan(calculator, resource, amount)
-                .map(plan -> startTask(resource, amount, actor, plan))
-                .orElse(false);
-        });
+            return calculatePlan(calculator, resource, amount).map(plan -> startTask(resource, amount, actor, plan));
+        }, executorService);
     }
 
-    private boolean startTask(final ResourceKey resource,
-                              final long amount,
-                              final Actor actor,
-                              final TaskPlan plan) {
-        final Task task = TaskImpl.fromPlan(plan);
+    private TaskId startTask(final ResourceKey resource,
+                             final long amount,
+                             final Actor actor,
+                             final TaskPlan plan) {
+        final Task task = new TaskImpl(plan);
         LOGGER.debug("Created task {} for {}x {} for {}", task.getId(), amount, resource, actor);
-        final PatternProvider patternProvider = CoreValidations.validateNotNull(
+        final PatternProvider provider = CoreValidations.validateNotNull(
             providerByPattern.get(plan.rootPattern()),
             "No provider for pattern " + plan.rootPattern()
         );
-        patternProvider.addTask(task);
-        return true;
+        provider.addTask(task);
+        providerByTaskId.put(task.getId(), provider);
+        return task.getId();
     }
 
     @Override
     public void addListener(final PatternListener listener) {
-        listeners.add(listener);
+        patternListeners.add(listener);
     }
 
     @Override
     public void addListener(final TaskStatusListener listener) {
-        // TODO(feat): autocrafting monitor
+        statusListeners.add(listener);
     }
 
     @Override
     public void removeListener(final PatternListener listener) {
-        listeners.remove(listener);
+        patternListeners.remove(listener);
     }
 
     @Override
     public void removeListener(final TaskStatusListener listener) {
-        // TODO(feat): autocrafting monitor
+        statusListeners.remove(listener);
     }
 
     @Override
@@ -161,30 +170,39 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
 
     @Override
     public List<TaskStatus> getStatuses() {
-        // TODO(feat): autocrafting monitor
-        return List.of();
+        return providers.stream().map(PatternProvider::getTaskStatuses).flatMap(List::stream).toList();
     }
 
     @Override
     public void cancel(final TaskId taskId) {
-        // TODO(feat): autocrafting monitor
+        final PatternProvider provider = providerByTaskId.get(taskId);
+        if (provider == null) {
+            return;
+        }
+        provider.cancelTask(taskId);
+        providerByTaskId.remove(taskId);
     }
 
     @Override
     public void cancelAll() {
-        // TODO(feat): autocrafting monitor
+        for (final Map.Entry<TaskId, PatternProvider> entry : providerByTaskId.entrySet()) {
+            final PatternProvider provider = entry.getValue();
+            final TaskId taskId = entry.getKey();
+            provider.cancelTask(taskId);
+        }
+        providerByTaskId.clear();
     }
 
     @Override
     public void add(final PatternProvider provider, final Pattern pattern, final int priority) {
         patternRepository.add(pattern, priority);
         providerByPattern.put(pattern, provider);
-        listeners.forEach(listener -> listener.onAdded(pattern));
+        patternListeners.forEach(listener -> listener.onAdded(pattern));
     }
 
     @Override
     public void remove(final PatternProvider provider, final Pattern pattern) {
-        listeners.forEach(listener -> listener.onRemoved(pattern));
+        patternListeners.forEach(listener -> listener.onRemoved(pattern));
         providerByPattern.remove(pattern);
         patternRepository.remove(pattern);
     }
@@ -194,13 +212,42 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
         patternRepository.update(pattern, priority);
     }
 
+    @Override
+    public void taskAdded(final Task task) {
+        statusListeners.forEach(listener -> listener.taskAdded(task.getStatus()));
+    }
+
+    @Override
+    public void taskRemoved(final Task task) {
+        statusListeners.forEach(listener -> listener.taskRemoved(task.getId()));
+    }
+
+    @Override
+    public void taskChanged(final Task task) {
+        if (statusListeners.isEmpty()) {
+            return;
+        }
+        final TaskStatus status = task.getStatus();
+        statusListeners.forEach(listener -> listener.taskStatusChanged(status));
+    }
+
     // TODO(feat): processing pattern balancing
     @Override
-    public boolean accept(final Pattern pattern, final Collection<ResourceAmount> resources, final Action action) {
+    public Result accept(final Pattern pattern, final Collection<ResourceAmount> resources, final Action action) {
         final PatternProvider patternProvider = providerByPattern.get(pattern);
         if (patternProvider == null) {
-            return false;
+            return Result.SKIPPED;
         }
         return patternProvider.accept(resources, action);
+    }
+
+    @Nullable
+    @Override
+    public ExternalPatternInputSinkKey getKey(final Pattern pattern) {
+        final PatternProvider patternProvider = providerByPattern.get(pattern);
+        if (patternProvider == null) {
+            return null;
+        }
+        return patternProvider.getSinkKey();
     }
 }

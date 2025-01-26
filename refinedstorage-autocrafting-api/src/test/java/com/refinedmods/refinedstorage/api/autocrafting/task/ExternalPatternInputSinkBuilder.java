@@ -28,10 +28,29 @@ class ExternalPatternInputSinkBuilder {
     }
 
     ExternalPatternInputSink build() {
-        return (pattern, resources, action) -> {
-            final Sink sink = sinks.get(pattern);
-            return sink != null && sink.accept(resources, action);
+        return new ExternalPatternInputSink() {
+            @Override
+            public Result accept(final Pattern pattern,
+                                 final Collection<ResourceAmount> resources,
+                                 final Action action) {
+                final Sink sink = sinks.get(pattern);
+                return sink != null && sink.accept(resources, action)
+                    ? ExternalPatternInputSink.Result.ACCEPTED
+                    : ExternalPatternInputSink.Result.REJECTED;
+            }
+
+            @Override
+            public ExternalPatternInputSinkKey getKey(final Pattern pattern) {
+                return new SinkKey(pattern);
+            }
         };
+    }
+
+    record SinkKey(Pattern pattern) implements ExternalPatternInputSinkKey {
+        @Override
+        public String getName() {
+            return pattern.id().toString();
+        }
     }
 
     static class Sink {

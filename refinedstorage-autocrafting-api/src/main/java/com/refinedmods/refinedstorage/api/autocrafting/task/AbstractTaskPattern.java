@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusBuilder;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
@@ -32,11 +33,17 @@ abstract class AbstractTaskPattern {
         }
     }
 
-    abstract boolean step(MutableResourceList internalStorage,
-                          RootStorage rootStorage,
-                          ExternalPatternInputSink externalPatternInputSink);
+    abstract PatternStepResult step(MutableResourceList internalStorage,
+                                    RootStorage rootStorage,
+                                    ExternalPatternInputSink externalPatternInputSink);
 
     abstract RootStorageListener.InterceptResult interceptInsertion(ResourceKey resource, long amount);
+
+    abstract void appendStatus(TaskStatusBuilder builder);
+
+    abstract long getWeight();
+
+    abstract double getPercentageCompleted();
 
     protected final boolean extractAll(final ResourceList inputs,
                                        final MutableResourceList internalStorage,

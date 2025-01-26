@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusBuilder;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -16,20 +17,22 @@ import org.slf4j.LoggerFactory;
 class InternalTaskPattern extends AbstractTaskPattern {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalTaskPattern.class);
 
+    private final long originalIterationsRemaining;
     private long iterationsRemaining;
 
     InternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
+        this.originalIterationsRemaining = plan.iterations();
         this.iterationsRemaining = plan.iterations();
     }
 
     @Override
-    boolean step(final MutableResourceList internalStorage,
-                 final RootStorage rootStorage,
-                 final ExternalPatternInputSink externalPatternInputSink) {
+    PatternStepResult step(final MutableResourceList internalStorage,
+                           final RootStorage rootStorage,
+                           final ExternalPatternInputSink externalPatternInputSink) {
         final ResourceList iterationInputsSimulated = calculateIterationInputs(Action.SIMULATE);
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
-            return false;
+            return PatternStepResult.IDLE;
         }
         LOGGER.debug("Stepping {}", pattern);
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
@@ -60,9 +63,30 @@ class InternalTaskPattern extends AbstractTaskPattern {
         return RootStorageListener.InterceptResult.EMPTY;
     }
 
-    protected boolean useIteration() {
+    @Override
+    void appendStatus(final TaskStatusBuilder builder) {
+        if (iterationsRemaining == 0) {
+            return;
+        }
+        for (final ResourceAmount output : pattern.outputs()) {
+            builder.crafting(output.resource(), output.amount() * iterationsRemaining);
+        }
+    }
+
+    @Override
+    long getWeight() {
+        return originalIterationsRemaining;
+    }
+
+    @Override
+    double getPercentageCompleted() {
+        final long iterationsCompleted = originalIterationsRemaining - iterationsRemaining;
+        return iterationsCompleted / (double) originalIterationsRemaining;
+    }
+
+    protected PatternStepResult useIteration() {
         iterationsRemaining--;
         LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsRemaining);
-        return iterationsRemaining == 0;
+        return iterationsRemaining == 0 ? PatternStepResult.COMPLETED : PatternStepResult.RUNNING;
     }
 }

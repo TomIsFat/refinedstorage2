@@ -47,7 +47,8 @@ public class HelpClientTooltipComponent implements ClientTooltipComponent {
     public int getWidth(final Font font) {
         int width = 0;
         for (final FormattedCharSequence line : lines) {
-            final int lineWidth = HELP_ICON_SIZE + HELP_ICON_MARGIN + (int) (font.width(line) * SmallText.getScale());
+            final float scale = SmallText.correctScale(SmallText.TOOLTIP_SCALE);
+            final int lineWidth = HELP_ICON_SIZE + HELP_ICON_MARGIN + (int) (font.width(line) * scale);
             if (lineWidth > width) {
                 width = lineWidth;
             }
@@ -64,7 +65,7 @@ public class HelpClientTooltipComponent implements ClientTooltipComponent {
         final int xx = x + HELP_ICON_SIZE + HELP_ICON_MARGIN;
         int yy = y + paddingTop;
         for (final FormattedCharSequence line : lines) {
-            SmallText.render(font, line, xx, yy, pose, buffer);
+            SmallText.render(font, line, xx, yy, pose, buffer, SmallText.TOOLTIP_SCALE);
             yy += 9;
         }
     }

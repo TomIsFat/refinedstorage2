@@ -9,6 +9,7 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 import org.apiguardian.api.API;
 
@@ -26,4 +27,7 @@ public interface AutocraftingNetworkComponent
     Set<ResourceKey> getOutputs();
 
     boolean contains(AutocraftingNetworkComponent component);
+
+    @Nullable
+    PatternProvider getProviderByPattern(Pattern pattern);
 }

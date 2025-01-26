@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.neoforge.autocrafting;
 
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
@@ -28,15 +29,15 @@ class ItemHandlerExternalPatternProviderInputSink implements PatternProviderExte
     }
 
     @Override
-    public boolean accept(final Collection<ResourceAmount> resources, final Action action) {
+    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
         return capabilityCache.getItemHandler()
             .map(handler -> accept(resources, action, handler))
-            .orElse(true);
+            .orElse(ExternalPatternInputSink.Result.SKIPPED);
     }
 
-    private boolean accept(final Collection<ResourceAmount> resources,
-                           final Action action,
-                           final IItemHandler handler) {
+    private ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources,
+                                                   final Action action,
+                                                   final IItemHandler handler) {
         final Deque<ItemStack> stacks = getStacks(resources);
         ItemStack current = stacks.poll();
         final List<Integer> availableSlots = IntStream.range(0, handler.getSlots())
@@ -60,7 +61,7 @@ class ItemHandlerExternalPatternProviderInputSink implements PatternProviderExte
                 stacks
             );
         }
-        return success;
+        return success ? ExternalPatternInputSink.Result.ACCEPTED : ExternalPatternInputSink.Result.REJECTED;
     }
 
     private ItemStack insert(final Action action,

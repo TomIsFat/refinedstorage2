@@ -40,7 +40,8 @@ public record AutocraftingRequestPacket(UUID id,
         if (player.containerMenu instanceof PreviewProvider provider) {
             final PlayerActor playerActor = new PlayerActor(player);
             provider.startTask(packet.resource, packet.amount, playerActor, packet.notifyPlayer)
-                .thenAccept(success -> S2CPackets.sendAutocraftingResponse((ServerPlayer) player, packet.id, success));
+                .thenAccept(taskId ->
+                    S2CPackets.sendAutocraftingResponse((ServerPlayer) player, packet.id, taskId.isPresent()));
         }
     }
 

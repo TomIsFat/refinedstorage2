@@ -20,6 +20,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingUtil.patterns;
 import static com.refinedmods.refinedstorage.api.autocrafting.AutocraftingUtil.storage;
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.SIGN_PATTERN;
+import static com.refinedmods.refinedstorage.api.autocrafting.PatternFixtures.STICKS_PATTERN;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.CRAFTING_TABLE;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_LOG;
 import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.OAK_PLANKS;
@@ -404,15 +406,8 @@ class PreviewTest {
                 .ingredient(OAK_PLANKS, 4)
                 .output(CRAFTING_TABLE, 1)
                 .build(),
-            pattern()
-                .ingredient(OAK_PLANKS, 2)
-                .output(STICKS, 4)
-                .build(),
-            pattern()
-                .ingredient(OAK_PLANKS, 6)
-                .ingredient(STICKS, 1)
-                .output(SIGN, 3)
-                .build()
+            STICKS_PATTERN,
+            SIGN_PATTERN
         );
         final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
 
@@ -444,15 +439,8 @@ class PreviewTest {
                 .ingredient(OAK_PLANKS, 4)
                 .output(CRAFTING_TABLE, 1)
                 .build(),
-            pattern()
-                .ingredient(OAK_PLANKS, 2)
-                .output(STICKS, 4)
-                .build(),
-            pattern()
-                .ingredient(OAK_PLANKS, 6)
-                .ingredient(STICKS, 1)
-                .output(SIGN, 3)
-                .build()
+            STICKS_PATTERN,
+            SIGN_PATTERN
         );
         final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
 
@@ -516,15 +504,8 @@ class PreviewTest {
                 .ingredient(OAK_PLANKS, 4)
                 .output(CRAFTING_TABLE, 1)
                 .build(),
-            pattern()
-                .ingredient(OAK_PLANKS, 2)
-                .output(STICKS, 4)
-                .build(),
-            pattern()
-                .ingredient(OAK_PLANKS, 6)
-                .ingredient(STICKS, 1)
-                .output(SIGN, 3)
-                .build()
+            STICKS_PATTERN,
+            SIGN_PATTERN
         );
         final CraftingCalculator sut = new CraftingCalculatorImpl(patterns, storage);
 

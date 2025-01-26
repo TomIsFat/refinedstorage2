@@ -90,7 +90,7 @@ public abstract class AbstractAutocraftingMonitorContainerMenu extends AbstractB
         return tasksView;
     }
 
-    float getPercentageCompleted(final TaskId taskId) {
+    double getPercentageCompleted(final TaskId taskId) {
         final TaskStatus status = statusByTaskId.get(taskId);
         return status == null ? 0 : status.percentageCompleted();
     }

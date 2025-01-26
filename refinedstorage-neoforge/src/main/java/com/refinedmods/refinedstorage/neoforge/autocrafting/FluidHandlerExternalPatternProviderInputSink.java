@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.neoforge.autocrafting;
 
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
@@ -25,22 +26,22 @@ class FluidHandlerExternalPatternProviderInputSink implements PatternProviderExt
     }
 
     @Override
-    public boolean accept(final Collection<ResourceAmount> resources, final Action action) {
+    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
         return capabilityCache.getFluidHandler()
             .map(handler -> accept(resources, action, handler))
-            .orElse(true);
+            .orElse(ExternalPatternInputSink.Result.SKIPPED);
     }
 
-    private boolean accept(final Collection<ResourceAmount> resources,
-                           final Action action,
-                           final IFluidHandler handler) {
+    private ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources,
+                                                   final Action action,
+                                                   final IFluidHandler handler) {
         for (final ResourceAmount resource : resources) {
             if (resource.resource() instanceof FluidResource fluidResource
                 && !accept(action, handler, resource.amount(), fluidResource)) {
-                return false;
+                return ExternalPatternInputSink.Result.REJECTED;
             }
         }
-        return true;
+        return ExternalPatternInputSink.Result.ACCEPTED;
     }
 
     private boolean accept(final Action action,

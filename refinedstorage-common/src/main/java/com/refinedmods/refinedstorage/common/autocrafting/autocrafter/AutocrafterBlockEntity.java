@@ -1,6 +1,12 @@
 package com.refinedmods.refinedstorage.common.autocrafting.autocrafter;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
+import com.refinedmods.refinedstorage.api.network.Network;
+import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
+import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
+import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.ExternalPatternInputSinkKeyProvider;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
@@ -8,6 +14,7 @@ import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkN
 import com.refinedmods.refinedstorage.common.autocrafting.PatternInventory;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
 import com.refinedmods.refinedstorage.common.content.ContentNames;
+import com.refinedmods.refinedstorage.common.content.Items;
 import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
 import com.refinedmods.refinedstorage.common.support.BlockEntityWithDrops;
 import com.refinedmods.refinedstorage.common.support.FilteredContainer;
@@ -41,7 +48,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import static com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock.tryExtractDirection;
 
 public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntity<PatternProviderNetworkNode>
-    implements ExtendedMenuProvider<AutocrafterData>, BlockEntityWithDrops, PatternInventory.Listener {
+    implements ExtendedMenuProvider<AutocrafterData>, BlockEntityWithDrops, PatternInventory.Listener, StepBehavior,
+    ExternalPatternInputSinkKeyProvider {
     static final int PATTERNS = 9;
 
     private static final int MAX_CHAINED_AUTOCRAFTERS = 8;
@@ -55,6 +63,11 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     private final UpgradeContainer upgradeContainer;
     private LockMode lockMode = LockMode.NEVER;
     private boolean visibleToTheAutocrafterManager = true;
+    private int ticks;
+    private int steps = getSteps(0);
+    private int tickRate = getTickRate(0);
+    @Nullable
+    private ExternalPatternInputSinkKey externalPatternInputSinkKey;
 
     public AutocrafterBlockEntity(final BlockPos pos, final BlockState state) {
         super(
@@ -63,10 +76,13 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
             state,
             new PatternProviderNetworkNode(Platform.INSTANCE.getConfig().getAutocrafter().getEnergyUsage(), PATTERNS)
         );
-        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.AUTOCRAFTER, upgradeEnergyUsage -> {
+        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.AUTOCRAFTER, (c, upgradeEnergyUsage) -> {
             final long baseEnergyUsage = Platform.INSTANCE.getConfig().getAutocrafter().getEnergyUsage();
             final long patternEnergyUsage = patternContainer.getEnergyUsage();
             mainNetworkNode.setEnergyUsage(baseEnergyUsage + patternEnergyUsage + upgradeEnergyUsage);
+            final int amountOfSpeedUpgrades = c.getAmount(Items.INSTANCE.getSpeedUpgrade());
+            tickRate = getTickRate(amountOfSpeedUpgrades);
+            steps = getSteps(amountOfSpeedUpgrades);
             setChanged();
         });
         this.patternContainer.addListener(container -> {
@@ -77,6 +93,8 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
             setChanged();
         });
         this.patternContainer.setListener(this);
+        this.mainNetworkNode.setStepBehavior(this);
+        this.mainNetworkNode.setSinkKeyProvider(this);
     }
 
     @Override
@@ -308,6 +326,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         super.initialize(level, direction);
         final Direction incomingDirection = direction.getOpposite();
         final BlockPos sourcePosition = worldPosition.relative(direction);
+        invalidateExternalPatternInputSinkKey();
         mainNetworkNode.setExternalPatternInputSink(
             RefinedStorageApi.INSTANCE.getPatternProviderExternalPatternInputSinkFactory()
                 .create(level, sourcePosition, incomingDirection));
@@ -324,8 +343,113 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     }
 
     @Override
+    public void doWork() {
+        super.doWork();
+        if (mainNetworkNode.isActive()) {
+            ticks++;
+        }
+    }
+
+    @Override
+    public boolean canStep(final Pattern pattern) {
+        final PatternProvider provider = lookupProvider(pattern);
+        if (provider == null) {
+            return false;
+        }
+        if (provider == mainNetworkNode) {
+            return mainNetworkNode.isActive() && ticks % tickRate == 0;
+        }
+        return provider.canStep(pattern);
+    }
+
+    @Override
+    public int getSteps(final Pattern pattern) {
+        final PatternProvider provider = lookupProvider(pattern);
+        if (provider == null) {
+            return 0;
+        }
+        if (provider == mainNetworkNode) {
+            return steps;
+        }
+        return provider.getSteps(pattern);
+    }
+
+    private static int getSteps(final int amountOfSpeedUpgrades) {
+        return switch (amountOfSpeedUpgrades) {
+            case 1 -> 2;
+            case 2 -> 3;
+            case 3 -> 4;
+            case 4 -> 5;
+            default -> 1;
+        };
+    }
+
+    private static int getTickRate(final int amountOfSpeedUpgrades) {
+        return switch (amountOfSpeedUpgrades) {
+            case 0 -> 10;
+            case 1 -> 8;
+            case 2 -> 6;
+            case 3 -> 4;
+            case 4 -> 2;
+            default -> 0;
+        };
+    }
+
+    @Nullable
+    private PatternProvider lookupProvider(final Pattern pattern) {
+        final Network network = mainNetworkNode.getNetwork();
+        if (network == null) {
+            return null;
+        }
+        return network.getComponent(AutocraftingNetworkComponent.class).getProviderByPattern(pattern);
+    }
+
+    @Override
     protected boolean doesBlockStateChangeWarrantNetworkNodeUpdate(final BlockState oldBlockState,
                                                                    final BlockState newBlockState) {
         return AbstractDirectionalBlock.didDirectionChange(oldBlockState, newBlockState);
+    }
+
+    @Override
+    @Nullable
+    public ExternalPatternInputSinkKey getKey() {
+        if (externalPatternInputSinkKey == null) {
+            tryUpdateKey();
+        }
+        return externalPatternInputSinkKey;
+    }
+
+    private void tryUpdateKey() {
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        final Direction direction = tryExtractDirection(getBlockState());
+        if (direction == null) {
+            return;
+        }
+        final AutocrafterBlockEntity root = getChainingRoot();
+        final BlockEntity connectedMachine = root.getConnectedMachine();
+        if (connectedMachine == null) {
+            invalidateExternalPatternInputSinkKey();
+            return;
+        }
+        final BlockState state = connectedMachine.getBlockState();
+        final Player fakePlayer = getFakePlayer(serverLevel);
+        final ItemStack stack = Platform.INSTANCE.getBlockAsItemStack(
+            state.getBlock(),
+            state,
+            direction.getOpposite(),
+            serverLevel,
+            connectedMachine.getBlockPos(),
+            fakePlayer
+        );
+        externalPatternInputSinkKey = new InWorldExternalPatternInputSinkKey(
+            getName().getString(),
+            stack
+        );
+    }
+
+    private void invalidateExternalPatternInputSinkKey() {
+        externalPatternInputSinkKey = null;
     }
 }

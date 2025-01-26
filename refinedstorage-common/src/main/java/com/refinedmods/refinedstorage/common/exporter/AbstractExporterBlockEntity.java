@@ -63,7 +63,7 @@ public abstract class AbstractExporterBlockEntity
             state,
             new ExporterNetworkNode(Platform.INSTANCE.getConfig().getExporter().getEnergyUsage())
         );
-        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.EXPORTER, upgradeEnergyUsage -> {
+        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.EXPORTER, (c, upgradeEnergyUsage) -> {
             final long baseEnergyUsage = Platform.INSTANCE.getConfig().getExporter().getEnergyUsage();
             mainNetworkNode.setEnergyUsage(baseEnergyUsage + upgradeEnergyUsage);
             setChanged();

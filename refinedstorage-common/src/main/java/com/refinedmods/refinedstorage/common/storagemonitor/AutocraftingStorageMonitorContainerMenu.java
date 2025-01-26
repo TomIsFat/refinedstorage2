@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.storagemonitor;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewProvider;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
@@ -51,10 +52,10 @@ public class AutocraftingStorageMonitorContainerMenu extends AutocraftingPreview
     }
 
     @Override
-    public CompletableFuture<Boolean> startTask(final ResourceKey resource,
-                                                final long amount,
-                                                final Actor actor,
-                                                final boolean notify) {
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) {
         return requireNonNull(storageMonitor).startTask(resource, amount, actor, notify);
     }
 }

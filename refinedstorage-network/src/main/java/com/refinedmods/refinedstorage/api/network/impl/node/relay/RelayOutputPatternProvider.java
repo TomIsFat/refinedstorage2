@@ -1,7 +1,11 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
@@ -15,6 +19,7 @@ import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -99,6 +104,16 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     @Override
+    public void cancelTask(final TaskId taskId) {
+        // TODO(feat): relay support
+    }
+
+    @Override
+    public List<TaskStatus> getTaskStatuses() {
+        return List.of(); // TODO(feat): relay support
+    }
+
+    @Override
     public void onAddedIntoContainer(final ParentContainer parentContainer) {
         if (delegate != null) {
             delegate.getPatterns().forEach(pattern -> parentContainer.add(this, pattern, 0));
@@ -115,7 +130,13 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     @Override
-    public boolean accept(final Collection<ResourceAmount> resources, final Action action) {
-        return false; // TODO(feat): relay support
+    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        return ExternalPatternInputSink.Result.SKIPPED; // TODO(feat): relay support
+    }
+
+    @Nullable
+    @Override
+    public ExternalPatternInputSinkKey getSinkKey() {
+        return null; // TODO(feat): relay support
     }
 }
