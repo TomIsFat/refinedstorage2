@@ -5,8 +5,10 @@ import java.util.Deque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
+import net.minecraft.server.MinecraftServer;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,21 +20,21 @@ public final class ServerListener {
     private static ExecutorService autocraftingPool;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerListener.class);
-    private static final Deque<Runnable> ACTIONS = new ArrayDeque<>();
+    private static final Deque<Consumer<MinecraftServer>> ACTIONS = new ArrayDeque<>();
 
     private ServerListener() {
     }
 
-    public static void tick() {
+    public static void tick(final MinecraftServer server) {
         synchronized (ACTIONS) {
-            Runnable action;
+            Consumer<MinecraftServer> action;
             while ((action = ACTIONS.poll()) != null) {
-                action.run();
+                action.accept(server);
             }
         }
     }
 
-    public static void queue(final Runnable runnable) {
+    public static void queue(final Consumer<MinecraftServer> runnable) {
         synchronized (ACTIONS) {
             ACTIONS.add(runnable);
         }

@@ -69,6 +69,7 @@ import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMoni
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewMaxAmountResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingResponsePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingTaskCompletedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.EnergyInfoPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridClearPacket;
@@ -736,6 +737,11 @@ public class ModInitializer extends AbstractModInitializer {
             AutocraftingMonitorActivePacket.STREAM_CODEC,
             wrapHandler(AutocraftingMonitorActivePacket::handle)
         );
+        registrar.playToClient(
+            AutocraftingTaskCompletedPacket.PACKET_TYPE,
+            AutocraftingTaskCompletedPacket.STREAM_CODEC,
+            wrapHandler((packet, ctx) -> AutocraftingTaskCompletedPacket.handle(packet))
+        );
     }
 
     private static void registerClientToServerPackets(final PayloadRegistrar registrar) {
@@ -892,7 +898,7 @@ public class ModInitializer extends AbstractModInitializer {
 
     @SubscribeEvent
     public void onServerTick(final ServerTickEvent.Pre e) {
-        ServerListener.tick();
+        ServerListener.tick(e.getServer());
     }
 
     @SubscribeEvent

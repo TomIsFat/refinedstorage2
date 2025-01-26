@@ -2,7 +2,6 @@ package com.refinedmods.refinedstorage.common;
 
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
-import com.refinedmods.refinedstorage.api.network.impl.autocrafting.AutocraftingNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.impl.energy.EnergyNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.impl.node.GraphNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.impl.security.SecurityNetworkComponentImpl;
@@ -16,6 +15,7 @@ import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
 import com.refinedmods.refinedstorage.common.autocrafting.CraftingPatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternItem;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.PlatformAutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.common.autocrafting.ProcessingPatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.SmithingTablePatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.StonecutterPatternState;
@@ -274,7 +274,7 @@ public abstract class AbstractModInitializer {
         );
         RefinedStorageApi.INSTANCE.getNetworkComponentMapFactory().addFactory(
             AutocraftingNetworkComponent.class,
-            network -> new AutocraftingNetworkComponentImpl(
+            network -> new PlatformAutocraftingNetworkComponent(
                 () -> network.getComponent(StorageNetworkComponent.class),
                 ServerListener.getAutocraftingPool()
             )

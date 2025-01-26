@@ -29,21 +29,26 @@ public class TaskImpl implements Task {
     private final TaskId id = TaskId.create();
     private final ResourceKey resource;
     private final long amount;
+    private final Actor actor;
+    private final boolean notify;
     private final long startTime = System.currentTimeMillis();
     private final Map<Pattern, AbstractTaskPattern> patterns;
     private final List<AbstractTaskPattern> completedPatterns = new ArrayList<>();
     private final MutableResourceList initialRequirements = MutableResourceListImpl.create();
     private final MutableResourceList internalStorage;
     private TaskState state = TaskState.READY;
+    private boolean cancelled;
 
-    public TaskImpl(final TaskPlan plan) {
-        this(plan, MutableResourceListImpl.create());
+    public TaskImpl(final TaskPlan plan, final Actor actor, final boolean notify) {
+        this(plan, MutableResourceListImpl.create(), actor, notify);
     }
 
-    TaskImpl(final TaskPlan plan, final MutableResourceList internalStorage) {
+    TaskImpl(final TaskPlan plan, final MutableResourceList internalStorage, final Actor actor, final boolean notify) {
         this.internalStorage = internalStorage;
         this.resource = plan.resource();
         this.amount = plan.amount();
+        this.actor = actor;
+        this.notify = notify;
         this.patterns = plan.patterns().entrySet().stream().collect(Collectors.toMap(
             Map.Entry::getKey,
             e -> createTaskPattern(e.getKey(), e.getValue()),
@@ -59,6 +64,26 @@ public class TaskImpl implements Task {
             case INTERNAL -> new InternalTaskPattern(pattern, patternPlan);
             case EXTERNAL -> new ExternalTaskPattern(pattern, patternPlan);
         };
+    }
+
+    @Override
+    public Actor getActor() {
+        return actor;
+    }
+
+    @Override
+    public boolean shouldNotify() {
+        return notify && !cancelled;
+    }
+
+    @Override
+    public ResourceKey getResource() {
+        return resource;
+    }
+
+    @Override
+    public long getAmount() {
+        return amount;
     }
 
     @Override
@@ -92,6 +117,7 @@ public class TaskImpl implements Task {
     @Override
     public void cancel() {
         state = TaskState.RETURNING_INTERNAL_STORAGE;
+        cancelled = true;
     }
 
     @Override
@@ -225,7 +251,7 @@ public class TaskImpl implements Task {
     @Override
     public InterceptResult beforeInsert(final ResourceKey insertedResource,
                                         final long insertedAmount,
-                                        final Actor actor) {
+                                        final Actor insertActor) {
         long reserved = 0;
         long intercepted = 0;
         for (final AbstractTaskPattern pattern : patterns.values()) {

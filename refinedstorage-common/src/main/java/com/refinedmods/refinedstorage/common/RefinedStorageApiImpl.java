@@ -317,7 +317,7 @@ public class RefinedStorageApiImpl implements RefinedStorageApi {
             return;
         }
         final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl(level);
-        ServerListener.queue(() -> {
+        ServerListener.queue(server -> {
             // The container could've been removed by the time it has been placed, and by the time the event queue has
             // run. In that case, don't initialize the network node because it no longer exists.
             // This is a workaround for the "Carry On" mod. The mod places the block (which creates a block entity and
