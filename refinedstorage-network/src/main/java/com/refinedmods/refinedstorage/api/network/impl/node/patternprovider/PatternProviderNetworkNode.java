@@ -146,9 +146,9 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     }
 
     @Override
-    public boolean accept(final Collection<ResourceAmount> resources, final Action action) {
+    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
         if (externalPatternInputSink == null) {
-            return false;
+            return ExternalPatternInputSink.Result.SKIPPED;
         }
         return externalPatternInputSink.accept(resources, action);
     }

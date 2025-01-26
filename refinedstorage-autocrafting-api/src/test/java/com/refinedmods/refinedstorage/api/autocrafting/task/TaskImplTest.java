@@ -54,7 +54,8 @@ class TaskImplTest {
     private static final RecursiveComparisonConfiguration STATUS_CONFIG = RecursiveComparisonConfiguration.builder()
         .withIgnoredFields("info.startTime")
         .build();
-    private static final ExternalPatternInputSink EMPTY_SINK = (pattern, resources, action) -> false;
+    private static final ExternalPatternInputSink EMPTY_SINK = (pattern, resources, action) ->
+        ExternalPatternInputSink.Result.SKIPPED;
 
     @Test
     void testInitialState() {
@@ -661,7 +662,9 @@ class TaskImplTest {
         );
         final PatternRepository patterns = patterns(IRON_INGOT_PATTERN, IRON_PICKAXE_PATTERN);
         final ExternalPatternInputSink sink = (pattern, resources, action) ->
-            action == Action.SIMULATE;
+            action == Action.SIMULATE
+                ? ExternalPatternInputSink.Result.ACCEPTED
+                : ExternalPatternInputSink.Result.REJECTED;
         final Task task = getRunningTask(storage, patterns, sink, IRON_PICKAXE, 1);
 
         assertThat(storage.getAll()).isEmpty();
@@ -944,6 +947,100 @@ class TaskImplTest {
             new ResourceAmount(OAK_PLANKS, 2),
             new ResourceAmount(STICKS, 2)
         );
+    }
+
+    @Test
+    void shouldReportWhetherSinkIsRejectingInputsOnStatus() {
+        // Arrange
+        final RootStorage storage = storage(new ResourceAmount(IRON_ORE, 10));
+        final PatternRepository patterns = patterns(IRON_INGOT_PATTERN);
+        final ExternalPatternInputSinkBuilder sinkBuilder = externalPatternInputSink();
+        final ExternalPatternInputSinkBuilder.Sink ironOreSink = sinkBuilder.storageSink(IRON_INGOT_PATTERN);
+        final ExternalPatternInputSink sink = sinkBuilder.build();
+        final Task task = getRunningTask(storage, patterns, EMPTY_SINK, IRON_INGOT, 2);
+
+        // Act & assert
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
+                .scheduled(IRON_INGOT, 1)
+                .stored(IRON_ORE, 1)
+                .processing(IRON_ORE, 1)
+                .build(0));
+
+        ironOreSink.setEnabled(false);
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
+                .scheduled(IRON_INGOT, 1)
+                .stored(IRON_ORE, 1)
+                .processing(IRON_ORE, 1)
+                .rejected(IRON_INGOT)
+                .build(0));
+    }
+
+    @Test
+    void shouldReportWhetherSinkIsNotFoundOnStatus() {
+        // Arrange
+        final RootStorage storage = storage(new ResourceAmount(IRON_ORE, 10));
+        final PatternRepository patterns = patterns(IRON_INGOT_PATTERN);
+        final ExternalPatternInputSinkBuilder sinkBuilder = externalPatternInputSink();
+        final ExternalPatternInputSinkBuilder.Sink ironOreSink = sinkBuilder.storageSink(IRON_INGOT_PATTERN);
+        final ExternalPatternInputSink sink = sinkBuilder.build();
+        final Task task = getRunningTask(storage, patterns, EMPTY_SINK, IRON_INGOT, 2);
+
+        // Act & assert
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
+                .scheduled(IRON_INGOT, 1)
+                .stored(IRON_ORE, 1)
+                .processing(IRON_ORE, 1)
+                .build(0));
+
+        ironOreSink.setEnabled(false);
+        task.step(storage, EMPTY_SINK, StepBehavior.DEFAULT);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
+                .scheduled(IRON_INGOT, 1)
+                .stored(IRON_ORE, 1)
+                .processing(IRON_ORE, 1)
+                .noneFound(IRON_INGOT)
+                .build(0));
+    }
+
+    @Test
+    void shouldReportWhetherSinkIsLockedFoundOnStatus() {
+        // Arrange
+        final RootStorage storage = storage(new ResourceAmount(IRON_ORE, 10));
+        final PatternRepository patterns = patterns(IRON_INGOT_PATTERN);
+        final ExternalPatternInputSinkBuilder sinkBuilder = externalPatternInputSink();
+        final ExternalPatternInputSinkBuilder.Sink ironOreSink = sinkBuilder.storageSink(IRON_INGOT_PATTERN);
+        final ExternalPatternInputSink sink = sinkBuilder.build();
+        final Task task = getRunningTask(storage, patterns, EMPTY_SINK, IRON_INGOT, 2);
+
+        // Act & assert
+        task.step(storage, sink, StepBehavior.DEFAULT);
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
+                .scheduled(IRON_INGOT, 1)
+                .stored(IRON_ORE, 1)
+                .processing(IRON_ORE, 1)
+                .build(0));
+
+        ironOreSink.setEnabled(false);
+        task.step(
+            storage,
+            (pattern, resources, action) -> ExternalPatternInputSink.Result.LOCKED,
+            StepBehavior.DEFAULT
+        );
+        assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
+            new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
+                .scheduled(IRON_INGOT, 1)
+                .stored(IRON_ORE, 1)
+                .processing(IRON_ORE, 1)
+                .locked(IRON_INGOT)
+                .build(0));
     }
 
     private static Task getTask(final RootStorage storage,

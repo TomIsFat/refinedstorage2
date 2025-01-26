@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
@@ -180,7 +181,7 @@ public class RelayOutputNetworkNode extends AbstractNetworkNode
     }
 
     @Override
-    public boolean accept(final Collection<ResourceAmount> resources, final Action action) {
-        return false; // TODO(feat): relay support
+    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        return ExternalPatternInputSink.Result.SKIPPED; // TODO(feat): relay support
     }
 }

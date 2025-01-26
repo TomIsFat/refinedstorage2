@@ -232,10 +232,10 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
 
     // TODO(feat): processing pattern balancing
     @Override
-    public boolean accept(final Pattern pattern, final Collection<ResourceAmount> resources, final Action action) {
+    public Result accept(final Pattern pattern, final Collection<ResourceAmount> resources, final Action action) {
         final PatternProvider patternProvider = providerByPattern.get(pattern);
         if (patternProvider == null) {
-            return false;
+            return Result.SKIPPED;
         }
         return patternProvider.accept(resources, action);
     }

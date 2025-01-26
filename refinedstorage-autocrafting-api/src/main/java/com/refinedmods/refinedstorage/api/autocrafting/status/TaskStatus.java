@@ -22,11 +22,10 @@ public record TaskStatus(TaskInfo info, double percentageCompleted, List<Item> i
     ) {
     }
 
-    // TODO: crafter logic doesn't know what to do with these
     public enum ItemType {
         NORMAL,
-        MACHINE_DOES_NOT_ACCEPT_RESOURCE,
-        NO_MACHINE_FOUND,
-        AUTOCRAFTER_IS_LOCKED
+        REJECTED,
+        NONE_FOUND,
+        LOCKED
     }
 }

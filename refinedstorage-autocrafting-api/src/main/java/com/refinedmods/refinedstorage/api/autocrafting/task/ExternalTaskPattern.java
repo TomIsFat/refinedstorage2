@@ -11,6 +11,8 @@ import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,8 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     private long iterationsToSendToSink;
     private long iterationsReceived;
     private boolean interceptedAnythingSinceLastStep;
+    @Nullable
+    private ExternalPatternInputSink.Result lastSinkResult;
 
     ExternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
@@ -41,19 +45,23 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         if (expectedOutputs.isEmpty()) {
             return PatternStepResult.COMPLETED;
         }
-        if (interceptedAnythingSinceLastStep) {
-            interceptedAnythingSinceLastStep = false;
-            return PatternStepResult.RUNNING;
-        }
         if (iterationsToSendToSink == 0) {
-            return PatternStepResult.IDLE;
+            return idleOrRunning();
         }
         if (!acceptsIterationInputs(internalStorage, externalPatternInputSink)) {
-            return PatternStepResult.IDLE;
+            return idleOrRunning();
         }
         LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsToSendToSink);
         iterationsToSendToSink--;
         return PatternStepResult.RUNNING;
+    }
+
+    private PatternStepResult idleOrRunning() {
+        if (interceptedAnythingSinceLastStep) {
+            interceptedAnythingSinceLastStep = false;
+            return PatternStepResult.RUNNING;
+        }
+        return PatternStepResult.IDLE;
     }
 
     @Override
@@ -98,6 +106,13 @@ class ExternalTaskPattern extends AbstractTaskPattern {
                 builder.processing(input, simulatedIterationInputs.get(input) * iterationsProcessing);
             }
         }
+        if (lastSinkResult != null) {
+            switch (lastSinkResult) {
+                case REJECTED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::rejected);
+                case SKIPPED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::noneFound);
+                case LOCKED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::locked);
+            }
+        }
     }
 
     @Override
@@ -116,7 +131,13 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
             return false;
         }
-        if (!externalPatternInputSink.accept(pattern, iterationInputsSimulated.copyState(), Action.SIMULATE)) {
+        final ExternalPatternInputSink.Result simulatedResult = externalPatternInputSink.accept(
+            pattern,
+            iterationInputsSimulated.copyState(),
+            Action.SIMULATE
+        );
+        lastSinkResult = simulatedResult;
+        if (simulatedResult != ExternalPatternInputSink.Result.ACCEPTED) {
             return false;
         }
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
@@ -130,7 +151,8 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         // across the sink and the internal storage.
         // The end result is that we lie, do as if the insertion was successful,
         // and potentially void the extracted resources from the internal storage.
-        if (!externalPatternInputSink.accept(pattern, iterationInputs.copyState(), Action.EXECUTE)) {
+        if (externalPatternInputSink.accept(pattern, iterationInputs.copyState(), Action.EXECUTE)
+            != ExternalPatternInputSink.Result.ACCEPTED) {
             LOGGER.warn("External sink {} did not accept all inputs for pattern {}", externalPatternInputSink, pattern);
         }
         return true;

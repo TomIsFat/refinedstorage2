@@ -39,6 +39,21 @@ public class TaskStatusBuilder {
         return this;
     }
 
+    public TaskStatusBuilder rejected(final ResourceKey resource) {
+        get(resource).type = TaskStatus.ItemType.REJECTED;
+        return this;
+    }
+
+    public TaskStatusBuilder noneFound(final ResourceKey resource) {
+        get(resource).type = TaskStatus.ItemType.NONE_FOUND;
+        return this;
+    }
+
+    public TaskStatusBuilder locked(final ResourceKey resource) {
+        get(resource).type = TaskStatus.ItemType.LOCKED;
+        return this;
+    }
+
     private MutableItem get(final ResourceKey resource) {
         return items.computeIfAbsent(resource, key -> new MutableItem(TaskStatus.ItemType.NORMAL));
     }
@@ -55,7 +70,7 @@ public class TaskStatusBuilder {
     }
 
     private static class MutableItem {
-        private final TaskStatus.ItemType type;
+        private TaskStatus.ItemType type;
         private long stored;
         private long processing;
         private long scheduled;

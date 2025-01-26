@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.fabric.autocrafting;
 
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -34,20 +35,24 @@ class FabricStorageExternalPatternInputSinkStrategyImpl<T> implements FabricStor
     }
 
     @Override
-    public boolean accept(final Transaction tx, final Collection<ResourceAmount> resources) {
+    public ExternalPatternInputSink.Result accept(final Transaction tx, final Collection<ResourceAmount> resources) {
+        boolean anyResourceWasApplicable = false;
         for (final ResourceAmount resourceAmount : resources) {
             final T platformResource = toPlatformMapper.apply(resourceAmount.resource());
             if (platformResource == null) {
                 continue;
             }
+            anyResourceWasApplicable = true;
             final Storage<T> storage = cache.find(direction);
             if (storage == null) {
-                return false;
+                return ExternalPatternInputSink.Result.SKIPPED;
             }
             if (storage.insert(platformResource, resourceAmount.amount(), tx) != resourceAmount.amount()) {
-                return false;
+                return ExternalPatternInputSink.Result.REJECTED;
             }
         }
-        return true;
+        return anyResourceWasApplicable
+            ? ExternalPatternInputSink.Result.ACCEPTED
+            : ExternalPatternInputSink.Result.SKIPPED;
     }
 }

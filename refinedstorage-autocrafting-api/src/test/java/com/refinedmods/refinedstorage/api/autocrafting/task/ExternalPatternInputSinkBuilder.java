@@ -30,7 +30,9 @@ class ExternalPatternInputSinkBuilder {
     ExternalPatternInputSink build() {
         return (pattern, resources, action) -> {
             final Sink sink = sinks.get(pattern);
-            return sink != null && sink.accept(resources, action);
+            return sink != null && sink.accept(resources, action)
+                ? ExternalPatternInputSink.Result.ACCEPTED
+                : ExternalPatternInputSink.Result.REJECTED;
         };
     }
 

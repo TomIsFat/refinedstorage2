@@ -4,6 +4,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
@@ -264,7 +265,7 @@ class PatternProviderNetworkNodeTest {
                 resources.forEach(resource ->
                     sinkContents.insert(resource.resource(), resource.amount(), Action.EXECUTE, Actor.EMPTY));
             }
-            return true;
+            return ExternalPatternInputSink.Result.ACCEPTED;
         });
         assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
@@ -307,7 +308,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 1).build());
-        sut.setExternalPatternInputSink((resources, action) -> false);
+        sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.REJECTED);
         assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
@@ -385,7 +386,7 @@ class PatternProviderNetworkNodeTest {
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 5).build());
         // swallow resources
-        sut.setExternalPatternInputSink((resources, action) -> true);
+        sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.ACCEPTED);
 
         // Act & assert
         assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
@@ -517,7 +518,7 @@ class PatternProviderNetworkNodeTest {
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1).build());
         // swallow resources
-        sut.setExternalPatternInputSink((resources, action) -> true);
+        sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.ACCEPTED);
 
         // Act & assert
         assertThat(autocrafting.startTask(B, 2, Actor.EMPTY, false).join()).isPresent();
@@ -634,7 +635,7 @@ class PatternProviderNetworkNodeTest {
                 .output(B, 1)
                 .build());
             // swallow resources
-            sut.setExternalPatternInputSink((resources, action) -> true);
+            sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.ACCEPTED);
 
             // Act & assert
             assertThat(autocrafting.startTask(A, 3, Actor.EMPTY, false).join()).isPresent();

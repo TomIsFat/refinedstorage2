@@ -185,8 +185,8 @@ public class TaskImpl implements Task {
                 LOGGER.debug("{} completed", pattern.getKey());
                 completedPatterns.add(pattern.getValue());
                 return stepResult;
-            } else {
-                result = result.and(stepResult);
+            } else if (stepResult != PatternStepResult.IDLE) {
+                result = PatternStepResult.RUNNING;
             }
         }
         return result;

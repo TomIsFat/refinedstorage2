@@ -306,9 +306,9 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
 
     private Component getErrorTooltip(final TaskStatus.ItemType type) {
         return switch (type) {
-            case MACHINE_DOES_NOT_ACCEPT_RESOURCE -> MACHINE_DOES_NOT_ACCEPT_RESOURCE;
-            case NO_MACHINE_FOUND -> NO_MACHINE_FOUND;
-            case AUTOCRAFTER_IS_LOCKED -> AUTOCRAFTER_IS_LOCKED;
+            case REJECTED -> MACHINE_DOES_NOT_ACCEPT_RESOURCE;
+            case NONE_FOUND -> NO_MACHINE_FOUND;
+            case LOCKED -> AUTOCRAFTER_IS_LOCKED;
             default -> Component.empty();
         };
     }

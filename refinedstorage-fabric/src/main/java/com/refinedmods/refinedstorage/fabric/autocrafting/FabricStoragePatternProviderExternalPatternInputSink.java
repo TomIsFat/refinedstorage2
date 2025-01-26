@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.fabric.autocrafting;
 
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
@@ -20,17 +21,20 @@ class FabricStoragePatternProviderExternalPatternInputSink implements PatternPro
     }
 
     @Override
-    public boolean accept(final Collection<ResourceAmount> resources, final Action action) {
+    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        ExternalPatternInputSink.Result result = ExternalPatternInputSink.Result.SKIPPED;
         try (Transaction tx = Transaction.openOuter()) {
             for (final FabricStorageExternalPatternInputSinkStrategy strategy : strategies) {
-                if (!strategy.accept(tx, resources)) {
-                    return false;
+                final ExternalPatternInputSink.Result strategyResult = strategy.accept(tx, resources);
+                if (strategyResult == ExternalPatternInputSink.Result.REJECTED) {
+                    return strategyResult;
                 }
+                result = result.and(strategyResult);
             }
             if (action == Action.EXECUTE) {
                 tx.commit();
             }
         }
-        return true;
+        return result;
     }
 }
