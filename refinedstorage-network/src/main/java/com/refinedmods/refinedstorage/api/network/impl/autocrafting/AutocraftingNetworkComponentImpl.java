@@ -49,7 +49,8 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Map<Pattern, PatternProvider> providerByPattern = new HashMap<>();
     private final Map<TaskId, PatternProvider> providerByTaskId = new HashMap<>();
-    private final Set<PatternListener> listeners = new HashSet<>();
+    private final Set<PatternListener> patternListeners = new HashSet<>();
+    private final Set<TaskStatusListener> statusListeners = new HashSet<>();
     private final PatternRepositoryImpl patternRepository = new PatternRepositoryImpl();
 
     public AutocraftingNetworkComponentImpl(final Supplier<RootStorage> rootStorageProvider,
@@ -138,22 +139,22 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
 
     @Override
     public void addListener(final PatternListener listener) {
-        listeners.add(listener);
+        patternListeners.add(listener);
     }
 
     @Override
     public void addListener(final TaskStatusListener listener) {
-        // TODO(feat): autocrafting monitor
+        statusListeners.add(listener);
     }
 
     @Override
     public void removeListener(final PatternListener listener) {
-        listeners.remove(listener);
+        patternListeners.remove(listener);
     }
 
     @Override
     public void removeListener(final TaskStatusListener listener) {
-        // TODO(feat): autocrafting monitor
+        statusListeners.remove(listener);
     }
 
     @Override
@@ -168,8 +169,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
 
     @Override
     public List<TaskStatus> getStatuses() {
-        // TODO(feat): autocrafting monitor
-        return List.of();
+        return providers.stream().map(PatternProvider::getTaskStatuses).flatMap(List::stream).toList();
     }
 
     @Override
@@ -180,7 +180,6 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
         }
         provider.cancelTask(taskId);
         providerByTaskId.remove(taskId);
-        // TODO(feat): autocrafting monitor
     }
 
     @Override
@@ -191,19 +190,18 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             provider.cancelTask(taskId);
         }
         providerByTaskId.clear();
-        // TODO(feat): autocrafting monitor
     }
 
     @Override
     public void add(final PatternProvider provider, final Pattern pattern, final int priority) {
         patternRepository.add(pattern, priority);
         providerByPattern.put(pattern, provider);
-        listeners.forEach(listener -> listener.onAdded(pattern));
+        patternListeners.forEach(listener -> listener.onAdded(pattern));
     }
 
     @Override
     public void remove(final PatternProvider provider, final Pattern pattern) {
-        listeners.forEach(listener -> listener.onRemoved(pattern));
+        patternListeners.forEach(listener -> listener.onRemoved(pattern));
         providerByPattern.remove(pattern);
         patternRepository.remove(pattern);
     }
@@ -211,6 +209,25 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     @Override
     public void update(final Pattern pattern, final int priority) {
         patternRepository.update(pattern, priority);
+    }
+
+    @Override
+    public void taskAdded(final Task task) {
+        statusListeners.forEach(listener -> listener.taskAdded(task.getStatus()));
+    }
+
+    @Override
+    public void taskRemoved(final Task task) {
+        statusListeners.forEach(listener -> listener.taskRemoved(task.getId()));
+    }
+
+    @Override
+    public void taskChanged(final Task task) {
+        if (statusListeners.isEmpty()) {
+            return;
+        }
+        final TaskStatus status = task.getStatus();
+        statusListeners.forEach(listener -> listener.taskStatusChanged(status));
     }
 
     // TODO(feat): processing pattern balancing

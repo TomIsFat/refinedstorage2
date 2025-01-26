@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
@@ -16,6 +17,7 @@ import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -102,6 +104,11 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     @Override
     public void cancelTask(final TaskId taskId) {
         // TODO(feat): relay support
+    }
+
+    @Override
+    public List<TaskStatus> getTaskStatuses() {
+        return List.of(); // TODO(feat): relay support
     }
 
     @Override

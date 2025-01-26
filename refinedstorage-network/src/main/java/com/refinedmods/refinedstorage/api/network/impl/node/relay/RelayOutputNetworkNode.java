@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
@@ -23,6 +24,7 @@ import com.refinedmods.refinedstorage.api.storage.AccessMode;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nullable;
@@ -142,6 +144,11 @@ public class RelayOutputNetworkNode extends AbstractNetworkNode
     @Override
     public void cancelTask(final TaskId taskId) {
         // TODO(feat): relay support
+    }
+
+    @Override
+    public List<TaskStatus> getTaskStatuses() {
+        return List.of(); // TODO(feat): relay support
     }
 
     @Override

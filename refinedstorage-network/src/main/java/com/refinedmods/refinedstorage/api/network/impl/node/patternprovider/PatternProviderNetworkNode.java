@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
@@ -92,6 +93,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     @Override
     public void onAddedIntoContainer(final ParentContainer parentContainer) {
         parents.add(parentContainer);
+        tasks.forEach(parentContainer::taskAdded);
         for (final Pattern pattern : patterns) {
             if (pattern != null) {
                 parentContainer.add(this, pattern, priority);
@@ -101,6 +103,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
 
     @Override
     public void onRemovedFromContainer(final ParentContainer parentContainer) {
+        tasks.forEach(parentContainer::taskRemoved);
         parents.remove(parentContainer);
         for (final Pattern pattern : patterns) {
             if (pattern != null) {
@@ -115,6 +118,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         if (network != null) {
             setupTask(task, network.getComponent(StorageNetworkComponent.class));
         }
+        parents.forEach(parent -> parent.taskAdded(task));
     }
 
     @Override
@@ -126,6 +130,11 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
             }
         }
         throw new IllegalArgumentException("Task %s not found".formatted(taskId));
+    }
+
+    @Override
+    public List<TaskStatus> getTaskStatuses() {
+        return tasks.stream().map(Task::getStatus).toList();
     }
 
     private void setupTask(final Task task, final StorageNetworkComponent storage) {
@@ -159,10 +168,13 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
             AutocraftingNetworkComponent.class
         );
         tasks.removeIf(task -> {
-            task.step(storage, outerExternalPatternInputSink, stepBehavior);
+            final boolean changed = task.step(storage, outerExternalPatternInputSink, stepBehavior);
             final boolean completed = task.getState() == TaskState.COMPLETED;
             if (completed) {
                 cleanupTask(task, storage);
+                parents.forEach(parent -> parent.taskRemoved(task));
+            } else if (changed) {
+                parents.forEach(parent -> parent.taskChanged(task));
             }
             return completed;
         });

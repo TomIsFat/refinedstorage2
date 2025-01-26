@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 
 import org.apiguardian.api.API;
 
@@ -11,4 +12,10 @@ public interface ParentContainer {
     void remove(PatternProvider provider, Pattern pattern);
 
     void update(Pattern pattern, int priority);
+
+    void taskAdded(Task task);
+
+    void taskRemoved(Task task);
+
+    void taskChanged(Task task);
 }

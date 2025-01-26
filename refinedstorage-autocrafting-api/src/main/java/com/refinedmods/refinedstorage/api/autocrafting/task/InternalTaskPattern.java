@@ -27,12 +27,12 @@ class InternalTaskPattern extends AbstractTaskPattern {
     }
 
     @Override
-    boolean step(final MutableResourceList internalStorage,
-                 final RootStorage rootStorage,
-                 final ExternalPatternInputSink externalPatternInputSink) {
+    PatternStepResult step(final MutableResourceList internalStorage,
+                           final RootStorage rootStorage,
+                           final ExternalPatternInputSink externalPatternInputSink) {
         final ResourceList iterationInputsSimulated = calculateIterationInputs(Action.SIMULATE);
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
-            return false;
+            return PatternStepResult.IDLE;
         }
         LOGGER.debug("Stepping {}", pattern);
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
@@ -84,9 +84,9 @@ class InternalTaskPattern extends AbstractTaskPattern {
         return iterationsCompleted / originalIterationsRemaining;
     }
 
-    protected boolean useIteration() {
+    protected PatternStepResult useIteration() {
         iterationsRemaining--;
         LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsRemaining);
-        return iterationsRemaining == 0;
+        return iterationsRemaining == 0 ? PatternStepResult.COMPLETED : PatternStepResult.RUNNING;
     }
 }

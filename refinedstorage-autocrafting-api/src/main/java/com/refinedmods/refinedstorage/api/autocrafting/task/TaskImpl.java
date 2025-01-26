@@ -77,15 +77,16 @@ public class TaskImpl implements Task {
     }
 
     @Override
-    public void step(final RootStorage rootStorage,
-                     final ExternalPatternInputSink externalPatternInputSink,
-                     final StepBehavior stepBehavior) {
-        switch (state) {
+    public boolean step(final RootStorage rootStorage,
+                        final ExternalPatternInputSink externalPatternInputSink,
+                        final StepBehavior stepBehavior) {
+        return switch (state) {
             case READY -> startTask(rootStorage);
             case EXTRACTING_INITIAL_RESOURCES -> extractInitialResourcesAndTryStartRunningTask(rootStorage);
             case RUNNING -> stepPatterns(rootStorage, externalPatternInputSink, stepBehavior);
             case RETURNING_INTERNAL_STORAGE -> returnInternalStorageAndTryCompleteTask(rootStorage);
-        }
+            case COMPLETED -> false;
+        };
     }
 
     @Override
@@ -112,68 +113,21 @@ public class TaskImpl implements Task {
         return builder.build(totalWeightedCompleted / totalWeight);
     }
 
-    private void startTask(final RootStorage rootStorage) {
+    private boolean startTask(final RootStorage rootStorage) {
         updateState(TaskState.EXTRACTING_INITIAL_RESOURCES);
-        extractInitialResourcesAndTryStartRunningTask(rootStorage);
+        return extractInitialResourcesAndTryStartRunningTask(rootStorage);
     }
 
-    private void extractInitialResourcesAndTryStartRunningTask(final RootStorage rootStorage) {
-        if (extractInitialResources(rootStorage)) {
-            updateState(TaskState.RUNNING);
-        }
-    }
-
-    private void stepPatterns(final RootStorage rootStorage,
-                              final ExternalPatternInputSink externalPatternInputSink,
-                              final StepBehavior stepBehavior) {
-        patterns.entrySet().removeIf(
-            pattern -> stepPattern(rootStorage, externalPatternInputSink, stepBehavior, pattern)
-        );
-        if (patterns.isEmpty()) {
-            if (internalStorage.isEmpty()) {
-                updateState(TaskState.COMPLETED);
-            } else {
-                updateState(TaskState.RETURNING_INTERNAL_STORAGE);
-            }
-        }
-    }
-
-    private boolean stepPattern(final RootStorage rootStorage,
-                                final ExternalPatternInputSink externalPatternInputSink,
-                                final StepBehavior stepBehavior,
-                                final Map.Entry<Pattern, AbstractTaskPattern> pattern) {
-        if (!stepBehavior.canStep(pattern.getKey())) {
-            return false;
-        }
-        final int steps = stepBehavior.getSteps(pattern.getKey());
-        for (int i = 0; i < steps; ++i) {
-            final boolean completed = pattern.getValue().step(internalStorage, rootStorage, externalPatternInputSink);
-            if (completed) {
-                LOGGER.debug("{} completed", pattern.getKey());
-                completedPatterns.add(pattern.getValue());
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void returnInternalStorageAndTryCompleteTask(final RootStorage rootStorage) {
-        if (returnInternalStorage(rootStorage)) {
-            updateState(TaskState.COMPLETED);
-        }
-    }
-
-    @Override
-    public Collection<ResourceAmount> copyInternalStorageState() {
-        return internalStorage.copyState();
-    }
-
-    private boolean extractInitialResources(final RootStorage rootStorage) {
+    private boolean extractInitialResourcesAndTryStartRunningTask(final RootStorage rootStorage) {
         boolean extractedAll = true;
+        boolean extractedAny = false;
         final Set<ResourceKey> initialRequirementResources = new HashSet<>(initialRequirements.getAll());
         for (final ResourceKey initialRequirementResource : initialRequirementResources) {
             final long needed = initialRequirements.get(initialRequirementResource);
             final long extracted = rootStorage.extract(initialRequirementResource, needed, Action.EXECUTE, Actor.EMPTY);
+            if (extracted > 0) {
+                extractedAny = true;
+            }
             LOGGER.debug("Extracted {}x {} from storage", extracted, initialRequirementResource);
             if (extracted != needed) {
                 extractedAll = false;
@@ -183,15 +137,71 @@ public class TaskImpl implements Task {
                 internalStorage.add(initialRequirementResource, extracted);
             }
         }
-        return extractedAll;
+        if (extractedAll) {
+            updateState(TaskState.RUNNING);
+        }
+        return extractedAny;
     }
 
-    private boolean returnInternalStorage(final RootStorage rootStorage) {
+    private boolean stepPatterns(final RootStorage rootStorage,
+                                 final ExternalPatternInputSink externalPatternInputSink,
+                                 final StepBehavior stepBehavior) {
+        final var it = patterns.entrySet().iterator();
+        boolean changed = false;
+        while (it.hasNext()) {
+            final var pattern = it.next();
+            final PatternStepResult result = stepPattern(rootStorage, externalPatternInputSink, stepBehavior, pattern);
+            if (result == PatternStepResult.COMPLETED) {
+                it.remove();
+            }
+            changed |= result.isChanged();
+        }
+        if (patterns.isEmpty()) {
+            if (internalStorage.isEmpty()) {
+                updateState(TaskState.COMPLETED);
+            } else {
+                updateState(TaskState.RETURNING_INTERNAL_STORAGE);
+            }
+        }
+        return changed;
+    }
+
+    private PatternStepResult stepPattern(final RootStorage rootStorage,
+                                          final ExternalPatternInputSink externalPatternInputSink,
+                                          final StepBehavior stepBehavior,
+                                          final Map.Entry<Pattern, AbstractTaskPattern> pattern) {
+        PatternStepResult result = PatternStepResult.IDLE;
+        if (!stepBehavior.canStep(pattern.getKey())) {
+            return result;
+        }
+        final int steps = stepBehavior.getSteps(pattern.getKey());
+        for (int i = 0; i < steps; ++i) {
+            final PatternStepResult stepResult = pattern.getValue().step(
+                internalStorage,
+                rootStorage,
+                externalPatternInputSink
+            );
+            if (stepResult == PatternStepResult.COMPLETED) {
+                LOGGER.debug("{} completed", pattern.getKey());
+                completedPatterns.add(pattern.getValue());
+                return stepResult;
+            } else {
+                result = result.and(stepResult);
+            }
+        }
+        return result;
+    }
+
+    private boolean returnInternalStorageAndTryCompleteTask(final RootStorage rootStorage) {
         boolean returnedAll = true;
+        boolean returnedAny = false;
         final Set<ResourceKey> internalResources = new HashSet<>(internalStorage.getAll());
         for (final ResourceKey internalResource : internalResources) {
             final long internalAmount = internalStorage.get(internalResource);
             final long inserted = rootStorage.insert(internalResource, internalAmount, Action.EXECUTE, Actor.EMPTY);
+            if (inserted > 0) {
+                returnedAny = true;
+            }
             LOGGER.debug("Returned {}x {} into storage", inserted, internalResource);
             if (inserted != internalAmount) {
                 returnedAll = false;
@@ -200,7 +210,15 @@ public class TaskImpl implements Task {
                 internalStorage.remove(internalResource, inserted);
             }
         }
-        return returnedAll;
+        if (returnedAll) {
+            updateState(TaskState.COMPLETED);
+        }
+        return returnedAny;
+    }
+
+    @Override
+    public Collection<ResourceAmount> copyInternalStorageState() {
+        return internalStorage.copyState();
     }
 
     @Override

@@ -17,7 +17,7 @@ public interface Task extends RootStorageListener {
 
     Collection<ResourceAmount> copyInternalStorageState();
 
-    void step(RootStorage rootStorage, ExternalPatternInputSink externalPatternInputSink, StepBehavior stepBehavior);
+    boolean step(RootStorage rootStorage, ExternalPatternInputSink externalPatternInputSink, StepBehavior stepBehavior);
 
     void cancel();
 

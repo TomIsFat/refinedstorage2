@@ -22,6 +22,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     private final long originalIterationsToSendToSink;
     private long iterationsToSendToSink;
     private long iterationsReceived;
+    private boolean interceptedAnythingSinceLastStep;
 
     ExternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
@@ -34,21 +35,25 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     }
 
     @Override
-    boolean step(final MutableResourceList internalStorage,
-                 final RootStorage rootStorage,
-                 final ExternalPatternInputSink externalPatternInputSink) {
+    PatternStepResult step(final MutableResourceList internalStorage,
+                           final RootStorage rootStorage,
+                           final ExternalPatternInputSink externalPatternInputSink) {
         if (expectedOutputs.isEmpty()) {
-            return true;
+            return PatternStepResult.COMPLETED;
+        }
+        if (interceptedAnythingSinceLastStep) {
+            interceptedAnythingSinceLastStep = false;
+            return PatternStepResult.RUNNING;
         }
         if (iterationsToSendToSink == 0) {
-            return false;
+            return PatternStepResult.IDLE;
         }
         if (!acceptsIterationInputs(internalStorage, externalPatternInputSink)) {
-            return false;
+            return PatternStepResult.IDLE;
         }
         LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsToSendToSink);
         iterationsToSendToSink--;
-        return false;
+        return PatternStepResult.RUNNING;
     }
 
     @Override
@@ -76,6 +81,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             }
         }
         this.iterationsReceived = result;
+        this.interceptedAnythingSinceLastStep = true;
     }
 
     @Override

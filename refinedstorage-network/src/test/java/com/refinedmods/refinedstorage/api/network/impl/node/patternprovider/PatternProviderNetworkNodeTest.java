@@ -2,7 +2,10 @@ package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
@@ -19,14 +22,23 @@ import com.refinedmods.refinedstorage.network.test.NetworkTest;
 import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import com.refinedmods.refinedstorage.network.test.nodefactory.PatternProviderNetworkNodeFactory;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder.pattern;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
 import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.C;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @NetworkTest
 @SetupNetwork
@@ -418,6 +430,185 @@ class PatternProviderNetworkNodeTest {
         );
     }
 
+    @Test
+    void shouldNotifyStatusListenerWhenTaskIsAdded(
+        @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+        @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+    ) {
+        // Arrange
+        final TaskStatusListener listener = mock(TaskStatusListener.class);
+        autocrafting.addListener(listener);
+
+        storage.addSource(new StorageImpl());
+        storage.insert(C, 10, Action.EXECUTE, Actor.EMPTY);
+
+        sut.setPattern(1, PATTERN_A);
+
+        // Act
+        final var taskId = autocrafting.startTask(A, 1, Actor.EMPTY, false).join();
+
+        // Assert
+        assertThat(taskId).isPresent();
+        final ArgumentCaptor<TaskStatus> statusCaptor = ArgumentCaptor.forClass(TaskStatus.class);
+        verify(listener, times(1)).taskAdded(statusCaptor.capture());
+        final TaskStatus status = statusCaptor.getValue();
+        assertThat(status.info().id()).isEqualTo(taskId.get());
+    }
+
+    @Test
+    void shouldNotNotifyStatusListenerWhenTaskIsNotAddedDueToMissingResources(
+        @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+    ) {
+        // Arrange
+        final TaskStatusListener listener = mock(TaskStatusListener.class);
+        autocrafting.addListener(listener);
+
+        sut.setPattern(1, PATTERN_A);
+
+        // Act
+        final var taskId = autocrafting.startTask(A, 1, Actor.EMPTY, false).join();
+
+        // Assert
+        assertThat(taskId).isEmpty();
+        verify(listener, never()).taskAdded(any());
+    }
+
+    @Test
+    void shouldNotifyStatusListenerWhenTaskIsCompleted(
+        @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+        @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+    ) {
+        // Arrange
+        final TaskStatusListener listener = mock(TaskStatusListener.class);
+        autocrafting.addListener(listener);
+
+        storage.addSource(new StorageImpl());
+        storage.insert(C, 10, Action.EXECUTE, Actor.EMPTY);
+
+        sut.setActive(true);
+        sut.setPattern(1, PATTERN_A);
+
+        // Act & assert
+        final Optional<TaskId> createdId = autocrafting.startTask(A, 1, Actor.EMPTY, false).join();
+        assertThat(createdId).isPresent();
+        assertThat(sut.getTasks()).isNotEmpty();
+
+        sut.doWork();
+        sut.doWork();
+        assertThat(sut.getTasks()).isEmpty();
+
+        final ArgumentCaptor<TaskId> idCaptor = ArgumentCaptor.forClass(TaskId.class);
+        verify(listener, times(1)).taskRemoved(idCaptor.capture());
+        final TaskId id = idCaptor.getValue();
+        assertThat(createdId.get()).isEqualTo(id);
+    }
+
+    @Test
+    void shouldNotifyStatusListenerWhenTaskHasChanged(
+        @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+        @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+    ) {
+        // Arrange
+        final TaskStatusListener listener = mock(TaskStatusListener.class);
+        autocrafting.addListener(listener);
+
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+        sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1).build());
+        // swallow resources
+        sut.setExternalPatternInputSink((resources, action) -> true);
+
+        // Act & assert
+        assertThat(autocrafting.startTask(B, 2, Actor.EMPTY, false).join()).isPresent();
+
+        sut.doWork();
+        taskShouldBeMarkedAsChangedOnce(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+            new ResourceAmount(A, 2)
+        );
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8)
+        );
+
+        sut.doWork();
+        taskShouldBeMarkedAsChangedOnce(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+            new ResourceAmount(A, 1)
+        );
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8)
+        );
+
+        sut.doWork();
+        taskShouldBeMarkedAsChangedOnce(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8)
+        );
+
+        sut.doWork();
+        taskShouldNotBeMarkedAsChanged(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8)
+        );
+
+        storage.insert(B, 1, Action.EXECUTE, Actor.EMPTY);
+        taskShouldNotBeMarkedAsChanged(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8),
+            new ResourceAmount(B, 1)
+        );
+
+        sut.doWork();
+        taskShouldBeMarkedAsChangedOnce(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8),
+            new ResourceAmount(B, 1)
+        );
+
+        sut.doWork();
+        taskShouldNotBeMarkedAsChanged(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8),
+            new ResourceAmount(B, 1)
+        );
+
+        storage.insert(B, 1, Action.EXECUTE, Actor.EMPTY);
+        taskShouldNotBeMarkedAsChanged(listener);
+        assertThat(sut.getTasks()).hasSize(1);
+        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8),
+            new ResourceAmount(B, 2)
+        );
+
+        sut.doWork();
+        taskShouldNotBeMarkedAsChanged(listener);
+        verify(listener, times(1)).taskRemoved(any());
+        assertThat(sut.getTasks()).isEmpty();
+    }
+
+    private static void taskShouldBeMarkedAsChangedOnce(final TaskStatusListener listener) {
+        verify(listener, times(1)).taskStatusChanged(any());
+        reset(listener);
+    }
+
+    private static void taskShouldNotBeMarkedAsChanged(final TaskStatusListener listener) {
+        verify(listener, never()).taskStatusChanged(any());
+    }
+
     @Nested
     @SetupNetwork(id = "other")
     class NetworkChangeTest {
@@ -545,6 +736,52 @@ class PatternProviderNetworkNodeTest {
             assertThat(otherStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
                 new ResourceAmount(A, 3)
             );
+        }
+
+        @Test
+        void shouldNotifyStatusListenersOfOldAndNewNetworkWhenNetworkChanges(
+            @InjectNetwork final Network network,
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting,
+            @InjectNetwork("other") final Network otherNetwork,
+            @InjectNetworkAutocraftingComponent(networkId = "other")
+            final AutocraftingNetworkComponent otherAutocrafting
+        ) {
+            // Arrange
+            final TaskStatusListener listener = mock(TaskStatusListener.class);
+            autocrafting.addListener(listener);
+
+            final TaskStatusListener otherListener = mock(TaskStatusListener.class);
+            otherAutocrafting.addListener(otherListener);
+
+            storage.addSource(new StorageImpl());
+            storage.insert(C, 10, Action.EXECUTE, Actor.EMPTY);
+
+            sut.setPattern(1, PATTERN_A);
+
+            // Act & assert
+            final var taskId = autocrafting.startTask(A, 1, Actor.EMPTY, false).join();
+            assertThat(taskId).isPresent();
+            final ArgumentCaptor<TaskStatus> statusCaptor = ArgumentCaptor.forClass(TaskStatus.class);
+            verify(listener, times(1)).taskAdded(statusCaptor.capture());
+            verify(listener, never()).taskRemoved(any());
+            verify(otherListener, never()).taskAdded(any());
+            verify(otherListener, never()).taskRemoved(any());
+            final TaskStatus status = statusCaptor.getValue();
+            assertThat(status.info().id()).isEqualTo(taskId.get());
+
+            reset(listener, otherListener);
+
+            network.removeContainer(() -> sut);
+            sut.setNetwork(otherNetwork);
+            otherNetwork.addContainer(() -> sut);
+
+            verify(listener, never()).taskAdded(any());
+            final ArgumentCaptor<TaskId> removedIdCaptor = ArgumentCaptor.forClass(TaskId.class);
+            verify(listener, times(1)).taskRemoved(removedIdCaptor.capture());
+            final ArgumentCaptor<TaskStatus> addedTaskCaptor = ArgumentCaptor.forClass(TaskStatus.class);
+            verify(otherListener, times(1)).taskAdded(addedTaskCaptor.capture());
+            verify(otherListener, never()).taskRemoved(any());
         }
     }
 
