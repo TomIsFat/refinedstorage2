@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.common.support.packet.s2c;
 
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.common.Platform;
@@ -93,16 +93,24 @@ public final class S2CPackets {
         Platform.INSTANCE.sendPacketToClient(player, new AutocrafterNameUpdatePacket(name));
     }
 
+    public static void sendAutocrafterLockedUpdate(final ServerPlayer player, final boolean locked) {
+        Platform.INSTANCE.sendPacketToClient(player, new AutocrafterLockedUpdatePacket(locked));
+    }
+
     public static void sendAutocraftingPreviewResponse(final ServerPlayer player,
                                                        final UUID id,
                                                        final Preview preview) {
         Platform.INSTANCE.sendPacketToClient(player, new AutocraftingPreviewResponsePacket(id, preview));
     }
 
+    public static void sendAutocraftingPreviewMaxAmountResponse(final ServerPlayer player, final long maxAmount) {
+        Platform.INSTANCE.sendPacketToClient(player, new AutocraftingPreviewMaxAmountResponsePacket(maxAmount));
+    }
+
     public static void sendAutocraftingResponse(final ServerPlayer player,
                                                 final UUID id,
-                                                final boolean started) {
-        Platform.INSTANCE.sendPacketToClient(player, new AutocraftingResponsePacket(id, started));
+                                                final boolean success) {
+        Platform.INSTANCE.sendPacketToClient(player, new AutocraftingResponsePacket(id, success));
     }
 
     public static void sendAutocraftingMonitorTaskAdded(final ServerPlayer player, final TaskStatus taskStatus) {

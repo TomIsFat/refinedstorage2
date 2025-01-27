@@ -62,7 +62,7 @@ public abstract class AbstractDestructorBlockEntity
             this::setChanged,
             this::setFilters
         );
-        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.DESTRUCTOR, upgradeEnergyUsage -> {
+        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.DESTRUCTOR, (c, upgradeEnergyUsage) -> {
             final long baseEnergyUsage = Platform.INSTANCE.getConfig().getDestructor().getEnergyUsage();
             mainNetworkNode.setEnergyUsage(baseEnergyUsage + upgradeEnergyUsage);
             setChanged();

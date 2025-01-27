@@ -16,6 +16,8 @@ import com.refinedmods.refinedstorage.api.network.security.SecurityPolicy;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 
+import java.util.concurrent.Executors;
+
 public final class NetworkTestFixtures {
     public static final ComponentMapFactory<NetworkComponent, Network> NETWORK_COMPONENT_MAP_FACTORY =
         new ComponentMapFactory<>();
@@ -39,7 +41,10 @@ public final class NetworkTestFixtures {
         );
         NETWORK_COMPONENT_MAP_FACTORY.addFactory(
             AutocraftingNetworkComponent.class,
-            network -> new AutocraftingNetworkComponentImpl(new FakeTaskStatusProvider())
+            network -> new AutocraftingNetworkComponentImpl(
+                () -> network.getComponent(StorageNetworkComponent.class),
+                Executors.newSingleThreadExecutor()
+            )
         );
     }
 

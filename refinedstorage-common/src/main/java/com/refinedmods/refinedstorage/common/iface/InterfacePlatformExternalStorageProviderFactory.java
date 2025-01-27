@@ -15,7 +15,7 @@ public class InterfacePlatformExternalStorageProviderFactory implements Platform
                                                     final BlockPos pos,
                                                     final Direction direction) {
         return Optional.ofNullable(level.getBlockEntity(pos))
-            .filter(blockEntity -> blockEntity instanceof InterfaceBlockEntity)
+            .filter(InterfaceBlockEntity.class::isInstance)
             .map(blockEntity -> new InterfaceProxyExternalStorageProvider(level, pos));
     }
 

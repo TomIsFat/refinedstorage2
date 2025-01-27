@@ -7,13 +7,13 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.Filter;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
-import com.refinedmods.refinedstorage.api.resource.list.listenable.ResourceListListener;
 import com.refinedmods.refinedstorage.api.storage.AccessMode;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.composite.CompositeAwareChild;
 import com.refinedmods.refinedstorage.api.storage.composite.ParentComposite;
 import com.refinedmods.refinedstorage.api.storage.composite.PriorityProvider;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nullable;
 
-class RelayOutputStorage implements CompositeAwareChild, ResourceListListener, PriorityProvider {
+class RelayOutputStorage implements CompositeAwareChild, RootStorageListener, PriorityProvider {
     private final Set<ParentComposite> parentComposites = new HashSet<>();
     private final Filter filter = new Filter();
 
@@ -164,7 +164,7 @@ class RelayOutputStorage implements CompositeAwareChild, ResourceListListener, P
     }
 
     @Override
-    public void onChanged(final MutableResourceList.OperationResult change) {
+    public void changed(final MutableResourceList.OperationResult change) {
         if (delegate != null && delegate.contains(delegate)) {
             return;
         }
@@ -187,5 +187,10 @@ class RelayOutputStorage implements CompositeAwareChild, ResourceListListener, P
     @Override
     public int getExtractPriority() {
         return extractPriority;
+    }
+
+    @Override
+    public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        return InterceptResult.EMPTY;
     }
 }

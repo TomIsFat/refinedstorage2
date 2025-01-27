@@ -8,7 +8,6 @@ import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
@@ -176,7 +175,7 @@ class ImporterNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new LimitedStorageImpl(100));
-        storage.insert(C, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(C, 100, Action.EXECUTE, Actor.EMPTY);
 
         final ImporterSourceImpl source = new ImporterSourceImpl(A, B)
             .add(A, 100)

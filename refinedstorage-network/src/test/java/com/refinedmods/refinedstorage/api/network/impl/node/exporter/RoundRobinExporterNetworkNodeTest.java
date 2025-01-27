@@ -6,7 +6,7 @@ import com.refinedmods.refinedstorage.api.network.node.SchedulingMode;
 import com.refinedmods.refinedstorage.api.network.node.exporter.ExporterTransferStrategy;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -45,8 +45,8 @@ class RoundRobinExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest 
     void shouldTransfer(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 5);
@@ -114,8 +114,8 @@ class RoundRobinExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest 
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(C, 8, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(D, 9, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(C, 8, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(D, 9, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);
@@ -149,8 +149,8 @@ class RoundRobinExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest 
             new ResourceAmount(D, 9)
         );
 
-        storage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 2, Action.EXECUTE, Actor.EMPTY);
 
         sut.doWork();
 
@@ -190,9 +190,9 @@ class RoundRobinExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest 
     ) {
         // Arrange
         storage.addSource(new StorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(C, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(C, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 5);

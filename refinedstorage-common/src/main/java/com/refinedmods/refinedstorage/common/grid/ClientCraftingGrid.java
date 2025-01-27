@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.common.grid;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.grid.operations.GridOperations;
 import com.refinedmods.refinedstorage.api.grid.watcher.GridWatcher;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -16,6 +17,7 @@ import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
@@ -105,12 +107,20 @@ class ClientCraftingGrid implements CraftingGrid {
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return CompletableFuture.completedFuture(0L);
+    }
+
+    @Override
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) {
         throw new UnsupportedOperationException();
     }
 }

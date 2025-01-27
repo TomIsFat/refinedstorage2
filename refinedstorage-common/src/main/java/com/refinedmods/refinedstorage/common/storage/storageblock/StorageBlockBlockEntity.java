@@ -2,6 +2,9 @@ package com.refinedmods.refinedstorage.common.storage.storageblock;
 
 import com.refinedmods.refinedstorage.api.network.impl.node.AbstractStorageContainerNetworkNode;
 import com.refinedmods.refinedstorage.api.network.impl.node.storage.StorageNetworkNode;
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
+import com.refinedmods.refinedstorage.api.storage.AccessMode;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.api.storage.SerializableStorage;
@@ -18,6 +21,7 @@ import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerD
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerImpl;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
 
@@ -57,7 +61,7 @@ public class StorageBlockBlockEntity extends AbstractBaseNetworkNodeContainerBlo
         this.filter = FilterWithFuzzyMode.createAndListenForUniqueFilters(
             ResourceContainerImpl.createForFilter(provider.getResourceFactory()),
             this::setChanged,
-            mainNetworkNode.getStorageConfiguration()::setFilters
+            this::setFilters
         );
         this.configContainer = new StorageConfigurationContainerImpl(
             mainNetworkNode.getStorageConfiguration(),
@@ -142,6 +146,27 @@ public class StorageBlockBlockEntity extends AbstractBaseNetworkNodeContainerBlo
             storage -> LOGGER.info("Storage {} successfully removed", storageId),
             () -> LOGGER.warn("Storage {} could not be removed", storageId)
         );
+    }
+
+    void setFilters(final Set<ResourceKey> filters) {
+        mainNetworkNode.getStorageConfiguration().setFilters(filters);
+    }
+
+    void setFilterMode(final FilterMode mode) {
+        mainNetworkNode.getStorageConfiguration().setFilterMode(mode);
+        setChanged();
+    }
+
+    void setFuzzyMode(final boolean fuzzyMode) {
+        filter.setFuzzyMode(fuzzyMode);
+    }
+
+    void setAccessMode(final AccessMode accessMode) {
+        mainNetworkNode.getStorageConfiguration().setAccessMode(accessMode);
+    }
+
+    void setVoidExcess(final boolean voidExcess) {
+        mainNetworkNode.getStorageConfiguration().setVoidExcess(voidExcess);
     }
 
     @Override

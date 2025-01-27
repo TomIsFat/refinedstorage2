@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.common.autocrafting.patterngrid;
 
-import com.refinedmods.refinedstorage.common.support.widget.CustomCheckboxWidget;
+import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
 
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
@@ -25,7 +25,7 @@ class CraftingPatternGridRenderer implements PatternGridRenderer {
         createTranslation("gui", "pattern_grid.fuzzy_mode.off.help");
 
     @Nullable
-    private CustomCheckboxWidget fuzzyModeCheckbox;
+    private CheckboxWidget fuzzyModeCheckbox;
 
     private final PatternGridContainerMenu menu;
     private final int leftPos;
@@ -45,14 +45,14 @@ class CraftingPatternGridRenderer implements PatternGridRenderer {
         renderables.accept(fuzzyModeCheckbox);
     }
 
-    private CustomCheckboxWidget createFuzzyModeCheckbox() {
-        final CustomCheckboxWidget checkbox = new CustomCheckboxWidget(
+    private CheckboxWidget createFuzzyModeCheckbox() {
+        final CheckboxWidget checkbox = new CheckboxWidget(
             x + INSET_PADDING,
             y + INSET_PADDING + 54 + INSET_PADDING - 2,
             FUZZY_MODE,
             Minecraft.getInstance().font,
             menu.isFuzzyMode(),
-            CustomCheckboxWidget.Size.SMALL
+            CheckboxWidget.Size.SMALL
         );
         checkbox.setOnPressed((c, selected) -> menu.setFuzzyMode(selected));
         checkbox.setHelpTooltip(getFuzzyModeTooltip(menu.isFuzzyMode()));

@@ -7,6 +7,26 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0-milestone.4.12] - 2025-01-27
+
+### Added
+
+-   Autocrafting engine.
+-   The crafting preview now has the ability to fill out the maximum amount of a resource you can currently craft.
+-   In the crafting preview, you can now indicate whether you want to be notified when an autocrafting task is finished.
+
+### Changed
+
+-   Autocrafting now handles multiple patterns with the same output correctly by trying to use the pattern with the
+    highest priority first. If there are missing resources, lower priority patterns are checked.
+-   The Autocrafter now faces the block you're clicking when placing it, like the other cable blocks (like the Exporter or Importer).
+-   You can no longer cancel autocrafting tasks if there is not enough space in storage to return the intermediate task storage.
+-   The Autocrafting Monitor now shows the machine in which a resource is processing.
+
+### Fixed
+
+-   Fixed amount in amount screens resetting when resizing the screen.
+
 ## [2.0.0-milestone.4.11] - 2024-12-08
 
 ### Added
@@ -15,7 +35,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
--   Fixed External Fluid not connecting properly to fluid storages.
+-   Fixed External Storage not connecting properly to fluid storages.
 -   Fixed Interface filter not respecting maximum stack size of a resource.
 -   Fixed potential crash when trying to build cable shapes.
 -   Fixed storage disk upgrade recipes not showing properly in recipe viewers.
@@ -829,7 +849,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 -   The Grid can now use smooth scrolling.
 -   The Grid now has syntax highlighting for the search query.
 
-[Unreleased]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.11...HEAD
+[Unreleased]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.12...HEAD
+
+[2.0.0-milestone.4.12]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.11...v2.0.0-milestone.4.12
 
 [2.0.0-milestone.4.11]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.10...v2.0.0-milestone.4.11
 

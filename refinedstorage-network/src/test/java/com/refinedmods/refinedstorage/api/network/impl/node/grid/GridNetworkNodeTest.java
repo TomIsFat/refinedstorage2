@@ -6,7 +6,6 @@ import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
@@ -52,8 +51,8 @@ class GridNetworkNodeTest {
         @InjectNetworkStorageComponent(networkId = "other") final StorageNetworkComponent otherStorage
     ) {
         storage.addSource(new TrackedStorageImpl(new LimitedStorageImpl(1000), () -> 2L));
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 200, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 200, Action.EXECUTE, Actor.EMPTY);
 
         otherStorage.addSource(new TrackedStorageImpl(new StorageImpl(), () -> 3L));
     }
@@ -70,7 +69,7 @@ class GridNetworkNodeTest {
         final GridWatcher watcher = mock(GridWatcher.class);
 
         // Act
-        sut.addWatcher(watcher, EmptyActor.class);
+        sut.addWatcher(watcher, Actor.EMPTY.getClass());
         sut.setActive(true);
         sut.setActive(false);
         sut.removeWatcher(watcher);
@@ -92,7 +91,7 @@ class GridNetworkNodeTest {
         sut.addWatcher(watcher, ActorFixture.class);
 
         // Act
-        networkStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         networkStorage.insert(A, 1, Action.EXECUTE, ActorFixture.INSTANCE);
         sut.removeWatcher(watcher);
         networkStorage.insert(A, 1, Action.EXECUTE, ActorFixture.INSTANCE);
@@ -127,7 +126,7 @@ class GridNetworkNodeTest {
     void shouldNotBeAbleToAddDuplicateWatcher() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        final Class<? extends Actor> actorType1 = EmptyActor.class;
+        final Class<? extends Actor> actorType1 = Actor.EMPTY.getClass();
         final Class<? extends Actor> actorType2 = ActorFixture.class;
 
         sut.addWatcher(watcher, actorType1);
@@ -158,11 +157,11 @@ class GridNetworkNodeTest {
 
         // these one shouldn't be ignored either
         otherStorage.insert(A, 10, Action.EXECUTE, ActorFixture.INSTANCE);
-        otherStorage.insert(D, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        otherStorage.insert(D, 10, Action.EXECUTE, Actor.EMPTY);
 
         // these should be ignored
         storage.insert(B, 10, Action.EXECUTE, ActorFixture.INSTANCE);
-        storage.insert(D, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(D, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         verify(watcher, times(1)).invalidate();

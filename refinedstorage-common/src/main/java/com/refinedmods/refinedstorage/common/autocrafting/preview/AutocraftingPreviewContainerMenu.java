@@ -2,10 +2,13 @@ package com.refinedmods.refinedstorage.common.autocrafting.preview;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.common.Platform;
+import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceContainer;
 import com.refinedmods.refinedstorage.common.support.containermenu.AbstractResourceContainerMenu;
 import com.refinedmods.refinedstorage.common.support.containermenu.DisabledResourceSlot;
 import com.refinedmods.refinedstorage.common.support.containermenu.ResourceSlotType;
+import com.refinedmods.refinedstorage.common.support.packet.c2s.C2SPackets;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerImpl;
 
 import java.util.ArrayList;
@@ -87,12 +90,12 @@ public class AutocraftingPreviewContainerMenu extends AbstractResourceContainerM
         }
     }
 
-    void sendRequest(final double amount) {
-        currentRequest.sendRequest(amount);
+    void sendRequest(final double amount, final boolean notify) {
+        currentRequest.sendRequest(amount, notify);
     }
 
-    public void responseReceived(final UUID id, final boolean started) {
-        if (!currentRequest.getId().equals(id) || !started) {
+    public void responseReceived(final UUID id, final boolean success) {
+        if (!currentRequest.getId().equals(id) || !success) {
             return;
         }
         requests.remove(currentRequest);
@@ -103,5 +106,28 @@ public class AutocraftingPreviewContainerMenu extends AbstractResourceContainerM
         if (!last) {
             setCurrentRequest(requests.getFirst());
         }
+    }
+
+    public void maxAmountResponseReceived(final long maxAmount) {
+        if (listener == null) {
+            return;
+        }
+        if (currentRequest.getResource() instanceof PlatformResourceKey resource) {
+            listener.maxAmountReceived(resource.getResourceType().getDisplayAmount(maxAmount));
+        }
+    }
+
+    void requestMaxAmount() {
+        if (currentRequest.getResource() instanceof PlatformResourceKey resource) {
+            C2SPackets.sendAutocraftingPreviewMaxAmountRequest(resource);
+        }
+    }
+
+    boolean isNotify() {
+        return Platform.INSTANCE.getConfig().isAutocraftingNotification();
+    }
+
+    void setNotify(final boolean notify) {
+        Platform.INSTANCE.getConfig().setAutocraftingNotification(notify);
     }
 }

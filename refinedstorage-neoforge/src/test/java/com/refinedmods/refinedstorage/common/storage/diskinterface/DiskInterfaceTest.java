@@ -37,9 +37,8 @@ public final class DiskInterfaceTest {
     public static void shouldInsertItemsIntoNetwork(final GameTestHelper helper) {
         preparePlot(helper, Direction.NORTH, (diskInterface, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, DIRT, 64);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, DIRT, 64)));
 
             // Act
             diskInterface.setTransferMode(StorageTransferMode.INSERT_INTO_NETWORK);
@@ -70,9 +69,8 @@ public final class DiskInterfaceTest {
     public static void shouldInsertItemsIntoNetworkWithStackUpgrade(final GameTestHelper helper) {
         preparePlot(helper, Direction.NORTH, (diskInterface, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, DIRT, 64);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, DIRT, 64)));
 
             // Act
             diskInterface.setTransferMode(StorageTransferMode.INSERT_INTO_NETWORK);
@@ -104,9 +102,8 @@ public final class DiskInterfaceTest {
     public static void shouldInsertItemsIntoNetworkBlocklist(final GameTestHelper helper) {
         preparePlot(helper, Direction.NORTH, (diskInterface, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, DIRT, 64);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, DIRT, 64)));
 
             // Act
             final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
@@ -144,9 +141,8 @@ public final class DiskInterfaceTest {
     public static void shouldInsertItemsIntoNetworkFuzzyBlocklist(final GameTestHelper helper) {
         preparePlot(helper, Direction.NORTH, (diskInterface, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, DIRT, 64);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, DIRT, 64)));
 
             // Act
             final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
@@ -185,9 +181,8 @@ public final class DiskInterfaceTest {
     public static void shouldExtractItemsFromNetwork(final GameTestHelper helper) {
         preparePlot(helper, Direction.NORTH, (diskInterface, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, DIRT, 10);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, DIRT, 10)));
 
             // Act
             diskInterface.setTransferMode(StorageTransferMode.EXTRACT_FROM_NETWORK);
@@ -211,9 +206,8 @@ public final class DiskInterfaceTest {
     public static void shouldExtractItemsFromNetworkWithStackUpgrade(final GameTestHelper helper) {
         preparePlot(helper, Direction.NORTH, (diskInterface, pos, sequence) -> {
             // Arrange
-            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
-                insert(helper, network, DIRT, 64);
-            }));
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network ->
+                insert(helper, network, DIRT, 64)));
 
             // Act
             diskInterface.setTransferMode(StorageTransferMode.EXTRACT_FROM_NETWORK);

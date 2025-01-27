@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.api.storage.tracked;
 
 import com.refinedmods.refinedstorage.api.core.Action;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.ActorFixtures;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 
 import java.util.Optional;
@@ -35,7 +35,7 @@ class TrackedStorageImplTest {
     @Test
     void testInitialState() {
         // Act
-        final Optional<TrackedResource> trackedResource = sut.findTrackedResourceByActorType(A, EmptyActor.class);
+        final Optional<TrackedResource> trackedResource = sut.findTrackedResourceByActorType(A, Actor.EMPTY.getClass());
 
         // Assert
         assertThat(trackedResource).isEmpty();
@@ -76,10 +76,10 @@ class TrackedStorageImplTest {
             sut.insert(B, 100, Action.EXECUTE, ActorFixtures.ActorFixture1.INSTANCE);
 
             // Assert
-            final Optional<TrackedResource> resourceA1 = sut.findTrackedResourceByActorType(A, EmptyActor.class);
+            final Optional<TrackedResource> resourceA1 = sut.findTrackedResourceByActorType(A, Actor.EMPTY.getClass());
             final Optional<TrackedResource> resourceA2 =
                 sut.findTrackedResourceByActorType(A, ActorFixtures.ActorFixture1.class);
-            final Optional<TrackedResource> resourceB1 = sut.findTrackedResourceByActorType(B, EmptyActor.class);
+            final Optional<TrackedResource> resourceB1 = sut.findTrackedResourceByActorType(B, Actor.EMPTY.getClass());
             final Optional<TrackedResource> resourceB2 =
                 sut.findTrackedResourceByActorType(B, ActorFixtures.ActorFixture1.class);
 
@@ -121,7 +121,7 @@ class TrackedStorageImplTest {
         @EnumSource(Action.class)
         void shouldNotTrackResourceByInsertingToAlreadyFullStorage(final Action action) {
             // Arrange
-            backed.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            backed.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final long inserted = sut.insert(A, 1, action, ActorFixtures.ActorFixture1.INSTANCE);
@@ -139,7 +139,7 @@ class TrackedStorageImplTest {
         @SuppressWarnings("AssertBetweenInconvertibleTypes")
         void shouldTrackResourceByExtracting(final Action action) {
             // Arrange
-            backed.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            backed.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             final long extracted = sut.extract(A, 10, action, ActorFixtures.ActorFixture1.INSTANCE);
@@ -235,7 +235,7 @@ class TrackedStorageImplTest {
         @SuppressWarnings("AssertBetweenInconvertibleTypes")
         void shouldUpdateTrackedResourceByExtracting(final Action action) {
             // Arrange
-            backed.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            backed.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             sut.extract(A, 50, Action.EXECUTE, ActorFixtures.ActorFixture1.INSTANCE);
@@ -260,7 +260,7 @@ class TrackedStorageImplTest {
         @SuppressWarnings("AssertBetweenInconvertibleTypes")
         void shouldNotUpdateTrackedResourceByExtractingNothing(final Action action) {
             // Arrange
-            backed.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+            backed.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
             // Act
             sut.extract(A, 100, Action.EXECUTE, ActorFixtures.ActorFixture1.INSTANCE);

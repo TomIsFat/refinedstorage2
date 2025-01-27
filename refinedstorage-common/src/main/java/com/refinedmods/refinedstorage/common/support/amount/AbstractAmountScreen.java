@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
-import static com.refinedmods.refinedstorage.common.support.Sprites.ERROR_SIZE;
+import static com.refinedmods.refinedstorage.common.support.Sprites.ICON_SIZE;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public abstract class AbstractAmountScreen<T extends AbstractContainerMenu, N extends Number>
@@ -30,11 +30,11 @@ public abstract class AbstractAmountScreen<T extends AbstractContainerMenu, N ex
 
     private static final int INCREMENT_BUTTON_WIDTH = 30;
     private static final int ACTION_BUTTON_HEIGHT = 20;
-    private static final int ACTION_BUTTON_WIDTH = 50;
+    private static final int ACTION_BUTTON_WIDTH = 58;
     private static final int ACTION_BUTTON_SPACING = 20;
 
     @Nullable
-    protected ConfirmButton confirmButton;
+    protected IconButton confirmButton;
     @Nullable
     protected EditBox amountField;
 
@@ -83,40 +83,60 @@ public abstract class AbstractAmountScreen<T extends AbstractContainerMenu, N ex
 
     private Button addResetButton(final int x, final int y) {
         final int width = configuration.isHorizontalActionButtons()
-            ? font.width(RESET_TEXT) + ACTION_BUTTON_SPACING
+            ? font.width(RESET_TEXT) + ACTION_BUTTON_SPACING + ICON_SIZE
             : ACTION_BUTTON_WIDTH;
-        return addRenderableWidget(Button.builder(RESET_TEXT, btn -> reset())
-            .pos(leftPos + x, topPos + y)
-            .size(width, ACTION_BUTTON_HEIGHT)
-            .build());
+        final IconButton button = new IconButton(
+            leftPos + x,
+            topPos + y,
+            width,
+            ACTION_BUTTON_HEIGHT,
+            RESET_TEXT,
+            btn -> reset()
+        );
+        button.setIcon(IconButton.Icon.RESET);
+        return addRenderableWidget(button);
     }
 
     private void addConfirmButton(final int x, final int y) {
         final int width = configuration.isHorizontalActionButtons()
-            ? font.width(configuration.getConfirmButtonText()) + ACTION_BUTTON_SPACING + ERROR_SIZE
+            ? font.width(configuration.getConfirmButtonText()) + ACTION_BUTTON_SPACING + ICON_SIZE
             : ACTION_BUTTON_WIDTH;
-        confirmButton = addRenderableWidget(new ConfirmButton(
+        final IconButton button = new IconButton(
             leftPos + x,
             topPos + y,
             width,
             ACTION_BUTTON_HEIGHT,
             configuration.getConfirmButtonText(),
             btn -> tryConfirmAndCloseToParent()
-        ));
+        );
+        button.setIcon(getConfirmButtonIcon());
+        confirmButton = addRenderableWidget(button);
+    }
+
+    @Nullable
+    protected IconButton.Icon getConfirmButtonIcon() {
+        return IconButton.Icon.SET;
     }
 
     private Button addCancelButton(final int x, final int y) {
         final int width = configuration.isHorizontalActionButtons()
-            ? font.width(CANCEL_TEXT) + ACTION_BUTTON_SPACING
+            ? font.width(CANCEL_TEXT) + ACTION_BUTTON_SPACING + ICON_SIZE
             : ACTION_BUTTON_WIDTH;
-        return addRenderableWidget(Button.builder(CANCEL_TEXT, btn -> close())
-            .pos(leftPos + x, topPos + y)
-            .size(width, ACTION_BUTTON_HEIGHT)
-            .build());
+        final IconButton button = new IconButton(
+            leftPos + x,
+            topPos + y,
+            width,
+            ACTION_BUTTON_HEIGHT,
+            CANCEL_TEXT,
+            btn -> close()
+        );
+        button.setIcon(IconButton.Icon.CANCEL);
+        return addRenderableWidget(button);
     }
 
     private void addAmountField() {
         final Vector3f pos = configuration.getAmountFieldPosition();
+        final String originalValue = amountField != null ? amountField.getValue() : null;
         amountField = new EditBox(
             font,
             leftPos + (int) pos.x(),
@@ -126,14 +146,17 @@ public abstract class AbstractAmountScreen<T extends AbstractContainerMenu, N ex
             Component.empty()
         );
         amountField.setBordered(false);
-        if (configuration.getInitialAmount() != null) {
+        amountField.setTextColor(0xFFFFFF);
+        if (originalValue != null) {
+            amountField.setValue(originalValue);
+            onAmountFieldChanged();
+        } else if (configuration.getInitialAmount() != null) {
             updateAmount(configuration.getInitialAmount());
         }
         amountField.setVisible(true);
         amountField.setCanLoseFocus(this instanceof AlternativesScreen);
         amountField.setFocused(true);
         amountField.setResponder(value -> onAmountFieldChanged());
-        amountField.setTextColor(0xFFFFFF);
         setFocused(amountField);
 
         addRenderableWidget(amountField);
@@ -153,7 +176,7 @@ public abstract class AbstractAmountScreen<T extends AbstractContainerMenu, N ex
         final boolean valid = getAndValidateAmount().isPresent();
         if (confirmButton != null) {
             confirmButton.active = valid;
-            confirmButton.setError(!valid);
+            confirmButton.setIcon(valid ? getConfirmButtonIcon() : IconButton.Icon.ERROR);
         } else {
             tryConfirm();
         }

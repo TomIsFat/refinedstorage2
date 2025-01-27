@@ -1,5 +1,10 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
+import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
+import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
@@ -13,11 +18,14 @@ import com.refinedmods.refinedstorage.api.network.security.SecurityDecisionProvi
 import com.refinedmods.refinedstorage.api.network.security.SecurityNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageProvider;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import com.refinedmods.refinedstorage.api.storage.AccessMode;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nullable;
@@ -130,6 +138,26 @@ public class RelayOutputNetworkNode extends AbstractNetworkNode
     }
 
     @Override
+    public void addTask(final Task task) {
+        // TODO(feat): relay support
+    }
+
+    @Override
+    public void cancelTask(final TaskId taskId) {
+        // TODO(feat): relay support
+    }
+
+    @Override
+    public List<TaskStatus> getTaskStatuses() {
+        return List.of(); // TODO(feat): relay support
+    }
+
+    @Override
+    public void receivedExternalIteration() {
+        // TODO(feat): relay support
+    }
+
+    @Override
     public SecurityDecision isAllowed(final Permission permission, final SecurityActor actor) {
         if (securityDelegate == null || securityDelegate.contains(securityDelegate)) {
             return SecurityDecision.PASS;
@@ -155,5 +183,10 @@ public class RelayOutputNetworkNode extends AbstractNetworkNode
     @Override
     public void onRemovedFromContainer(final ParentContainer parentContainer) {
         patternProvider.onRemovedFromContainer(parentContainer);
+    }
+
+    @Override
+    public ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        return ExternalPatternSink.Result.SKIPPED; // TODO(feat): relay support
     }
 }

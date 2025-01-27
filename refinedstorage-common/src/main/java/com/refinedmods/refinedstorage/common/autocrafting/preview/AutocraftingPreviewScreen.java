@@ -3,12 +3,17 @@ package com.refinedmods.refinedstorage.common.autocrafting.preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewItem;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewType;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.support.amount.AbstractAmountScreen;
 import com.refinedmods.refinedstorage.common.support.amount.AmountScreenConfiguration;
 import com.refinedmods.refinedstorage.common.support.amount.DoubleAmountOperations;
+import com.refinedmods.refinedstorage.common.support.amount.IconButton;
+import com.refinedmods.refinedstorage.common.support.tooltip.HelpClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.support.tooltip.SmallText;
+import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
 import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
 
 import java.util.ArrayList;
@@ -16,12 +21,15 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.RateLimiter;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.joml.Vector3f;
@@ -38,9 +46,33 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     private static final MutableComponent TITLE = createTranslation("gui", "autocrafting_preview.title");
     private static final MutableComponent START = createTranslation("gui", "autocrafting_preview.start");
     private static final MutableComponent PENDING = createTranslation("gui", "autocrafting_preview.pending");
+    private static final MutableComponent MAX = createTranslation("gui", "autocrafting_preview.max");
+    private static final MutableComponent MAX_HELP = createTranslation("gui", "autocrafting_preview.max.help");
+    private static final MutableComponent NOTIFY = createTranslation("gui", "autocrafting_preview.notify");
+    private static final MutableComponent NOTIFY_HELP = createTranslation("gui", "autocrafting_preview.notify.help");
     private static final MutableComponent MISSING_RESOURCES = createTranslation(
         "gui",
         "autocrafting_preview.start.missing_resources"
+    );
+    private static final MutableComponent CYCLE_DETECTED = createTranslation(
+        "gui",
+        "autocrafting_preview.cycle_detected"
+    ).withStyle(Style.EMPTY.withBold(true));
+    private static final MutableComponent CYCLE_OUTPUTS = createTranslation(
+        "gui",
+        "autocrafting_preview.cycle_detected.outputs"
+    );
+    private static final MutableComponent BREAK_THE_CYCLE_AND_TRY_AGAIN = createTranslation(
+        "gui",
+        "autocrafting_preview.cycle_detected.break_the_cycle_and_try_again"
+    );
+    private static final MutableComponent REQUEST_TOO_LARGE_TO_HANDLE = createTranslation(
+        "gui",
+        "autocrafting_preview.request_too_large_to_handle"
+    ).withStyle(Style.EMPTY.withBold(true));
+    private static final MutableComponent TRY_SMALLER_AMOUNT = createTranslation(
+        "gui",
+        "autocrafting_preview.request_too_large_to_handle.try_smaller_amount"
     );
     private static final ResourceLocation ROW = createIdentifier("autocrafting_preview/row");
     private static final ResourceLocation CRAFTING_REQUESTS = createIdentifier("autocrafting_preview/requests");
@@ -62,14 +94,20 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     private ScrollbarWidget previewItemsScrollbar;
     @Nullable
     private ScrollbarWidget requestButtonsScrollbar;
+    @Nullable
+    private Button maxButton;
+    @Nullable
+    private CheckboxWidget notifyCheckbox;
 
     private final List<AutocraftingRequestButton> requestButtons = new ArrayList<>();
     private final boolean requestsButtonsVisible;
 
     private final RateLimiter requestRateLimiter = RateLimiter.create(1);
+    private final RateLimiter maxAmountRequestRateLimiter = RateLimiter.create(1 / 5D);
 
     @Nullable
     private Double changedAmount;
+    private boolean mayEnableMaxAmountRequestButtonAgain;
 
     public AutocraftingPreviewScreen(final Screen parent,
                                      final Inventory playerInventory,
@@ -77,9 +115,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         this(new AutocraftingPreviewContainerMenu(requests), parent, playerInventory);
     }
 
-    public AutocraftingPreviewScreen(final AutocraftingPreviewContainerMenu menu,
-                                     final Inventory playerInventory,
-                                     final Component title) {
+    public AutocraftingPreviewScreen(final AutocraftingPreviewContainerMenu menu, final Inventory playerInventory) {
         this(menu, null, playerInventory);
     }
 
@@ -114,6 +150,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
 
     @Override
     protected void init() {
+        final boolean wasAlreadyInitialized = amountField != null;
         super.init();
         previewItemsScrollbar = new ScrollbarWidget(
             leftPos + 235,
@@ -122,19 +159,57 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             PREVIEW_AREA_HEIGHT
         );
         previewItemsScrollbar.setEnabled(false);
+
         if (requestsButtonsVisible) {
             initRequestButtons();
         }
+
         if (confirmButton != null) {
             setStartDisabled();
         }
-        getMenu().loadCurrentRequest();
+
+        if (!wasAlreadyInitialized) {
+            getMenu().loadCurrentRequest();
+        }
+
+        final boolean wasActive = maxButton == null || maxButton.active;
+        maxButton = Button.builder(MAX, this::requestMaxAmount)
+            .size(22, 15)
+            .pos(leftPos + 185 - 1, topPos + 49 - 1)
+            .build();
+        maxButton.active = wasActive;
+        addRenderableWidget(maxButton);
+
+        final boolean selected = notifyCheckbox == null ? menu.isNotify() : notifyCheckbox.isSelected();
+        notifyCheckbox = new CheckboxWidget(
+            leftPos + imageWidth - font.width(NOTIFY) - 4 - 9 - 6,
+            topPos + 222 + 6,
+            NOTIFY,
+            Minecraft.getInstance().font,
+            selected,
+            CheckboxWidget.Size.SMALL
+        );
+        notifyCheckbox.setHelpTooltip(NOTIFY_HELP);
+        notifyCheckbox.setOnPressed((checkbox, notify) -> menu.setNotify(notify));
+        addRenderableWidget(notifyCheckbox);
+
         getExclusionZones().add(new Rect2i(
             leftPos - REQUESTS_WIDTH + 4,
             topPos,
             REQUESTS_WIDTH,
             REQUESTS_HEIGHT
         ));
+    }
+
+    @Nullable
+    @Override
+    protected IconButton.Icon getConfirmButtonIcon() {
+        return null;
+    }
+
+    private void requestMaxAmount(final Button button) {
+        button.active = false;
+        getMenu().requestMaxAmount();
     }
 
     private void initRequestButtons() {
@@ -208,7 +283,9 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         previewItemsScrollbar.setEnabled(rows > 0);
         confirmButton.setMessage(START);
         confirmButton.active = preview.type() == PreviewType.SUCCESS;
-        confirmButton.setError(preview.type() != PreviewType.SUCCESS);
+        confirmButton.setIcon(preview.type() == PreviewType.SUCCESS
+            ? IconButton.Icon.START
+            : IconButton.Icon.ERROR);
         confirmButton.setTooltip(preview.type() == PreviewType.MISSING_RESOURCES
             ? Tooltip.create(MISSING_RESOURCES)
             : null);
@@ -254,16 +331,116 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
         final int x = leftPos + 8;
         final int y = topPos + 98;
         graphics.enableScissor(x, y, x + 221, y + PREVIEW_AREA_HEIGHT);
+        if (preview.type() == PreviewType.CYCLE_DETECTED) {
+            renderCycleDetected(graphics, y, x, preview);
+        } else if (preview.type() == PreviewType.OVERFLOW) {
+            renderRequestTooLargeToHandle(graphics, x, y);
+        } else {
+            renderPreviewRows(graphics, mouseX, mouseY, preview, y, x);
+        }
+        graphics.disableScissor();
+    }
+
+    private void renderCycleDetected(final GuiGraphics graphics, final int y, final int x, final Preview preview) {
+        int yy = y + 4;
+        SmallText.render(
+            graphics,
+            font,
+            CYCLE_DETECTED.getVisualOrderText(),
+            x + 4,
+            yy,
+            0xFF5555,
+            false,
+            SmallText.DEFAULT_SCALE
+        );
+        yy += 10;
+        SmallText.render(
+            graphics,
+            font,
+            CYCLE_OUTPUTS.getVisualOrderText(),
+            x + 4,
+            yy,
+            0x404040,
+            false,
+            SmallText.DEFAULT_SCALE
+        );
+        yy += 10;
+        for (final ResourceAmount output : preview.outputsOfPatternWithCycle()) {
+            final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(
+                output.resource().getClass()
+            );
+            rendering.render(output.resource(), graphics, x + 4, yy);
+            SmallText.render(
+                graphics,
+                font,
+                Component.literal(output.amount() + "x ").append(rendering.getDisplayName(output.resource()))
+                    .getVisualOrderText(),
+                x + 4 + 16 + 3,
+                yy + 5,
+                0x404040,
+                false,
+                SmallText.DEFAULT_SCALE
+            );
+            yy += 18;
+        }
+        yy += 2;
+        SmallText.render(
+            graphics,
+            font,
+            BREAK_THE_CYCLE_AND_TRY_AGAIN.getVisualOrderText(),
+            x + 4,
+            yy,
+            0x404040,
+            false,
+            SmallText.DEFAULT_SCALE
+        );
+    }
+
+    private void renderRequestTooLargeToHandle(final GuiGraphics graphics, final int x, final int y) {
+        SmallText.render(
+            graphics,
+            font,
+            REQUEST_TOO_LARGE_TO_HANDLE.getVisualOrderText(),
+            x + 4,
+            y + 4,
+            0xFF5555,
+            false,
+            SmallText.DEFAULT_SCALE
+        );
+        SmallText.render(
+            graphics,
+            font,
+            TRY_SMALLER_AMOUNT.getVisualOrderText(),
+            x + 4,
+            y + 4 + 10,
+            0x404040,
+            false,
+            SmallText.DEFAULT_SCALE
+        );
+    }
+
+    private void renderPreviewRows(final GuiGraphics graphics,
+                                   final int mouseX,
+                                   final int mouseY,
+                                   final Preview preview,
+                                   final int y,
+                                   final int x) {
         final List<PreviewItem> items = preview.items();
         final int rows = Math.ceilDiv(items.size(), COLUMNS);
         for (int i = 0; i < rows; ++i) {
-            final int scrollOffset = previewItemsScrollbar.isSmoothScrolling()
-                ? (int) previewItemsScrollbar.getOffset()
-                : (int) previewItemsScrollbar.getOffset() * ROW_HEIGHT;
+            final int scrollOffset = getScrollOffset();
             final int yy = y + (i * ROW_HEIGHT) - scrollOffset;
             renderRow(graphics, x, yy, i, items, mouseX, mouseY);
         }
-        graphics.disableScissor();
+    }
+
+    private int getScrollOffset() {
+        if (previewItemsScrollbar == null) {
+            return 0;
+        }
+        return (previewItemsScrollbar.isSmoothScrolling()
+            ? (int) previewItemsScrollbar.getOffset()
+            : (int) previewItemsScrollbar.getOffset() * ROW_HEIGHT);
     }
 
     private void renderRow(final GuiGraphics graphics,
@@ -336,8 +513,22 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             x,
             y,
             0x404040,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
+    }
+
+    @Override
+    protected void renderTooltip(final GuiGraphics graphics, final int x, final int y) {
+        super.renderTooltip(graphics, x, y);
+        if (maxButton != null && maxButton.isHovered()) {
+            Platform.INSTANCE.renderTooltip(
+                graphics,
+                List.of(HelpClientTooltipComponent.createAlwaysDisplayed(MAX_HELP)),
+                x,
+                y
+            );
+        }
     }
 
     @Override
@@ -424,15 +615,21 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     }
 
     private void setPending() {
+        if (confirmButton == null) {
+            return;
+        }
         confirmButton.active = false;
-        confirmButton.setError(false);
+        confirmButton.setIcon(null);
         confirmButton.setTooltip(null);
         confirmButton.setMessage(PENDING);
     }
 
     private void setStartDisabled() {
+        if (confirmButton == null) {
+            return;
+        }
         confirmButton.active = false;
-        confirmButton.setError(false);
+        confirmButton.setIcon(null);
         confirmButton.setTooltip(null);
         confirmButton.setMessage(START);
     }
@@ -444,6 +641,10 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             getMenu().amountChanged(changedAmount);
             changedAmount = null;
         }
+        if (mayEnableMaxAmountRequestButtonAgain && maxButton != null && maxAmountRequestRateLimiter.tryAcquire()) {
+            maxButton.active = true;
+            mayEnableMaxAmountRequestButtonAgain = false;
+        }
     }
 
     @Override
@@ -454,7 +655,7 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
     @Override
     protected boolean confirm(final Double amount) {
         setPending();
-        getMenu().sendRequest(amount);
+        getMenu().sendRequest(amount, notifyCheckbox == null ? menu.isNotify() : notifyCheckbox.isSelected());
         return false;
     }
 
@@ -485,6 +686,13 @@ public class AutocraftingPreviewScreen extends AbstractAmountScreen<Autocrafting
             requestButton.setY(buttonY);
             requestButton.visible = isCraftingRequestButtonVisible(buttonY);
         }
+    }
+
+    @Override
+    public void maxAmountReceived(final double maxAmount) {
+        updateAmount(maxAmount);
+        maxAmountRequestRateLimiter.tryAcquire();
+        mayEnableMaxAmountRequestButtonAgain = true;
     }
 
     private void updateRequestsScrollbar() {

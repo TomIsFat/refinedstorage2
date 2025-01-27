@@ -1,7 +1,6 @@
 package com.refinedmods.refinedstorage.api.storage.root;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.resource.list.listenable.ResourceListListener;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedStorage;
 
@@ -21,14 +20,14 @@ public interface RootStorage extends Storage, TrackedStorage {
      *
      * @param listener the listener
      */
-    void addListener(ResourceListListener listener);
+    void addListener(RootStorageListener listener);
 
     /**
      * Removes a listener.
      *
      * @param listener the listener
      */
-    void removeListener(ResourceListListener listener);
+    void removeListener(RootStorageListener listener);
 
     /**
      * @param resource the resource

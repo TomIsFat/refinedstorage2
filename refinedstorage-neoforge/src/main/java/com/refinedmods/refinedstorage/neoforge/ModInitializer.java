@@ -34,6 +34,7 @@ import com.refinedmods.refinedstorage.common.support.packet.PacketHandler;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocrafterNameChangePacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingMonitorCancelAllPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingMonitorCancelPacket;
+import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingPreviewMaxAmountRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingPreviewRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.AutocraftingRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.CraftingGridClearPacket;
@@ -59,14 +60,17 @@ import com.refinedmods.refinedstorage.common.support.packet.c2s.SecurityCardRese
 import com.refinedmods.refinedstorage.common.support.packet.c2s.SingleAmountChangePacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.StorageInfoRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.UseSlotReferencedItemPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterLockedUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterManagerActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterNameUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskAddedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskRemovedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskStatusChangedPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewMaxAmountResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingResponsePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingTaskCompletedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.EnergyInfoPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridClearPacket;
@@ -79,9 +83,11 @@ import com.refinedmods.refinedstorage.common.support.packet.s2c.StorageInfoRespo
 import com.refinedmods.refinedstorage.common.support.packet.s2c.WirelessTransmitterDataPacket;
 import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeItem;
 import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
-import com.refinedmods.refinedstorage.common.util.ServerEventQueue;
+import com.refinedmods.refinedstorage.common.util.ServerListener;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApi;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApiProxy;
+import com.refinedmods.refinedstorage.neoforge.autocrafting.FluidHandlerExternalPatternProviderSinkFactory;
+import com.refinedmods.refinedstorage.neoforge.autocrafting.ItemHandlerExternalPatternProviderSinkFactory;
 import com.refinedmods.refinedstorage.neoforge.constructordestructor.ForgeConstructorBlockEntity;
 import com.refinedmods.refinedstorage.neoforge.constructordestructor.ForgeDestructorBlockEntity;
 import com.refinedmods.refinedstorage.neoforge.exporter.FluidHandlerExporterTransferStrategyFactory;
@@ -146,6 +152,8 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import net.neoforged.neoforge.items.wrapper.RangedWrapper;
@@ -210,6 +218,7 @@ public class ModInitializer extends AbstractModInitializer {
         registerImporterTransferStrategyFactories();
         registerExporterTransferStrategyFactories();
         registerExternalStorageProviderFactories();
+        registerPatternProviderSinkFactories();
         registerContent(eventBus);
         registerSounds(eventBus);
         registerRecipeSerializers(eventBus);
@@ -278,6 +287,15 @@ public class ModInitializer extends AbstractModInitializer {
             new ItemHandlerPlatformExternalStorageProviderFactory());
         RefinedStorageApi.INSTANCE.addExternalStorageProviderFactory(
             new FluidHandlerPlatformExternalStorageProviderFactory()
+        );
+    }
+
+    private void registerPatternProviderSinkFactories() {
+        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternSinkFactory(
+            new ItemHandlerExternalPatternProviderSinkFactory()
+        );
+        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternSinkFactory(
+            new FluidHandlerExternalPatternProviderSinkFactory()
         );
     }
 
@@ -557,6 +575,8 @@ public class ModInitializer extends AbstractModInitializer {
 
     private void registerTickHandler() {
         NeoForge.EVENT_BUS.addListener(this::onServerTick);
+        NeoForge.EVENT_BUS.addListener(this::onServerStarting);
+        NeoForge.EVENT_BUS.addListener(this::onServerStopped);
     }
 
     @SubscribeEvent
@@ -684,9 +704,19 @@ public class ModInitializer extends AbstractModInitializer {
             wrapHandler(AutocrafterNameUpdatePacket::handle)
         );
         registrar.playToClient(
+            AutocrafterLockedUpdatePacket.PACKET_TYPE,
+            AutocrafterLockedUpdatePacket.STREAM_CODEC,
+            wrapHandler(AutocrafterLockedUpdatePacket::handle)
+        );
+        registrar.playToClient(
             AutocraftingPreviewResponsePacket.PACKET_TYPE,
             AutocraftingPreviewResponsePacket.STREAM_CODEC,
             wrapHandler((packet, ctx) -> AutocraftingPreviewResponsePacket.handle(packet))
+        );
+        registrar.playToClient(
+            AutocraftingPreviewMaxAmountResponsePacket.PACKET_TYPE,
+            AutocraftingPreviewMaxAmountResponsePacket.STREAM_CODEC,
+            wrapHandler((packet, ctx) -> AutocraftingPreviewMaxAmountResponsePacket.handle(packet))
         );
         registrar.playToClient(
             AutocraftingResponsePacket.PACKET_TYPE,
@@ -712,6 +742,11 @@ public class ModInitializer extends AbstractModInitializer {
             AutocraftingMonitorActivePacket.PACKET_TYPE,
             AutocraftingMonitorActivePacket.STREAM_CODEC,
             wrapHandler(AutocraftingMonitorActivePacket::handle)
+        );
+        registrar.playToClient(
+            AutocraftingTaskCompletedPacket.PACKET_TYPE,
+            AutocraftingTaskCompletedPacket.STREAM_CODEC,
+            wrapHandler((packet, ctx) -> AutocraftingTaskCompletedPacket.handle(packet))
         );
     }
 
@@ -842,6 +877,11 @@ public class ModInitializer extends AbstractModInitializer {
             wrapHandler(AutocraftingPreviewRequestPacket::handle)
         );
         registrar.playToServer(
+            AutocraftingPreviewMaxAmountRequestPacket.PACKET_TYPE,
+            AutocraftingPreviewMaxAmountRequestPacket.STREAM_CODEC,
+            wrapHandler(AutocraftingPreviewMaxAmountRequestPacket::handle)
+        );
+        registrar.playToServer(
             AutocraftingRequestPacket.PACKET_TYPE,
             AutocraftingRequestPacket.STREAM_CODEC,
             wrapHandler(AutocraftingRequestPacket::handle)
@@ -864,7 +904,17 @@ public class ModInitializer extends AbstractModInitializer {
 
     @SubscribeEvent
     public void onServerTick(final ServerTickEvent.Pre e) {
-        ServerEventQueue.runQueuedActions();
+        ServerListener.tick(e.getServer());
+    }
+
+    @SubscribeEvent
+    public void onServerStarting(final ServerStartingEvent e) {
+        ServerListener.starting();
+    }
+
+    @SubscribeEvent
+    public void onServerStopped(final ServerStoppedEvent e) {
+        ServerListener.stopped();
     }
 
     private record ForgeRegistryCallback<T>(DeferredRegister<T> registry) implements RegistryCallback<T> {

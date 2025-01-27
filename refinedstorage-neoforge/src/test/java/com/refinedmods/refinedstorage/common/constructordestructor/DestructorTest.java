@@ -19,6 +19,7 @@ import static com.refinedmods.refinedstorage.common.GameTestUtil.asResource;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.insert;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.networkIsAvailable;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.storageContainsExactly;
+import static com.refinedmods.refinedstorage.common.constructordestructor.DestructorTestPlots.preparePlot;
 import static net.minecraft.world.item.Items.DIAMOND;
 import static net.minecraft.world.item.Items.DIAMOND_ORE;
 import static net.minecraft.world.item.Items.DIRT;
@@ -34,7 +35,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldBreakBlock(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -68,7 +69,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldBreakBlockAllowlist(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -99,7 +100,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldBreakBlockBlocklist(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -130,7 +131,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldBreakBlockWithSilkTouchUpgrade(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -157,7 +158,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldPickupItemAllowlist(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -189,7 +190,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldPickupItemBlocklist(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -221,7 +222,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldDrainFluidAllowlist(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -253,7 +254,7 @@ public final class DestructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldDrainFluidBlocklist(final GameTestHelper helper) {
-        DestructorTestPlots.preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (destructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);

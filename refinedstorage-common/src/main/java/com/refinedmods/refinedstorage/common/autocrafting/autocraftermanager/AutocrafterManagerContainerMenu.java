@@ -1,5 +1,7 @@
 package com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
@@ -18,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.ints.IntIntPair;
@@ -262,25 +263,34 @@ public class AutocrafterManagerContainerMenu extends AbstractBaseContainerMenu i
         boolean hasPatternInput(final Level level, final String normalizedQuery, final int index) {
             final ItemStack patternStack = backingInventory.getItem(index);
             return RefinedStorageApi.INSTANCE.getPattern(patternStack, level).map(
-                pattern -> hasResource(pattern.getInputResources(), normalizedQuery)
+                pattern -> hasIngredient(pattern.layout().ingredients(), normalizedQuery)
             ).orElse(false);
         }
 
         boolean hasPatternOutput(final Level level, final String normalizedQuery, final int index) {
             final ItemStack patternStack = backingInventory.getItem(index);
             return RefinedStorageApi.INSTANCE.getPattern(patternStack, level).map(
-                pattern -> hasResource(pattern.getOutputResources(), normalizedQuery)
+                pattern -> hasResource(pattern.layout().outputs(), normalizedQuery)
             ).orElse(false);
         }
 
-        private static boolean hasResource(final Set<ResourceKey> resources, final String normalizedQuery) {
-            return resources.stream().anyMatch(key ->
-                RefinedStorageClientApi.INSTANCE.getResourceRendering(key.getClass())
-                    .getDisplayName(key)
-                    .getString()
-                    .toLowerCase(Locale.ROOT)
-                    .trim()
-                    .contains(normalizedQuery));
+        private static boolean hasIngredient(final List<Ingredient> ingredients, final String normalizedQuery) {
+            return ingredients.stream().flatMap(i -> i.inputs().stream()).anyMatch(key ->
+                hasResource(normalizedQuery, key));
+        }
+
+        private static boolean hasResource(final List<ResourceAmount> resources, final String normalizedQuery) {
+            return resources.stream().map(ResourceAmount::resource).anyMatch(key ->
+                hasResource(normalizedQuery, key));
+        }
+
+        private static boolean hasResource(final String normalizedQuery, final ResourceKey key) {
+            return RefinedStorageClientApi.INSTANCE.getResourceRendering(key.getClass())
+                .getDisplayName(key)
+                .getString()
+                .toLowerCase(Locale.ROOT)
+                .trim()
+                .contains(normalizedQuery);
         }
     }
 

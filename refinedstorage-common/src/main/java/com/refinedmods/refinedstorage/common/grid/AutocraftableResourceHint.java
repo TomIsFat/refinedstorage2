@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.common.grid;
 
 public enum AutocraftableResourceHint {
     AUTOCRAFTABLE(0x80FFA500),
-    PATTERN_IN_INVENTORY(0x7FFFFFFF);
+    PATTERN_IN_INVENTORY(0x3FFFA500);
 
     private final int color;
 

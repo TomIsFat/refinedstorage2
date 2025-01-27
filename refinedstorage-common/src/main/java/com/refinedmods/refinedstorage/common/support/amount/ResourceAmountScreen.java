@@ -41,7 +41,7 @@ public class ResourceAmountScreen
             DoubleAmountOperations.INSTANCE
         );
         this.slot = slot;
-        this.imageWidth = 172;
+        this.imageWidth = 180;
         this.imageHeight = 99;
     }
 

@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.common.autocrafting.monitor;
 
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.common.support.AbstractBaseContainerMenu;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.C2SPackets;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.S2CPackets;
@@ -74,14 +74,6 @@ public abstract class AbstractAutocraftingMonitorContainerMenu extends AbstractB
         }
     }
 
-    @Override
-    public void broadcastChanges() {
-        super.broadcastChanges();
-        if (autocraftingMonitor != null) {
-            autocraftingMonitor.testUpdate();
-        }
-    }
-
     void setListener(@Nullable final AutocraftingMonitorListener listener) {
         this.listener = listener;
     }
@@ -98,7 +90,7 @@ public abstract class AbstractAutocraftingMonitorContainerMenu extends AbstractB
         return tasksView;
     }
 
-    float getPercentageCompleted(final TaskId taskId) {
+    double getPercentageCompleted(final TaskId taskId) {
         final TaskStatus status = statusByTaskId.get(taskId);
         return status == null ? 0 : status.percentageCompleted();
     }

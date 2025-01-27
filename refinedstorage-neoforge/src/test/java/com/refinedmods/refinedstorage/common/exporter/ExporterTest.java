@@ -25,6 +25,7 @@ import static com.refinedmods.refinedstorage.common.GameTestUtil.insert;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.interfaceContainsExactly;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.networkIsAvailable;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.storageContainsExactly;
+import static com.refinedmods.refinedstorage.common.exporter.ExporterTestPlots.preparePlot;
 import static net.minecraft.world.item.Items.DIAMOND_CHESTPLATE;
 import static net.minecraft.world.item.Items.DIRT;
 import static net.minecraft.world.item.Items.STONE;
@@ -38,7 +39,7 @@ public final class ExporterTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldExportItem(final GameTestHelper helper) {
-        ExporterTestPlots.preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
+        preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
             // Arrange
             final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
 
@@ -71,7 +72,7 @@ public final class ExporterTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldExportItemWithStackUpgrade(final GameTestHelper helper) {
-        ExporterTestPlots.preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
+        preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 65);
@@ -115,7 +116,7 @@ public final class ExporterTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldExportItemWithRegulatorUpgrade(final GameTestHelper helper) {
-        ExporterTestPlots.preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
+        preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 15);
@@ -151,7 +152,7 @@ public final class ExporterTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldExportItemFuzzy(final GameTestHelper helper) {
-        ExporterTestPlots.preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
+        preparePlot(helper, Blocks.CHEST, Direction.EAST, (exporter, pos, sequence) -> {
             // Arrange
             final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
 
@@ -186,7 +187,7 @@ public final class ExporterTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldExportFluid(final GameTestHelper helper) {
-        ExporterTestPlots.preparePlot(helper, Blocks.CAULDRON, Direction.EAST, (exporter, pos, sequence) -> {
+        preparePlot(helper, Blocks.CAULDRON, Direction.EAST, (exporter, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -214,7 +215,7 @@ public final class ExporterTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldExportFluidWithStackUpgrade(final GameTestHelper helper) {
-        ExporterTestPlots.preparePlot(helper, RSBLOCKS.getInterface(), Direction.EAST, (exporter, pos, sequence) -> {
+        preparePlot(helper, RSBLOCKS.getInterface(), Direction.EAST, (exporter, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);

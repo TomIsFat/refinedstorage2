@@ -48,7 +48,7 @@ public abstract class AbstractDiskInterfaceBlockEntity
             Platform.INSTANCE.getConfig().getDiskInterface().getEnergyUsagePerDisk(),
             AMOUNT_OF_DISKS
         ));
-        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.DISK_INTERFACE, upgradeEnergyUsage -> {
+        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.DISK_INTERFACE, (c, upgradeEnergyUsage) -> {
             final long baseEnergyUsage = Platform.INSTANCE.getConfig().getDiskInterface().getEnergyUsage();
             mainNetworkNode.setEnergyUsage(baseEnergyUsage + upgradeEnergyUsage);
             setChanged();

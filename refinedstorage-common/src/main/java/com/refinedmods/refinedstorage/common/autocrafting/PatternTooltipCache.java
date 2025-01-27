@@ -19,7 +19,7 @@ public final class PatternTooltipCache {
         return CACHE.computeIfAbsent(key.id(), id -> new CraftingPatternClientTooltipComponent(
             key.width(),
             key.height(),
-            key.craftingPattern()
+            key.pattern()
         ));
     }
 
@@ -35,7 +35,7 @@ public final class PatternTooltipCache {
             CACHE.clear();
         }
         return CACHE.computeIfAbsent(key.id(), id -> new StonecutterPatternClientTooltipComponent(
-            key.stonecutterPattern()
+            key.pattern()
         ));
     }
 
@@ -44,7 +44,7 @@ public final class PatternTooltipCache {
             CACHE.clear();
         }
         return CACHE.computeIfAbsent(key.id(), id -> new SmithingTablePatternClientTooltipComponent(
-            key.smithingTablePattern()
+            key.pattern()
         ));
     }
 }

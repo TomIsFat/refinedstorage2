@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.common.autocrafting.monitor;
 
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.support.AbstractBaseScreen;
@@ -12,21 +12,18 @@ import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 
 import static com.refinedmods.refinedstorage.common.support.Sprites.ERROR;
-import static com.refinedmods.refinedstorage.common.support.Sprites.ERROR_SIZE;
+import static com.refinedmods.refinedstorage.common.support.Sprites.ICON_SIZE;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
@@ -39,8 +36,8 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     private static final int COLUMNS = 3;
     private static final int ITEMS_AREA_HEIGHT = 179;
 
+    private static final int ITEM_COLOR = 0xFFDBDBDB;
     private static final int PROCESSING_COLOR = 0xFFD9EDF7;
-    private static final int MISSING_COLOR = 0xFFF2DEDE;
     private static final int SCHEDULED_COLOR = 0xFFE8E5CA;
     private static final int CRAFTING_COLOR = 0xFFADDBC6;
 
@@ -50,19 +47,6 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     private static final ResourceLocation TEXTURE = createIdentifier("textures/gui/autocrafting_monitor.png");
     private static final ResourceLocation ROW = createIdentifier("autocrafting_monitor/row");
     private static final ResourceLocation TASKS = createIdentifier("autocrafting_monitor/tasks");
-
-    private static final MutableComponent MACHINE_DOES_NOT_ACCEPT_RESOURCE = createTranslation(
-        "gui",
-        "autocrafting_monitor.machine_does_not_accept_resource"
-    ).withStyle(ChatFormatting.RED);
-    private static final MutableComponent NO_MACHINE_FOUND = createTranslation(
-        "gui",
-        "autocrafting_monitor.no_machine_found"
-    ).withStyle(ChatFormatting.RED);
-    private static final MutableComponent AUTOCRAFTER_IS_LOCKED = createTranslation(
-        "gui",
-        "autocrafting_monitor.autocrafter_is_locked"
-    ).withStyle(ChatFormatting.RED);
 
     private static final MutableComponent CANCEL = createTranslation("gui", "autocrafting_monitor.cancel");
     private static final MutableComponent CANCEL_ALL = createTranslation("gui", "autocrafting_monitor.cancel_all");
@@ -242,14 +226,11 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         }
     }
 
-    private static int getItemColor(final TaskStatus.Item item) {
-        if (item.missing() > 0) {
-            return MISSING_COLOR;
-        }
-        return getItemColor2(item);
+    private static int getItemColor(final TaskStatus.Item item, final boolean hovering) {
+        return hovering ? darkenARGB(getItemColor(item), 0.1) : getItemColor(item);
     }
 
-    private static int getItemColor2(final TaskStatus.Item item) {
+    private static int getItemColor(final TaskStatus.Item item) {
         if (item.processing() > 0) {
             return PROCESSING_COLOR;
         }
@@ -259,7 +240,20 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         if (item.crafting() > 0) {
             return CRAFTING_COLOR;
         }
-        return 0;
+        return ITEM_COLOR;
+    }
+
+    private static int darkenARGB(final int argb, final double percentage) {
+        final int alpha = (argb >> 24) & 0xFF;
+        int red = (argb >> 16) & 0xFF;
+        int green = (argb >> 8) & 0xFF;
+        int blue = argb & 0xFF;
+
+        red = (int) Math.max(0, red * (1 - percentage));
+        green = (int) Math.max(0, green * (1 - percentage));
+        blue = (int) Math.max(0, blue * (1 - percentage));
+
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
     private void renderItem(final GuiGraphics graphics,
@@ -268,8 +262,9 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
                             final TaskStatus.Item item,
                             final double mouseX,
                             final double mouseY) {
-        final int color = getItemColor(item);
-        if (color != 0) {
+        final boolean hovering = isHovering(x - leftPos, y - topPos, 73, 29, mouseX, mouseY);
+        final int color = getItemColor(item, hovering);
+        if (color != ITEM_COLOR) {
             graphics.fill(x, y, x + 73, y + 29, color);
         }
         if (item.type() != TaskStatus.ItemType.NORMAL) {
@@ -283,7 +278,7 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         rendering.render(item.resource(), graphics, xx, yy);
         if (isHovering(x - leftPos, y - topPos, 73, 29, mouseX, mouseY)
             && isHoveringOverItems(mouseX, mouseY)) {
-            setTooltipForNextRenderPass(getItemTooltip(item, rendering));
+            setDeferredTooltip(List.of(new AutocraftingMonitorItemTooltip(item)));
         }
         if (!SmallText.isSmall()) {
             yy -= 2;
@@ -295,30 +290,11 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
     private static void renderItemErrorIcon(final GuiGraphics graphics, final int x, final int y) {
         graphics.blitSprite(
             ERROR,
-            x + 73 - ERROR_SIZE - 3,
-            y + (29 / 2) - (ERROR_SIZE / 2),
-            ERROR_SIZE,
-            ERROR_SIZE
+            x + 73 - ICON_SIZE - 3,
+            y + 29 - ICON_SIZE - 3,
+            ICON_SIZE,
+            ICON_SIZE
         );
-    }
-
-    private List<FormattedCharSequence> getItemTooltip(final TaskStatus.Item item, final ResourceRendering rendering) {
-        final List<FormattedCharSequence> tooltip = rendering.getTooltip(item.resource()).stream()
-            .map(Component::getVisualOrderText)
-            .collect(Collectors.toList());
-        if (item.type() != TaskStatus.ItemType.NORMAL) {
-            tooltip.add(getErrorTooltip(item.type()).getVisualOrderText());
-        }
-        return tooltip;
-    }
-
-    private Component getErrorTooltip(final TaskStatus.ItemType type) {
-        return switch (type) {
-            case MACHINE_DOES_NOT_ACCEPT_RESOURCE -> MACHINE_DOES_NOT_ACCEPT_RESOURCE;
-            case NO_MACHINE_FOUND -> NO_MACHINE_FOUND;
-            case AUTOCRAFTER_IS_LOCKED -> AUTOCRAFTER_IS_LOCKED;
-            default -> Component.empty();
-        };
     }
 
     private void renderItemText(final GuiGraphics graphics,
@@ -329,10 +305,6 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
         int yy = y;
         if (item.stored() > 0) {
             renderItemText(graphics, "stored", rendering, x, yy, item.stored());
-            yy += 7;
-        }
-        if (item.missing() > 0) {
-            renderItemText(graphics, "missing", rendering, x, yy, item.missing());
             yy += 7;
         }
         if (item.processing() > 0) {
@@ -362,7 +334,8 @@ public class AutocraftingMonitorScreen extends AbstractBaseScreen<AbstractAutocr
             x,
             y,
             0x404040,
-            false
+            false,
+            SmallText.DEFAULT_SCALE
         );
     }
 

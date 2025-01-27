@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.common.grid;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.grid.operations.GridOperations;
 import com.refinedmods.refinedstorage.api.grid.operations.NoopGridOperations;
 import com.refinedmods.refinedstorage.api.grid.watcher.GridWatcher;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -116,12 +118,26 @@ class WirelessGrid implements Grid {
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
-        return getAutocrafting().flatMap(component -> component.getPreview(resource, amount));
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
+        return getAutocrafting()
+            .map(component -> component.getPreview(resource, amount))
+            .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
-        return getAutocrafting().map(autocrafting -> autocrafting.startTask(resource, amount)).orElse(false);
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return getAutocrafting()
+            .map(component -> component.getMaxAmount(resource))
+            .orElseGet(() -> CompletableFuture.completedFuture(0L));
+    }
+
+    @Override
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) {
+        return getAutocrafting()
+            .map(autocrafting -> autocrafting.startTask(resource, amount, actor, notify))
+            .orElse(CompletableFuture.completedFuture(Optional.empty()));
     }
 }

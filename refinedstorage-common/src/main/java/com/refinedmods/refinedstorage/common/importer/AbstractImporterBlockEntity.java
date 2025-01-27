@@ -68,7 +68,7 @@ public abstract class AbstractImporterBlockEntity
             this::setFilters
         );
         this.mainNetworkNode.setNormalizer(filter.createNormalizer());
-        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.IMPORTER, upgradeEnergyUsage -> {
+        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.IMPORTER, (c, upgradeEnergyUsage) -> {
             final long baseEnergyUsage = Platform.INSTANCE.getConfig().getImporter().getEnergyUsage();
             mainNetworkNode.setEnergyUsage(baseEnergyUsage + upgradeEnergyUsage);
             setChanged();

@@ -4,7 +4,6 @@ import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.AbstractProxyStorage;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedStorage;
@@ -35,7 +34,7 @@ class PlatformStorage extends AbstractProxyStorage implements SerializableStorag
         if (!type.isAllowed(resource)) {
             return;
         }
-        super.insert(resource, storageResource.amount(), Action.EXECUTE, EmptyActor.INSTANCE);
+        super.insert(resource, storageResource.amount(), Action.EXECUTE, Actor.EMPTY);
         storageResource.changed().ifPresent(
             changed -> trackingRepository.update(resource, new PlayerActor(changed.changedBy()), changed.changedAt())
         );

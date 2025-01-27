@@ -105,6 +105,11 @@ public class MutableResourceListImpl implements MutableResourceList {
     }
 
     @Override
+    public boolean isEmpty() {
+        return entries.isEmpty();
+    }
+
+    @Override
     public void clear() {
         entries.clear();
     }
@@ -114,6 +119,11 @@ public class MutableResourceListImpl implements MutableResourceList {
         final MutableResourceList copy = MutableResourceListImpl.create();
         entries.forEach((key, entry) -> copy.add(key, entry.amount));
         return copy;
+    }
+
+    @Override
+    public String toString() {
+        return entries.toString();
     }
 
     private static class Entry {
@@ -141,6 +151,11 @@ public class MutableResourceListImpl implements MutableResourceList {
 
         private ResourceAmount toResourceAmount() {
             return new ResourceAmount(resource, amount);
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(amount);
         }
     }
 }

@@ -2,11 +2,13 @@ package com.refinedmods.refinedstorage.common.storagemonitor;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewProvider;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
@@ -26,6 +28,7 @@ import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerI
 import com.refinedmods.refinedstorage.common.util.PlatformUtil;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.RateLimiter;
@@ -367,18 +370,30 @@ public class StorageMonitorBlockEntity extends AbstractBaseNetworkNodeContainerB
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
         return Optional.ofNullable(mainNetworkNode.getNetwork())
             .map(network -> network.getComponent(AutocraftingNetworkComponent.class))
-            .flatMap(component -> component.getPreview(resource, amount));
+            .map(component -> component.getPreview(resource, amount))
+            .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return Optional.ofNullable(mainNetworkNode.getNetwork())
+            .map(network -> network.getComponent(AutocraftingNetworkComponent.class))
+            .map(component -> component.getMaxAmount(resource))
+            .orElseGet(() -> CompletableFuture.completedFuture(0L));
+    }
+
+    @Override
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) {
         final Network network = mainNetworkNode.getNetwork();
         if (network == null) {
-            return false;
+            return CompletableFuture.completedFuture(Optional.empty());
         }
-        return network.getComponent(AutocraftingNetworkComponent.class).startTask(resource, amount);
+        return network.getComponent(AutocraftingNetworkComponent.class).startTask(resource, amount, actor, notify);
     }
 }

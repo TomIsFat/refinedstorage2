@@ -25,6 +25,10 @@ public interface Config {
 
     int getMaxRowsStretch();
 
+    boolean isAutocraftingNotification();
+
+    void setAutocraftingNotification(boolean autocraftingNotification);
+
     GridEntry getGrid();
 
     SimpleEnergyUsageEntry getPatternGrid();

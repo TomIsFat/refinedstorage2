@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.common.storage.portablegrid;
 
 import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.grid.operations.GridOperations;
 import com.refinedmods.refinedstorage.api.grid.operations.NoopGridOperations;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nullable;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -131,12 +133,20 @@ class PortableGrid implements Grid {
     }
 
     @Override
-    public Optional<Preview> getPreview(final ResourceKey resource, final long amount) {
-        return Optional.empty();
+    public CompletableFuture<Optional<Preview>> getPreview(final ResourceKey resource, final long amount) {
+        return CompletableFuture.completedFuture(Optional.empty());
     }
 
     @Override
-    public boolean startTask(final ResourceKey resource, final long amount) {
-        return false;
+    public CompletableFuture<Long> getMaxAmount(final ResourceKey resource) {
+        return CompletableFuture.completedFuture(0L);
+    }
+
+    @Override
+    public CompletableFuture<Optional<TaskId>> startTask(final ResourceKey resource,
+                                                         final long amount,
+                                                         final Actor actor,
+                                                         final boolean notify) {
+        return CompletableFuture.completedFuture(Optional.empty());
     }
 }

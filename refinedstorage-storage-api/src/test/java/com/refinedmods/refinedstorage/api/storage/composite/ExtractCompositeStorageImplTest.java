@@ -5,7 +5,6 @@ import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.ActorCapturingStorage;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.TestResource;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
@@ -31,7 +30,7 @@ class ExtractCompositeStorageImplTest {
     void shouldExtractFromSingleSourcePartially(final Action action) {
         // Arrange
         final ActorCapturingStorage storage = new ActorCapturingStorage(new LimitedStorageImpl(10));
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
 
@@ -63,7 +62,7 @@ class ExtractCompositeStorageImplTest {
             assertThat(sut.getStored()).isEqualTo(10);
         }
 
-        assertThat(storage.getActors()).containsExactly(EmptyActor.INSTANCE, actor);
+        assertThat(storage.getActors()).containsExactly(Actor.EMPTY, actor);
     }
 
     @ParameterizedTest
@@ -71,12 +70,12 @@ class ExtractCompositeStorageImplTest {
     void shouldExtractFromSingleSourceCompletely(final Action action) {
         // Arrange
         final Storage storage = new LimitedStorageImpl(10);
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
 
         // Act
-        final long extracted = sut.extract(A, 10, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 10, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(10);
@@ -103,12 +102,12 @@ class ExtractCompositeStorageImplTest {
     void shouldNotExtractMoreThanIsAvailableFromSingleSource(final Action action) {
         // Arrange
         final Storage storage = new LimitedStorageImpl(10);
-        storage.insert(A, 4, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 4, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
 
         // Act
-        final long extracted = sut.extract(A, 7, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 7, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(4);
@@ -135,16 +134,16 @@ class ExtractCompositeStorageImplTest {
     void shouldExtractFromMultipleSourcesPartially(final Action action) {
         // Arrange
         final Storage storage1 = new LimitedStorageImpl(10);
-        storage1.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage1.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage2 = new LimitedStorageImpl(5);
-        storage2.insert(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage2.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage1);
         sut.addSource(storage2);
 
         // Act
-        final long extracted = sut.extract(A, 12, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 12, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(12);
@@ -179,16 +178,16 @@ class ExtractCompositeStorageImplTest {
     void shouldExtractFromMultipleSourcesCompletely(final Action action) {
         // Arrange
         final Storage storage1 = new LimitedStorageImpl(10);
-        storage1.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage1.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage2 = new LimitedStorageImpl(5);
-        storage2.insert(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage2.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage1);
         sut.addSource(storage2);
 
         // Act
-        final long extracted = sut.extract(A, 13, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 13, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(13);
@@ -219,16 +218,16 @@ class ExtractCompositeStorageImplTest {
     void shouldNotExtractMoreThanIsAvailableFromMultipleSources(final Action action) {
         // Arrange
         final Storage storage1 = new LimitedStorageImpl(10);
-        storage1.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage1.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage2 = new LimitedStorageImpl(5);
-        storage2.insert(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage2.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage1);
         sut.addSource(storage2);
 
         // Act
-        final long extracted = sut.extract(A, 30, action, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 30, action, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(13);
@@ -258,12 +257,12 @@ class ExtractCompositeStorageImplTest {
     void shouldNotExtractWithoutResourcePresent() {
         // Arrange
         final Storage storage = new LimitedStorageImpl(10);
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage);
 
         // Act
-        final long extracted = sut.extract(TestResource.B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(TestResource.B, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isZero();
@@ -272,7 +271,7 @@ class ExtractCompositeStorageImplTest {
     @Test
     void shouldNotExtractWithoutAnySourcesPresent() {
         // Act
-        final long extracted = sut.extract(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isZero();
@@ -284,14 +283,14 @@ class ExtractCompositeStorageImplTest {
         final PriorityStorage lowestPriority = PriorityStorage.of(new LimitedStorageImpl(10), 10, 5);
         final PriorityStorage highestPriority = PriorityStorage.of(new LimitedStorageImpl(10), 5, 10);
 
-        lowestPriority.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        highestPriority.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        lowestPriority.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        highestPriority.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(lowestPriority);
         sut.addSource(highestPriority);
 
         // Act
-        sut.extract(A, 11, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.extract(A, 11, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(highestPriority.getAll()).isEmpty();

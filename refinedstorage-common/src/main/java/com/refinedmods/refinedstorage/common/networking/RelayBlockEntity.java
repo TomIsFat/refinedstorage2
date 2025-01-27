@@ -71,7 +71,7 @@ public class RelayBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntit
         this.filter = FilterWithFuzzyMode.createAndListenForUniqueFilters(
             ResourceContainerImpl.createForFilter(),
             this::setChanged,
-            this::filterContainerChanged
+            this::setFilters
         );
         this.mainNetworkNode.setFilterNormalizer(filter.createNormalizer());
         this.containers.addContainer(
@@ -98,7 +98,7 @@ public class RelayBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntit
         mainNetworkNode.setActive(wasActive);
     }
 
-    private void filterContainerChanged(final Set<ResourceKey> filters) {
+    void setFilters(final Set<ResourceKey> filters) {
         mainNetworkNode.setFilters(filters);
         setChanged();
     }

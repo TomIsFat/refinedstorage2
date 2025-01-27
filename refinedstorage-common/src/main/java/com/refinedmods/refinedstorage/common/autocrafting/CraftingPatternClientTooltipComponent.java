@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
-import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
 import java.util.List;
@@ -30,7 +30,7 @@ class CraftingPatternClientTooltipComponent implements ClientTooltipComponent {
 
     private final int width;
     private final int height;
-    private final CraftingPattern craftingPattern;
+    private final PatternResolver.ResolvedCraftingPattern pattern;
 
     @Nullable
     private final ItemStack outputStack;
@@ -40,18 +40,20 @@ class CraftingPatternClientTooltipComponent implements ClientTooltipComponent {
     private long cycleStart = 0;
     private int currentCycle = 0;
 
-    CraftingPatternClientTooltipComponent(final int width, final int height, final CraftingPattern craftingPattern) {
+    CraftingPatternClientTooltipComponent(final int width,
+                                          final int height,
+                                          final PatternResolver.ResolvedCraftingPattern pattern) {
         this.width = width;
         this.height = height;
-        this.craftingPattern = craftingPattern;
-        final ItemResource outputResource = craftingPattern.getOutput().resource() instanceof ItemResource itemResource
+        this.pattern = pattern;
+        final ItemResource outputResource = pattern.output().resource() instanceof ItemResource itemResource
             ? itemResource
             : null;
         this.outputStack = outputResource != null
-            ? outputResource.toItemStack(craftingPattern.getOutput().amount())
+            ? outputResource.toItemStack(pattern.output().amount())
             : null;
         this.outputText = outputResource != null
-            ? Component.literal(String.format("%dx ", craftingPattern.getOutput().amount()))
+            ? Component.literal(String.format("%dx ", pattern.output().amount()))
             .append(outputResource.toItemStack().getHoverName())
             .withStyle(ChatFormatting.GRAY) : null;
     }
@@ -95,17 +97,18 @@ class CraftingPatternClientTooltipComponent implements ClientTooltipComponent {
     private void renderInputSlot(final int x, final int y, final GuiGraphics graphics, final int sx, final int sy) {
         graphics.blitSprite(SLOT, x + sx * 18, y + sy * 18, 18, 18);
         final int index = sy * width + sx;
-        final List<PlatformResourceKey> inputs = craftingPattern.getInputs().get(index);
-        if (!inputs.isEmpty()) {
-            final int idx = currentCycle % inputs.size();
-            final PlatformResourceKey resource = inputs.get(idx);
-            RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass()).render(
-                resource,
-                graphics,
-                x + sx * 18 + 1,
-                y + sy * 18 + 1
-            );
+        final List<ResourceKey> inputs = pattern.inputs().get(index);
+        if (inputs.isEmpty()) {
+            return;
         }
+        final int idx = currentCycle % inputs.size();
+        final ResourceKey resource = inputs.get(idx);
+        RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass()).render(
+            resource,
+            graphics,
+            x + sx * 18 + 1,
+            y + sy * 18 + 1
+        );
     }
 
     private void renderArrow(final int x, final int y, final GuiGraphics graphics) {

@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.api.autocrafting.status;
 
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 
 import java.util.List;
 
@@ -17,6 +17,4 @@ public interface TaskStatusProvider {
     void cancel(TaskId taskId);
 
     void cancelAll();
-
-    void testUpdate();
 }

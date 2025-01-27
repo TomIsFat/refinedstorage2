@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.common.autocrafting.monitor;
 
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
@@ -64,9 +64,11 @@ class AutocraftingTaskButton extends AbstractButton {
         final int textY = getY() + yOffset;
         text.render(graphics, textX, textY, Minecraft.getInstance().font, isHovered);
         final int ySpacing = SmallText.isSmall() ? 7 : 8;
-        final int percentageCompleted = Math.round(percentageCompletedProvider.getPercentageCompleted(task.id()) * 100);
+        final long percentageCompleted = Math.round(
+            percentageCompletedProvider.getPercentageCompleted(task.id()) * 100
+        );
         SmallText.render(graphics, Minecraft.getInstance().font, percentageCompleted + "%", textX, textY + ySpacing,
-            0xFFFFFF, true);
+            0xFFFFFF, true, SmallText.DEFAULT_SCALE);
         updateTooltip();
     }
 
@@ -115,6 +117,6 @@ class AutocraftingTaskButton extends AbstractButton {
     }
 
     interface PercentageCompletedProvider {
-        float getPercentageCompleted(TaskId taskId);
+        double getPercentageCompleted(TaskId taskId);
     }
 }

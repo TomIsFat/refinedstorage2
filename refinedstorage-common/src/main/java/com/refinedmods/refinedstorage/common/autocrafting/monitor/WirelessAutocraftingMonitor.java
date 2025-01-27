@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.common.autocrafting.monitor;
 
-import com.refinedmods.refinedstorage.api.autocrafting.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.common.Platform;
@@ -72,10 +72,5 @@ class WirelessAutocraftingMonitor implements AutocraftingMonitor {
                 Platform.INSTANCE.getConfig().getWirelessAutocraftingMonitor().getCancelAllEnergyUsage()
             );
         });
-    }
-
-    @Override
-    public void testUpdate() {
-        getAutocrafting().ifPresent(AutocraftingNetworkComponent::testUpdate);
     }
 }

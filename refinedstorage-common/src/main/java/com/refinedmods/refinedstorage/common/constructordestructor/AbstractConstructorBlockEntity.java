@@ -58,7 +58,7 @@ public abstract class AbstractConstructorBlockEntity
             state,
             new ConstructorNetworkNode(Platform.INSTANCE.getConfig().getConstructor().getEnergyUsage())
         );
-        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.CONSTRUCTOR, upgradeEnergyUsage -> {
+        this.upgradeContainer = new UpgradeContainer(UpgradeDestinations.CONSTRUCTOR, (c, upgradeEnergyUsage) -> {
             final long baseEnergyUsage = Platform.INSTANCE.getConfig().getConstructor().getEnergyUsage();
             mainNetworkNode.setEnergyUsage(baseEnergyUsage + upgradeEnergyUsage);
             setChanged();

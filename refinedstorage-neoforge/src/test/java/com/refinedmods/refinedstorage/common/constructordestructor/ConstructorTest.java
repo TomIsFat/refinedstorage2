@@ -22,6 +22,7 @@ import static com.refinedmods.refinedstorage.common.GameTestUtil.assertItemEntit
 import static com.refinedmods.refinedstorage.common.GameTestUtil.insert;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.networkIsAvailable;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.storageContainsExactly;
+import static com.refinedmods.refinedstorage.common.constructordestructor.ConstructorTestPlots.preparePlot;
 import static net.minecraft.world.item.Items.DIRT;
 import static net.minecraft.world.item.Items.FIREWORK_ROCKET;
 import static net.minecraft.world.item.Items.STONE;
@@ -35,7 +36,7 @@ public final class ConstructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldPlaceBlock(final GameTestHelper helper) {
-        ConstructorTestPlots.preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -60,7 +61,7 @@ public final class ConstructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldPlaceWater(final GameTestHelper helper) {
-        ConstructorTestPlots.preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -87,7 +88,7 @@ public final class ConstructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldDropItem(final GameTestHelper helper) {
-        ConstructorTestPlots.preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);
@@ -119,7 +120,7 @@ public final class ConstructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldDropItemWithStackUpgrade(final GameTestHelper helper) {
-        ConstructorTestPlots.preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 65);
@@ -159,7 +160,7 @@ public final class ConstructorTest {
 
     @GameTest(template = "empty_15x15")
     public static void shouldPlaceFireworks(final GameTestHelper helper) {
-        ConstructorTestPlots.preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
+        preparePlot(helper, Direction.EAST, (constructor, pos, sequence) -> {
             // Arrange
             sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
                 insert(helper, network, DIRT, 10);

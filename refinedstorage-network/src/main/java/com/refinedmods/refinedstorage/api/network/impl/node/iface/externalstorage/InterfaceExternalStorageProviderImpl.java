@@ -3,6 +3,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.iface.externalstora
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceExportState;
 import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceNetworkNode;
+import com.refinedmods.refinedstorage.api.network.node.NetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNodeActor;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -45,8 +46,8 @@ public class InterfaceExternalStorageProviderImpl implements InterfaceExternalSt
     }
 
     private boolean isAnotherInterfaceActingAsExternalStorage(final Actor actor) {
-        return actor instanceof NetworkNodeActor networkNodeActor
-            && networkNodeActor.networkNode() instanceof InterfaceNetworkNode actingInterface
+        return actor instanceof NetworkNodeActor(NetworkNode node)
+            && node instanceof InterfaceNetworkNode actingInterface
             && actingInterface.isActingAsExternalStorage();
     }
 

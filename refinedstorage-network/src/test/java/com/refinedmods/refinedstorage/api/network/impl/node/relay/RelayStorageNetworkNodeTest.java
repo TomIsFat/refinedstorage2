@@ -8,7 +8,7 @@ import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponen
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import com.refinedmods.refinedstorage.api.storage.AccessMode;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.composite.PriorityStorage;
@@ -63,13 +63,13 @@ class RelayStorageNetworkNodeTest {
         addSecurityPolicy(inputSecurity, PermissionFixtures.OTHER);
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
-        inputStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.extract(B, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.extract(B, 3, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(outputEnergy.getCapacity()).isZero();
@@ -101,15 +101,15 @@ class RelayStorageNetworkNodeTest {
         input.setOutputNode(output);
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
-        inputStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.extract(B, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.extract(B, 3, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         input.setNetwork(null);
 
-        inputStorage.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(inputStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -119,8 +119,8 @@ class RelayStorageNetworkNodeTest {
         );
         assertThat(outputStorage.getAll()).isEmpty();
         assertThat(outputStorage.getStored()).isZero();
-        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
-        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE)).isZero();
+        assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
+        assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isZero();
     }
 
     @Test
@@ -137,7 +137,7 @@ class RelayStorageNetworkNodeTest {
         input.setOutputNode(output);
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         // Act
@@ -145,7 +145,7 @@ class RelayStorageNetworkNodeTest {
         outputAlternativeNetwork.addContainer(() -> output);
         output.setNetwork(outputAlternativeNetwork);
 
-        inputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(outputAlternativeStorage.getAll()).usingRecursiveFieldByFieldElementComparator()
@@ -166,10 +166,10 @@ class RelayStorageNetworkNodeTest {
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long inserted = outputStorage.insert(B, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = outputStorage.insert(B, 2, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(2);
@@ -196,10 +196,10 @@ class RelayStorageNetworkNodeTest {
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long extracted = outputStorage.extract(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = outputStorage.extract(A, 2, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(2);
@@ -225,11 +225,11 @@ class RelayStorageNetworkNodeTest {
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long inserted = outputStorage.insert(B, 2, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extracted = outputStorage.extract(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = outputStorage.insert(B, 2, Action.EXECUTE, Actor.EMPTY);
+        final long extracted = outputStorage.extract(A, 2, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isZero();
@@ -256,11 +256,11 @@ class RelayStorageNetworkNodeTest {
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long inserted = outputStorage.insert(B, 2, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extracted = outputStorage.extract(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = outputStorage.insert(B, 2, Action.EXECUTE, Actor.EMPTY);
+        final long extracted = outputStorage.extract(A, 2, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(2);
@@ -296,7 +296,7 @@ class RelayStorageNetworkNodeTest {
         outputStorage.addSource(fallbackStorage2);
 
         // Act
-        final long inserted = outputStorage.insert(A, 12, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = outputStorage.insert(A, 12, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(12);
@@ -321,18 +321,18 @@ class RelayStorageNetworkNodeTest {
         input.setExtractPriority(3);
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage fallbackStorage1 = PriorityStorage.of(new StorageImpl(), 2, 1);
-        fallbackStorage1.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        fallbackStorage1.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         outputStorage.addSource(fallbackStorage1);
 
         final Storage fallbackStorage2 = PriorityStorage.of(new StorageImpl(), 1, 2);
-        fallbackStorage2.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        fallbackStorage2.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         outputStorage.addSource(fallbackStorage2);
 
         // Act
-        final long extracted = outputStorage.extract(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = outputStorage.extract(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(3);
@@ -370,8 +370,8 @@ class RelayStorageNetworkNodeTest {
         input.setInsertPriority(2);
 
         // Assert
-        final long inserted = outputStorage.insert(A, 7, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extracted = outputStorage.extract(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = outputStorage.insert(A, 7, Action.EXECUTE, Actor.EMPTY);
+        final long extracted = outputStorage.extract(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         assertThat(inserted).isEqualTo(7);
         assertThat(extracted).isEqualTo(3);
@@ -396,19 +396,19 @@ class RelayStorageNetworkNodeTest {
         input.setExtractPriority(4);
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
         inputStorage.addSource(new LimitedStorageImpl(10));
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage fallbackStorage1 = PriorityStorage.of(new LimitedStorageImpl(5), 1, 3);
-        fallbackStorage1.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        fallbackStorage1.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
         outputStorage.addSource(fallbackStorage1);
 
         final Storage fallbackStorage2 = PriorityStorage.of(new LimitedStorageImpl(5), 3, 1);
-        fallbackStorage2.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        fallbackStorage2.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
         outputStorage.addSource(fallbackStorage2);
 
         // Act
         input.setExtractPriority(2);
-        final long extracted = outputStorage.extract(A, 6, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = outputStorage.extract(A, 6, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(extracted).isEqualTo(6);
@@ -433,23 +433,23 @@ class RelayStorageNetworkNodeTest {
         input.setFilters(Set.of(A, B));
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(B, 9, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(C, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(B, 9, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(C, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         // This update shouldn't arrive.
-        inputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
         // This one should.
-        inputStorage.insert(C, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(C, 3, Action.EXECUTE, Actor.EMPTY);
 
-        final long insertedAllowed = outputStorage.insert(C, 2, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long insertedNotAllowed = outputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long insertedAllowed = outputStorage.insert(C, 2, Action.EXECUTE, Actor.EMPTY);
+        final long insertedNotAllowed = outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
 
-        final long extractedAllowed = outputStorage.extract(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extractedNotAllowed = outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extractedAllowed = outputStorage.extract(C, 1, Action.EXECUTE, Actor.EMPTY);
+        final long extractedNotAllowed = outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(insertedAllowed).isEqualTo(2);
@@ -483,23 +483,23 @@ class RelayStorageNetworkNodeTest {
         input.setFilterMode(FilterMode.ALLOW);
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(B, 9, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(C, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(B, 9, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(C, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         // This update should arrive.
-        inputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
         // This one shouldn't.
-        inputStorage.insert(C, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(C, 3, Action.EXECUTE, Actor.EMPTY);
 
-        final long insertedAllowed = outputStorage.insert(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long insertedNotAllowed = outputStorage.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long insertedAllowed = outputStorage.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
+        final long insertedNotAllowed = outputStorage.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
 
-        final long extractedAllowed = outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extractedNotAllowed = outputStorage.extract(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extractedAllowed = outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
+        final long extractedNotAllowed = outputStorage.extract(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(insertedAllowed).isEqualTo(2);
@@ -540,27 +540,27 @@ class RelayStorageNetworkNodeTest {
         });
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(A_ALTERNATIVE, 3, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(B, 9, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(C, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(A_ALTERNATIVE, 3, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(B, 9, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(C, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
 
         // These updates should arrive.
-        inputStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(A_ALTERNATIVE, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(A_ALTERNATIVE, 2, Action.EXECUTE, Actor.EMPTY);
         // This one shouldn't.
-        inputStorage.insert(C, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(C, 3, Action.EXECUTE, Actor.EMPTY);
 
-        final long insertedAllowed1 = outputStorage.insert(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long insertedAllowed2 = outputStorage.insert(A_ALTERNATIVE, 3, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long insertedNotAllowed = outputStorage.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long insertedAllowed1 = outputStorage.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
+        final long insertedAllowed2 = outputStorage.insert(A_ALTERNATIVE, 3, Action.EXECUTE, Actor.EMPTY);
+        final long insertedNotAllowed = outputStorage.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
 
-        final long extractedAllowed = outputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extractedAllowed2 = outputStorage.extract(A_ALTERNATIVE, 2, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extractedNotAllowed = outputStorage.extract(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extractedAllowed = outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
+        final long extractedAllowed2 = outputStorage.extract(A_ALTERNATIVE, 2, Action.EXECUTE, Actor.EMPTY);
+        final long extractedNotAllowed = outputStorage.extract(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(insertedAllowed1).isEqualTo(2);
@@ -599,9 +599,9 @@ class RelayStorageNetworkNodeTest {
         input.setFilterMode(FilterMode.BLOCK);
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(B, 9, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(C, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(B, 9, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(C, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
@@ -634,9 +634,9 @@ class RelayStorageNetworkNodeTest {
         input.setFilterMode(FilterMode.BLOCK);
 
         inputStorage.addSource(new StorageImpl());
-        inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(B, 9, Action.EXECUTE, EmptyActor.INSTANCE);
-        inputStorage.insert(C, 8, Action.EXECUTE, EmptyActor.INSTANCE);
+        inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(B, 9, Action.EXECUTE, Actor.EMPTY);
+        inputStorage.insert(C, 8, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         input.setComponentTypes(Set.of(RelayComponentType.STORAGE));
@@ -680,11 +680,11 @@ class RelayStorageNetworkNodeTest {
         inputStorage.addSource(new StorageImpl());
 
         // Assert
-        final long inserted1 = inputStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long inserted2 = inputAlternativeStorage.insert(A, 2, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted1 = inputStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        final long inserted2 = inputAlternativeStorage.insert(A, 2, Action.EXECUTE, Actor.EMPTY);
 
-        final long extracted1 = inputStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
-        final long extracted2 = inputAlternativeStorage.extract(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted1 = inputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
+        final long extracted2 = inputAlternativeStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
 
         assertThat(inserted1).isEqualTo(10);
         assertThat(inserted2).isZero();

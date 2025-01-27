@@ -36,9 +36,9 @@ public record AutocraftingPreviewRequestPacket(UUID id,
     public static void handle(final AutocraftingPreviewRequestPacket packet, final PacketContext ctx) {
         if (ctx.getPlayer().containerMenu instanceof PreviewProvider provider) {
             final ServerPlayer player = (ServerPlayer) ctx.getPlayer();
-            provider.getPreview(packet.resource(), packet.amount()).ifPresent(
-                preview -> S2CPackets.sendAutocraftingPreviewResponse(player, packet.id, preview)
-            );
+            provider.getPreview(packet.resource(), packet.amount()).thenAccept(optionalPreview ->
+                optionalPreview.ifPresent(preview ->
+                    S2CPackets.sendAutocraftingPreviewResponse(player, packet.id, preview)));
         }
     }
 

@@ -19,14 +19,17 @@ import com.refinedmods.refinedstorage.common.security.SecurityCardItemPropertyFu
 import com.refinedmods.refinedstorage.common.storagemonitor.StorageMonitorBlockEntityRenderer;
 import com.refinedmods.refinedstorage.common.support.network.item.NetworkItemPropertyFunction;
 import com.refinedmods.refinedstorage.common.support.packet.PacketHandler;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterLockedUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterManagerActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterNameUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskAddedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskRemovedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskStatusChangedPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewMaxAmountResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewResponsePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingResponsePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingTaskCompletedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.EnergyInfoPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridClearPacket;
@@ -308,8 +311,16 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
             wrapHandler(AutocrafterNameUpdatePacket::handle)
         );
         ClientPlayNetworking.registerGlobalReceiver(
+            AutocrafterLockedUpdatePacket.PACKET_TYPE,
+            wrapHandler(AutocrafterLockedUpdatePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
             AutocraftingPreviewResponsePacket.PACKET_TYPE,
             wrapHandler((packet, ctx) -> AutocraftingPreviewResponsePacket.handle(packet))
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingPreviewMaxAmountResponsePacket.PACKET_TYPE,
+            wrapHandler((packet, ctx) -> AutocraftingPreviewMaxAmountResponsePacket.handle(packet))
         );
         ClientPlayNetworking.registerGlobalReceiver(
             AutocraftingResponsePacket.PACKET_TYPE,
@@ -330,6 +341,10 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         ClientPlayNetworking.registerGlobalReceiver(
             AutocraftingMonitorActivePacket.PACKET_TYPE,
             wrapHandler(AutocraftingMonitorActivePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingTaskCompletedPacket.PACKET_TYPE,
+            wrapHandler((packet, ctx) -> AutocraftingTaskCompletedPacket.handle(packet))
         );
     }
 

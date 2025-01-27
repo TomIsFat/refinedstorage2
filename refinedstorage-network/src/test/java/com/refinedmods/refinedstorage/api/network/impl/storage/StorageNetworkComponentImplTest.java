@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeCont
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.TrackedResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
@@ -66,9 +66,9 @@ class StorageNetworkComponentImplTest {
     @Test
     void shouldAddStorageSourceContainer() {
         // Act
-        final long insertedPre = sut.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long insertedPre = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         sut.onContainerAdded(storage1Container);
-        final long insertedPost = sut.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long insertedPost = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(insertedPre).isZero();
@@ -83,7 +83,7 @@ class StorageNetworkComponentImplTest {
         sut.onContainerAdded(storage2Container);
 
         // Ensure that we fill our 2 containers.
-        sut.insert(A, 200, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 200, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         final Collection<ResourceAmount> resourcesPre = new HashSet<>(sut.getAll());
@@ -116,11 +116,11 @@ class StorageNetworkComponentImplTest {
         sut.onContainerRemoved(storage1Container);
         sut.onContainerRemoved(storage2Container);
         sut.addSource(new TrackedStorageImpl(new LimitedStorageImpl(1000), () -> 2L));
-        sut.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        sut.insert(B, 200, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        sut.insert(B, 200, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final List<TrackedResourceAmount> resources = sut.getResources(EmptyActor.class);
+        final List<TrackedResourceAmount> resources = sut.getResources(Actor.EMPTY.getClass());
 
         // Assert
         assertThat(resources).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(

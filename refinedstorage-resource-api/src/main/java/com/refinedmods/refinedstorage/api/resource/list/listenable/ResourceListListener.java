@@ -15,5 +15,5 @@ public interface ResourceListListener {
      *
      * @param change the change
      */
-    void onChanged(MutableResourceList.OperationResult change);
+    void changed(MutableResourceList.OperationResult change);
 }

@@ -77,7 +77,7 @@ class TransferHelperTest {
                 transfer.amountInSource.resource(),
                 transfer.amountInSource.amount(),
                 Action.EXECUTE,
-                EmptyActor.INSTANCE
+                Actor.EMPTY
             );
         }
 
@@ -86,7 +86,7 @@ class TransferHelperTest {
                 transfer.amountInDestination.resource(),
                 transfer.amountInDestination.amount(),
                 Action.EXECUTE,
-                EmptyActor.INSTANCE
+                Actor.EMPTY
             );
         }
 
@@ -94,7 +94,7 @@ class TransferHelperTest {
         final long transferred = TransferHelper.transfer(
             transfer.amountToTransfer.resource(),
             transfer.amountToTransfer.amount(),
-            EmptyActor.INSTANCE,
+            Actor.EMPTY,
             source,
             destination,
             null
@@ -132,10 +132,10 @@ class TransferHelperTest {
         };
         final Storage destination = new LimitedStorageImpl(100);
 
-        source.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        source.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        final long transferred = TransferHelper.transfer(A, 50, EmptyActor.INSTANCE, source, destination, null);
+        final long transferred = TransferHelper.transfer(A, 50, Actor.EMPTY, source, destination, null);
 
         // Assert
         assertThat(transferred).isZero();
@@ -159,12 +159,12 @@ class TransferHelperTest {
             }
         };
 
-        source.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        source.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
         // Act & assert
         assertThrows(
             IllegalStateException.class,
-            () -> TransferHelper.transfer(A, 50, EmptyActor.INSTANCE, source, destination, null)
+            () -> TransferHelper.transfer(A, 50, Actor.EMPTY, source, destination, null)
         );
     }
 
@@ -182,10 +182,10 @@ class TransferHelperTest {
             }
         };
 
-        source.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        source.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        TransferHelper.transfer(A, 50, EmptyActor.INSTANCE, source, destination, source);
+        TransferHelper.transfer(A, 50, Actor.EMPTY, source, destination, source);
 
         // Assert
         assertThat(source.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -220,10 +220,10 @@ class TransferHelperTest {
             }
         };
 
-        underlyingSource.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        underlyingSource.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
 
         // Act
-        TransferHelper.transfer(A, 50, EmptyActor.INSTANCE, source, destination, source);
+        TransferHelper.transfer(A, 50, Actor.EMPTY, source, destination, source);
 
         // Assert
         assertThat(source.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -245,7 +245,7 @@ class TransferHelperTest {
         final Executable action1 = () -> TransferHelper.transfer(
             A,
             0,
-            EmptyActor.INSTANCE,
+            Actor.EMPTY,
             source,
             destination,
             null
@@ -253,7 +253,7 @@ class TransferHelperTest {
         final Executable action2 = () -> TransferHelper.transfer(
             A,
             -1,
-            EmptyActor.INSTANCE,
+            Actor.EMPTY,
             source,
             destination,
             null
@@ -261,7 +261,7 @@ class TransferHelperTest {
         final Executable action3 = () -> TransferHelper.transfer(
             null,
             1,
-            EmptyActor.INSTANCE,
+            Actor.EMPTY,
             source,
             destination,
             null

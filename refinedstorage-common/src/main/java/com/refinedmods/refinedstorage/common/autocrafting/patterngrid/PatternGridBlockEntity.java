@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.common.autocrafting.patterngrid;
 
+import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -32,6 +33,7 @@ import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerI
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -315,16 +317,16 @@ public class PatternGridBlockEntity extends AbstractGridBlockEntity implements B
             return null;
         }
         final ItemStack result = createPatternStack(PatternType.PROCESSING);
-        final List<Optional<ProcessingPatternState.Input>> inputs = new ArrayList<>();
+        final List<Optional<ProcessingPatternState.ProcessingIngredient>> ingredients = new ArrayList<>();
         for (int i = 0; i < processingInput.size(); ++i) {
-            inputs.add(processingInput.getInput(i));
+            ingredients.add(processingInput.getIngredient(i));
         }
         final List<Optional<ResourceAmount>> outputs = new ArrayList<>();
         for (int i = 0; i < processingOutput.size(); ++i) {
             outputs.add(Optional.ofNullable(processingOutput.get(i)));
         }
         final ProcessingPatternState patternProcessingState = new ProcessingPatternState(
-            inputs,
+            ingredients,
             outputs
         );
         result.set(DataComponents.INSTANCE.getProcessingPatternState(), patternProcessingState);
@@ -439,9 +441,9 @@ public class PatternGridBlockEntity extends AbstractGridBlockEntity implements B
 
     private void copyProcessingPattern(final ProcessingPatternState state) {
         clearProcessing();
-        for (int i = 0; i < state.inputs().size(); ++i) {
+        for (int i = 0; i < state.ingredients().size(); ++i) {
             final int ii = i;
-            state.inputs().get(i).ifPresent(input -> processingInput.set(ii, input));
+            state.ingredients().get(i).ifPresent(processingIngredient -> processingInput.set(ii, processingIngredient));
         }
         for (int i = 0; i < state.outputs().size(); ++i) {
             final int ii = i;
@@ -500,7 +502,11 @@ public class PatternGridBlockEntity extends AbstractGridBlockEntity implements B
             mainNetworkNode.getNetwork() != null
                 ? mainNetworkNode.getNetwork().getComponent(StorageNetworkComponent.class)
                 : null,
-            player.getInventory()
+            mainNetworkNode.getNetwork() != null
+                ? mainNetworkNode.getNetwork().getComponent(AutocraftingNetworkComponent.class).getPatterns()
+                : Collections.emptySet(),
+            player.getInventory(),
+            r -> r
         );
         getCraftingMatrix().clearContent();
         for (int i = 0; i < getCraftingMatrix().getContainerSize(); ++i) {
@@ -523,6 +529,9 @@ public class PatternGridBlockEntity extends AbstractGridBlockEntity implements B
             mainNetworkNode.getNetwork() != null
                 ? mainNetworkNode.getNetwork().getComponent(StorageNetworkComponent.class)
                 : null,
+            mainNetworkNode.getNetwork() != null
+                ? mainNetworkNode.getNetwork().getComponent(AutocraftingNetworkComponent.class).getPatterns()
+                : Collections.emptySet(),
             player.getInventory(),
             ResourceAmount::resource
         );
@@ -564,6 +573,9 @@ public class PatternGridBlockEntity extends AbstractGridBlockEntity implements B
             mainNetworkNode.getNetwork() != null
                 ? mainNetworkNode.getNetwork().getComponent(StorageNetworkComponent.class)
                 : null,
+            mainNetworkNode.getNetwork() != null
+                ? mainNetworkNode.getNetwork().getComponent(AutocraftingNetworkComponent.class).getPatterns()
+                : Collections.emptySet(),
             player.getInventory(),
             r -> r
         );

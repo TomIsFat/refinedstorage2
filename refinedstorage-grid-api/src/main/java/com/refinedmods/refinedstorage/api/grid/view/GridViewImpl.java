@@ -107,7 +107,7 @@ public class GridViewImpl implements GridView {
 
     @Override
     public void sort() {
-        LOGGER.info("Sorting grid view");
+        LOGGER.debug("Sorting grid view");
         viewList = createViewList();
         notifyListener();
     }

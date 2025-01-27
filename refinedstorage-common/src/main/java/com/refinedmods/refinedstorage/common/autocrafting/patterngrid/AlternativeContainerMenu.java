@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 
 import static com.refinedmods.refinedstorage.common.autocrafting.patterngrid.AlternativesScreen.ALTERNATIVE_HEIGHT;
 import static com.refinedmods.refinedstorage.common.autocrafting.patterngrid.AlternativesScreen.ALTERNATIVE_ROW_HEIGHT;
+import static com.refinedmods.refinedstorage.common.autocrafting.patterngrid.AlternativesScreen.RESOURCES_PER_ROW;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.getTagTranslationKey;
 
 class AlternativeContainerMenu extends AbstractResourceContainerMenu {
@@ -28,7 +29,7 @@ class AlternativeContainerMenu extends AbstractResourceContainerMenu {
 
     AlternativeContainerMenu(final ResourceSlot amountSlot) {
         super(null, 0);
-        this.amountSlot = amountSlot.forAmountScreen(118, 48);
+        this.amountSlot = amountSlot.forAmountScreen(127, 48);
         final List<ResourceTag> tags = amountSlot.getResource() == null
             ? Collections.emptyList()
             : amountSlot.getResource().getTags();
@@ -62,12 +63,12 @@ class AlternativeContainerMenu extends AbstractResourceContainerMenu {
             );
             for (int j = 0; j < resources.size(); ++j) {
                 resources.set(j, new ResourceAmount(alternative.getResources().get(j), 1));
-                final int row = j / 8;
-                final int col = j % 8;
+                final int row = j / RESOURCES_PER_ROW;
+                final int col = j % RESOURCES_PER_ROW;
                 final int slotX = x + 1 + 1 + col * 18;
                 final int slotY = y + ALTERNATIVE_ROW_HEIGHT + (row * 18) + 1;
                 final AlternativeSlot resourceSlot = new AlternativeSlot(resources, j, slotX, slotY);
-                if (j < 8) {
+                if (j < RESOURCES_PER_ROW) {
                     alternative.getMainSlots().add(resourceSlot);
                 } else {
                     alternative.getOverflowSlots().add(resourceSlot);

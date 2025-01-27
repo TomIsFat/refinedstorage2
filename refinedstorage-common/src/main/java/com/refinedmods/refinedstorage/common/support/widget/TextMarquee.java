@@ -43,7 +43,7 @@ public class TextMarquee {
             state = State.MOVING_LEFT;
             stateTicks = 0;
         }
-        final int width = (int) (font.width(text) * (small ? SmallText.getScale() : 1F));
+        final int width = (int) (font.width(text) * (small ? SmallText.correctScale(SmallText.DEFAULT_SCALE) : 1F));
         if (width > maxWidth) {
             final int overflow = width - maxWidth;
             if (hovering) {
@@ -58,7 +58,8 @@ public class TextMarquee {
                     x + offset,
                     y,
                     color,
-                    dropShadow
+                    dropShadow,
+                    SmallText.DEFAULT_SCALE
                 );
             } else {
                 graphics.drawString(font, text, x + offset, y, color, dropShadow);
@@ -73,7 +74,8 @@ public class TextMarquee {
                     x,
                     y,
                     color,
-                    dropShadow
+                    dropShadow,
+                    SmallText.DEFAULT_SCALE
                 );
             } else {
                 graphics.drawString(font, text, x, y, color, dropShadow);

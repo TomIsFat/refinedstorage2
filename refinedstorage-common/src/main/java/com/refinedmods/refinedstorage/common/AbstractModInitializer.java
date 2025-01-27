@@ -2,7 +2,6 @@ package com.refinedmods.refinedstorage.common;
 
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
-import com.refinedmods.refinedstorage.api.network.impl.autocrafting.AutocraftingNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.impl.energy.EnergyNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.impl.node.GraphNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.impl.security.SecurityNetworkComponentImpl;
@@ -16,6 +15,7 @@ import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
 import com.refinedmods.refinedstorage.common.autocrafting.CraftingPatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternItem;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.PlatformAutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.common.autocrafting.ProcessingPatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.SmithingTablePatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.StonecutterPatternState;
@@ -28,7 +28,6 @@ import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.Aut
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorBlockEntity;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorContainerMenu;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorData;
-import com.refinedmods.refinedstorage.common.autocrafting.monitor.TaskStatusProviderImpl;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.WirelessAutocraftingMonitorContainerMenu;
 import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridBlockEntity;
 import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridContainerMenu;
@@ -151,6 +150,7 @@ import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeState;
 import com.refinedmods.refinedstorage.common.upgrade.SimpleUpgradeItem;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeDestinations;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeWithEnchantedBookRecipeSerializer;
+import com.refinedmods.refinedstorage.common.util.ServerListener;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -274,7 +274,10 @@ public abstract class AbstractModInitializer {
         );
         RefinedStorageApi.INSTANCE.getNetworkComponentMapFactory().addFactory(
             AutocraftingNetworkComponent.class,
-            network -> new AutocraftingNetworkComponentImpl(new TaskStatusProviderImpl())
+            network -> new PlatformAutocraftingNetworkComponent(
+                () -> network.getComponent(StorageNetworkComponent.class),
+                ServerListener.getAutocraftingPool()
+            )
         );
     }
 
