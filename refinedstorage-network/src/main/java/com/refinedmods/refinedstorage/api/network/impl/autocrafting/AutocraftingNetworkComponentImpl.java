@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternLayout;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepositoryImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorImpl;
@@ -23,6 +24,8 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +49,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     private final ExecutorService executorService;
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Map<Pattern, PatternProvider> providerByPattern = new HashMap<>();
+    private final Map<PatternLayout, List<ExternalPatternSink>> sinksByPatternLayout = new HashMap<>();
     private final Map<TaskId, PatternProvider> providerByTaskId = new HashMap<>();
     private final Set<PatternListener> patternListeners = new HashSet<>();
     private final Set<TaskStatusListener> statusListeners = new HashSet<>();
@@ -196,6 +200,13 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public void add(final PatternProvider provider, final Pattern pattern, final int priority) {
         patternRepository.add(pattern, priority);
         providerByPattern.put(pattern, provider);
+        final List<ExternalPatternSink> sinks = sinksByPatternLayout.computeIfAbsent(
+            pattern.layout(),
+            layout -> new ArrayList<>()
+        );
+        if (!sinks.contains(provider)) {
+            sinks.add(provider);
+        }
         patternListeners.forEach(listener -> listener.onAdded(pattern));
     }
 
@@ -203,6 +214,13 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public void remove(final PatternProvider provider, final Pattern pattern) {
         patternListeners.forEach(listener -> listener.onRemoved(pattern));
         providerByPattern.remove(pattern);
+        final List<ExternalPatternSink> sinksByLayout = sinksByPatternLayout.get(pattern.layout());
+        if (sinksByLayout != null) {
+            sinksByLayout.remove(provider);
+            if (sinksByLayout.isEmpty()) {
+                sinksByPatternLayout.remove(pattern.layout());
+            }
+        }
         patternRepository.remove(pattern);
     }
 
@@ -231,11 +249,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
-    public List<ExternalPatternSink> getSinksByPattern(final Pattern pattern) {
-        final PatternProvider provider = providerByPattern.get(pattern);
-        if (provider == null) {
-            return List.of();
-        }
-        return List.of(provider);
+    public List<ExternalPatternSink> getSinksByPatternLayout(final PatternLayout patternLayout) {
+        return sinksByPatternLayout.getOrDefault(patternLayout, Collections.emptyList());
     }
 }

@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternLayout;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.Actor;
@@ -14,23 +15,23 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 class ExternalPatternSinkProviderImpl implements ExternalPatternSinkProvider {
-    private final Map<Pattern, ExternalPatternSink> sinks = new HashMap<>();
+    private final Map<PatternLayout, ExternalPatternSink> sinks = new HashMap<>();
 
     ExternalPatternSinkImpl put(final Pattern pattern) {
         return put(pattern, new ExternalPatternSinkImpl(new StorageImpl(), pattern, null));
     }
 
-    ExternalPatternSinkImpl put(final Pattern pattern, final ExternalPatternSink.Result fixedResult) {
-        return put(pattern, new ExternalPatternSinkImpl(new StorageImpl(), pattern, fixedResult));
+    void put(final Pattern pattern, final ExternalPatternSink.Result fixedResult) {
+        put(pattern, new ExternalPatternSinkImpl(new StorageImpl(), pattern, fixedResult));
     }
 
     <T extends ExternalPatternSink> T put(final Pattern pattern, final T sink) {
-        sinks.put(pattern, sink);
+        sinks.put(pattern.layout(), sink);
         return sink;
     }
 
     void remove(final Pattern pattern) {
-        sinks.remove(pattern);
+        sinks.remove(pattern.layout());
     }
 
     static ExternalPatternSinkKey sinkKey(final Pattern pattern) {
@@ -38,8 +39,8 @@ class ExternalPatternSinkProviderImpl implements ExternalPatternSinkProvider {
     }
 
     @Override
-    public List<ExternalPatternSink> getSinksByPattern(final Pattern pattern) {
-        final ExternalPatternSink sink = sinks.get(pattern);
+    public List<ExternalPatternSink> getSinksByPatternLayout(final PatternLayout patternLayout) {
+        final ExternalPatternSink sink = sinks.get(patternLayout);
         if (sink == null) {
             return List.of();
         }

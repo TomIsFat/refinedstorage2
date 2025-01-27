@@ -162,7 +162,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
             return false;
         }
-        final List<ExternalPatternSink> sinks = sinkProvider.getSinksByPattern(pattern);
+        final List<ExternalPatternSink> sinks = sinkProvider.getSinksByPatternLayout(pattern.layout());
         if (sinks.isEmpty()) {
             lastSinkResult = ExternalPatternSink.Result.SKIPPED;
             return false;
