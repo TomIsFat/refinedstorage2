@@ -213,10 +213,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         }
         if (completed) {
             cleanupTask(task, storage);
-            parents.forEach(parent -> {
-                parent.taskCompleted(task);
-                parent.taskRemoved(task);
-            });
+            parents.forEach(parent -> parent.taskCompleted(task));
         } else if (changed) {
             parents.forEach(parent -> parent.taskChanged(task));
         }

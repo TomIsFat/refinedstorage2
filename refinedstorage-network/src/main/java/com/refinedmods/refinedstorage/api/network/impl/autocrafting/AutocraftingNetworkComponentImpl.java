@@ -247,7 +247,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
 
     @Override
     public void taskCompleted(final Task task) {
-        // no op
+        taskRemoved(task);
     }
 
     @Override
