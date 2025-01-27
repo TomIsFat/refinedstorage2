@@ -8,6 +8,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkP
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskListener;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskState;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
@@ -29,8 +30,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TODO(feat): autocrafter locking support
-public class PatternProviderNetworkNode extends SimpleNetworkNode implements PatternProvider {
+public class PatternProviderNetworkNode extends SimpleNetworkNode implements PatternProvider, TaskListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(PatternProviderNetworkNode.class);
 
     private final Pattern[] patterns;
@@ -42,6 +42,8 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     @Nullable
     private ExternalPatternSinkKeyProvider sinkKeyProvider;
     private StepBehavior stepBehavior = StepBehavior.DEFAULT;
+    @Nullable
+    private PatternProviderListener listener;
 
     public PatternProviderNetworkNode(final long energyUsage, final int patterns) {
         super(energyUsage);
@@ -145,6 +147,26 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         return tasks.stream().map(Task::getStatus).toList();
     }
 
+    @Override
+    public void receivedExternalIteration() {
+        if (listener != null) {
+            listener.receivedExternalIteration();
+        }
+    }
+
+    @Override
+    public void receivedExternalIteration(final Pattern pattern) {
+        if (network == null) {
+            return;
+        }
+        final AutocraftingNetworkComponent autocrafting = network.getComponent(AutocraftingNetworkComponent.class);
+        final PatternProvider provider = autocrafting.getProviderByPattern(pattern);
+        if (provider == null) {
+            return;
+        }
+        provider.receivedExternalIteration();
+    }
+
     private void setupTask(final Task task, final StorageNetworkComponent storage) {
         storage.addListener(task);
     }
@@ -173,16 +195,16 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         }
         final StorageNetworkComponent storage = network.getComponent(StorageNetworkComponent.class);
         final ExternalPatternSinkProvider sinkProvider = network.getComponent(AutocraftingNetworkComponent.class);
-        tasks.removeIf(task -> stepPattern(task, storage, sinkProvider));
+        tasks.removeIf(task -> stepTask(task, storage, sinkProvider));
     }
 
-    private boolean stepPattern(final Task task,
-                                final StorageNetworkComponent storage,
-                                final ExternalPatternSinkProvider sinkProvider) {
+    private boolean stepTask(final Task task,
+                             final StorageNetworkComponent storage,
+                             final ExternalPatternSinkProvider sinkProvider) {
         boolean changed;
         boolean completed;
         try {
-            changed = task.step(storage, sinkProvider, stepBehavior);
+            changed = task.step(storage, sinkProvider, stepBehavior, this);
             completed = task.getState() == TaskState.COMPLETED;
         } catch (final Exception e) {
             LOGGER.error("Exception while stepping task {} {}, removing task", task.getResource(), task.getAmount(), e);
@@ -191,7 +213,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         }
         if (completed) {
             cleanupTask(task, storage);
-            parents.forEach(parent -> parent.taskRemoved(task));
+            parents.forEach(parent -> parent.taskCompleted(task));
         } else if (changed) {
             parents.forEach(parent -> parent.taskChanged(task));
         }
@@ -223,5 +245,9 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
 
     public void setSinkKeyProvider(final ExternalPatternSinkKeyProvider provider) {
         this.sinkKeyProvider = provider;
+    }
+
+    public void setListener(final PatternProviderListener listener) {
+        this.listener = listener;
     }
 }

@@ -28,6 +28,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     private long iterationsToSendToSink;
     private long iterationsReceived;
     private boolean interceptedAnythingSinceLastStep;
+    private boolean interceptedAnIterationAtLeastOnceSinceLastStep;
     @Nullable
     private ExternalPatternSink.Result lastSinkResult;
     @Nullable
@@ -64,7 +65,12 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     @Override
     PatternStepResult step(final MutableResourceList internalStorage,
                            final RootStorage rootStorage,
-                           final ExternalPatternSinkProvider sinkProvider) {
+                           final ExternalPatternSinkProvider sinkProvider,
+                           final TaskListener listener) {
+        if (interceptedAnIterationAtLeastOnceSinceLastStep) {
+            interceptedAnIterationAtLeastOnceSinceLastStep = false;
+            listener.receivedExternalIteration(pattern);
+        }
         if (expectedOutputs.isEmpty()) {
             return PatternStepResult.COMPLETED;
         }
@@ -96,12 +102,17 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         }
         final long reserved = Math.min(needed, amount);
         expectedOutputs.remove(resource, reserved);
-        updateIterationsReceived();
+        final boolean receivedAtLeastOneIteration = updateIterationsReceived();
+        if (receivedAtLeastOneIteration) {
+            interceptedAnIterationAtLeastOnceSinceLastStep = true;
+        }
+        this.interceptedAnythingSinceLastStep = true;
         final long intercepted = root ? 0 : reserved;
         return new RootStorageListener.InterceptResult(reserved, intercepted);
     }
 
-    private void updateIterationsReceived() {
+    private boolean updateIterationsReceived() {
+        final long originalIterationsReceived = iterationsReceived;
         long result = originalIterationsToSendToSink;
         for (final ResourceAmount output : pattern.layout().outputs()) {
             final long expected = output.amount() * originalIterationsToSendToSink;
@@ -113,7 +124,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             }
         }
         this.iterationsReceived = result;
-        this.interceptedAnythingSinceLastStep = true;
+        return iterationsReceived > originalIterationsReceived;
     }
 
     @Override

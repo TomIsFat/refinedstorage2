@@ -153,6 +153,11 @@ public class RelayOutputNetworkNode extends AbstractNetworkNode
     }
 
     @Override
+    public void receivedExternalIteration() {
+        // TODO(feat): relay support
+    }
+
+    @Override
     public SecurityDecision isAllowed(final Permission permission, final SecurityActor actor) {
         if (securityDelegate == null || securityDelegate.contains(securityDelegate)) {
             return SecurityDecision.PASS;

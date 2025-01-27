@@ -2,8 +2,8 @@ package com.refinedmods.refinedstorage.fabric.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.fabric.api.FabricStorageExternalPatternSinkStrategy;
 
 import java.util.Collection;
@@ -11,7 +11,7 @@ import java.util.Set;
 
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 
-class FabricStoragePatternProviderExternalPatternSink implements PatternProviderExternalPatternSink {
+class FabricStoragePatternProviderExternalPatternSink implements PlatformPatternProviderExternalPatternSink {
     private final Set<FabricStorageExternalPatternSinkStrategy> strategies;
 
     FabricStoragePatternProviderExternalPatternSink(
@@ -47,5 +47,15 @@ class FabricStoragePatternProviderExternalPatternSink implements PatternProvider
         } else {
             return ExternalPatternSink.Result.ACCEPTED;
         }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (final FabricStorageExternalPatternSinkStrategy strategy : strategies) {
+            if (!strategy.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

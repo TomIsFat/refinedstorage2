@@ -2,8 +2,8 @@ package com.refinedmods.refinedstorage.neoforge.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import com.refinedmods.refinedstorage.neoforge.storage.CapabilityCache;
 
@@ -19,7 +19,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ItemHandlerExternalPatternProviderSink implements PatternProviderExternalPatternSink {
+class ItemHandlerExternalPatternProviderSink implements PlatformPatternProviderExternalPatternSink {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemHandlerExternalPatternProviderSink.class);
 
     private final CapabilityCache capabilityCache;
@@ -87,5 +87,17 @@ class ItemHandlerExternalPatternProviderSink implements PatternProviderExternalP
                 final ItemResource itemResource = (ItemResource) resourceAmount.resource();
                 return itemResource.toItemStack(resourceAmount.amount());
             }).toList());
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return capabilityCache.getItemHandler().map(handler -> {
+            for (int i = 0; i < handler.getSlots(); ++i) {
+                if (!handler.getStackInSlot(i).isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }).orElse(true);
     }
 }

@@ -221,6 +221,7 @@
   "gui.refinedstorage.autocrafter.chained.head_help": "This autocrafter is the head of the chain.",
   "gui.refinedstorage.autocrafter.not_chained": "Not chained",
   "gui.refinedstorage.autocrafter.not_chained.help": "If another autocrafter is facing this one, they'll form a chain, allowing you to have more patterns going into a single machine.",
+  "gui.refinedstorage.autocrafter.currently_locked": "This autocrafter is currently locked.",
   "gui.refinedstorage.autocrafting_preview.title": "Autocrafting",
   "gui.refinedstorage.autocrafting_preview.start": "Start",
   "gui.refinedstorage.autocrafting_preview.pending": "Pending",

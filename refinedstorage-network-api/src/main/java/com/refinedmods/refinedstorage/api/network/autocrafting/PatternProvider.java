@@ -25,4 +25,6 @@ public interface PatternProvider extends ExternalPatternSink, StepBehavior {
     void cancelTask(TaskId taskId);
 
     List<TaskStatus> getTaskStatuses();
+
+    void receivedExternalIteration();
 }

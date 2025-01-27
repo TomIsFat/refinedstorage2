@@ -35,7 +35,8 @@ abstract class AbstractTaskPattern {
 
     abstract PatternStepResult step(MutableResourceList internalStorage,
                                     RootStorage rootStorage,
-                                    ExternalPatternSinkProvider sinkProvider);
+                                    ExternalPatternSinkProvider sinkProvider,
+                                    TaskListener listener);
 
     abstract RootStorageListener.InterceptResult interceptInsertion(ResourceKey resource, long amount);
 

@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderExternalPatternSinkFactory;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,9 +20,9 @@ public class CompositePatternProviderExternalPatternSinkFactory
     }
 
     @Override
-    public PatternProviderExternalPatternSink create(final ServerLevel level,
-                                                     final BlockPos pos,
-                                                     final Direction direction) {
+    public PlatformPatternProviderExternalPatternSink create(final ServerLevel level,
+                                                             final BlockPos pos,
+                                                             final Direction direction) {
         return new CompositePatternProviderExternalPatternSink(factories.stream()
             .map(factory -> factory.create(level, pos, direction))
             .collect(Collectors.toSet()));

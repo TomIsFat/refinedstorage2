@@ -22,8 +22,8 @@ public class PlatformAutocraftingNetworkComponent extends AutocraftingNetworkCom
     }
 
     @Override
-    public void taskRemoved(final Task task) {
-        super.taskRemoved(task);
+    public void taskCompleted(final Task task) {
+        super.taskCompleted(task);
         if (task.shouldNotify()
             && task.getActor() instanceof PlayerActor(String name)
             && task.getResource() instanceof PlatformResourceKey resource) {
