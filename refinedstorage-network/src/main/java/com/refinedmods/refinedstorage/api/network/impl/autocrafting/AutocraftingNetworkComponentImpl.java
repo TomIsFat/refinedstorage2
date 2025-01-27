@@ -15,6 +15,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskPlan;
 import com.refinedmods.refinedstorage.api.core.CoreValidations;
+import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
@@ -75,6 +76,12 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             provider.onRemovedFromContainer(this);
             providers.remove(provider);
         }
+    }
+
+    // a network merge does not call onContainerRemoved, so call it here to avoid leaking listeners from old networks
+    @Override
+    public void onNetworkMergedWith(final Network newMainNetwork) {
+        providers.forEach(provider -> provider.onRemovedFromContainer(this));
     }
 
     @Override
@@ -236,6 +243,11 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public void taskRemoved(final Task task) {
         providerByTaskId.remove(task.getId());
         statusListeners.forEach(listener -> listener.taskRemoved(task.getId()));
+    }
+
+    @Override
+    public void taskCompleted(final Task task) {
+        // no op
     }
 
     @Override

@@ -17,5 +17,7 @@ public interface ParentContainer {
 
     void taskRemoved(Task task);
 
+    void taskCompleted(Task task);
+
     void taskChanged(Task task);
 }

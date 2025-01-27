@@ -38,6 +38,11 @@ class AutocrafterParentContainer implements ParentContainer {
     }
 
     @Override
+    public void taskCompleted(final Task task) {
+        // no op
+    }
+
+    @Override
     public void taskChanged(final Task task) {
         blockEntity.setChanged();
     }
