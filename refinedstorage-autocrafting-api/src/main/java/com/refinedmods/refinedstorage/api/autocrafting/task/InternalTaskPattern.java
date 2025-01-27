@@ -49,7 +49,7 @@ class InternalTaskPattern extends AbstractTaskPattern {
         LOGGER.debug("Stepping {}", pattern);
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
         extractAll(iterationInputs, internalStorage, Action.EXECUTE);
-        pattern.outputs().forEach(output -> returnOutput(internalStorage, rootStorage, output));
+        pattern.layout().outputs().forEach(output -> returnOutput(internalStorage, rootStorage, output));
         return useIteration();
     }
 
@@ -80,7 +80,7 @@ class InternalTaskPattern extends AbstractTaskPattern {
         if (iterationsRemaining == 0) {
             return;
         }
-        for (final ResourceAmount output : pattern.outputs()) {
+        for (final ResourceAmount output : pattern.layout().outputs()) {
             builder.crafting(output.resource(), output.amount() * iterationsRemaining);
         }
     }

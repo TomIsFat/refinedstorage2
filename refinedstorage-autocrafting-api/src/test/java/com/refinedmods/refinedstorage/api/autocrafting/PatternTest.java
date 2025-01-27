@@ -23,30 +23,32 @@ class PatternTest {
         // Act
         final Pattern sut = new Pattern(
             UUID.randomUUID(),
-            List.of(
-                new Ingredient(1, List.of(A, B)),
-                new Ingredient(2, List.of(C))
-            ),
-            List.of(
-                new ResourceAmount(OAK_LOG, 3),
-                new ResourceAmount(OAK_PLANKS, 4)
-            ),
-            PatternType.INTERNAL
+            new PatternLayout(
+                List.of(
+                    new Ingredient(1, List.of(A, B)),
+                    new Ingredient(2, List.of(C))
+                ),
+                List.of(
+                    new ResourceAmount(OAK_LOG, 3),
+                    new ResourceAmount(OAK_PLANKS, 4)
+                ),
+                PatternType.INTERNAL
+            )
         );
 
         // Assert
-        assertThat(sut.ingredients()).hasSize(2);
-        final Ingredient firstIngredient = sut.ingredients().getFirst();
+        assertThat(sut.layout().ingredients()).hasSize(2);
+        final Ingredient firstIngredient = sut.layout().ingredients().getFirst();
         assertThat(firstIngredient.amount()).isEqualTo(1);
         assertThat(firstIngredient.inputs()).containsExactly(A, B);
-        final Ingredient secondIngredient = sut.ingredients().get(1);
+        final Ingredient secondIngredient = sut.layout().ingredients().get(1);
         assertThat(secondIngredient.amount()).isEqualTo(2);
         assertThat(secondIngredient.inputs()).containsExactly(C);
-        assertThat(sut.outputs()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        assertThat(sut.layout().outputs()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(OAK_LOG, 3),
             new ResourceAmount(OAK_PLANKS, 4)
         );
-        assertThat(sut.type()).isEqualTo(PatternType.INTERNAL);
+        assertThat(sut.layout().type()).isEqualTo(PatternType.INTERNAL);
     }
 
     @Test
@@ -54,12 +56,14 @@ class PatternTest {
         // Act
         final ThrowableAssert.ThrowingCallable action = () -> new Pattern(
             UUID.randomUUID(),
-            List.of(),
-            List.of(
-                new ResourceAmount(OAK_LOG, 3),
-                new ResourceAmount(OAK_PLANKS, 4)
-            ),
-            PatternType.INTERNAL
+            new PatternLayout(
+                List.of(),
+                List.of(
+                    new ResourceAmount(OAK_LOG, 3),
+                    new ResourceAmount(OAK_PLANKS, 4)
+                ),
+                PatternType.INTERNAL
+            )
         );
 
         // Assert
@@ -71,12 +75,14 @@ class PatternTest {
         // Act
         final ThrowableAssert.ThrowingCallable action = () -> new Pattern(
             UUID.randomUUID(),
-            List.of(
-                new Ingredient(1, List.of(A, B)),
-                new Ingredient(2, List.of(C))
-            ),
-            List.of(),
-            PatternType.INTERNAL
+            new PatternLayout(
+                List.of(
+                    new Ingredient(1, List.of(A, B)),
+                    new Ingredient(2, List.of(C))
+                ),
+                List.of(),
+                PatternType.INTERNAL
+            )
         );
 
         // Assert
@@ -90,15 +96,18 @@ class PatternTest {
         ingredients.add(new Ingredient(1, List.of(A, B)));
         final List<ResourceAmount> outputs = new ArrayList<>();
         outputs.add(new ResourceAmount(OAK_LOG, 3));
-        final Pattern sut = new Pattern(UUID.randomUUID(), ingredients, outputs, PatternType.INTERNAL);
+        final Pattern sut = new Pattern(
+            UUID.randomUUID(),
+            new PatternLayout(ingredients, outputs, PatternType.INTERNAL)
+        );
 
         // Act
         ingredients.add(new Ingredient(2, List.of(C)));
         outputs.add(new ResourceAmount(OAK_PLANKS, 4));
 
         // Assert
-        assertThat(sut.ingredients()).hasSize(1);
-        assertThat(sut.outputs()).hasSize(1);
+        assertThat(sut.layout().ingredients()).hasSize(1);
+        assertThat(sut.layout().outputs()).hasSize(1);
     }
 
     @Test
@@ -106,12 +115,14 @@ class PatternTest {
         // Arrange
         final Pattern sut = new Pattern(
             UUID.randomUUID(),
-            List.of(new Ingredient(1, List.of(A))),
-            List.of(new ResourceAmount(OAK_LOG, 3)),
-            PatternType.INTERNAL
+            new PatternLayout(
+                List.of(new Ingredient(1, List.of(A))),
+                List.of(new ResourceAmount(OAK_LOG, 3)),
+                PatternType.INTERNAL
+            )
         );
-        final List<Ingredient> ingredients = sut.ingredients();
-        final List<ResourceAmount> outputs = sut.outputs();
+        final List<Ingredient> ingredients = sut.layout().ingredients();
+        final List<ResourceAmount> outputs = sut.layout().outputs();
 
         final Ingredient newIngredient = new Ingredient(2, List.of(B));
         final ResourceAmount newOutput = new ResourceAmount(OAK_PLANKS, 4);
@@ -131,15 +142,17 @@ class PatternTest {
         // Act
         final ThrowableAssert.ThrowingCallable action = () -> new Pattern(
             UUID.randomUUID(),
-            List.of(
-                new Ingredient(1, List.of(A, B)),
-                new Ingredient(2, List.of(C))
-            ),
-            List.of(
-                new ResourceAmount(OAK_LOG, 3),
-                new ResourceAmount(OAK_PLANKS, 4)
-            ),
-            null
+            new PatternLayout(
+                List.of(
+                    new Ingredient(1, List.of(A, B)),
+                    new Ingredient(2, List.of(C))
+                ),
+                List.of(
+                    new ResourceAmount(OAK_LOG, 3),
+                    new ResourceAmount(OAK_PLANKS, 4)
+                ),
+                null
+            )
         );
 
         // Assert
@@ -152,15 +165,17 @@ class PatternTest {
         // Act
         final ThrowableAssert.ThrowingCallable action = () -> new Pattern(
             null,
-            List.of(
-                new Ingredient(1, List.of(A, B)),
-                new Ingredient(2, List.of(C))
-            ),
-            List.of(
-                new ResourceAmount(OAK_LOG, 3),
-                new ResourceAmount(OAK_PLANKS, 4)
-            ),
-            PatternType.INTERNAL
+            new PatternLayout(
+                List.of(
+                    new Ingredient(1, List.of(A, B)),
+                    new Ingredient(2, List.of(C))
+                ),
+                List.of(
+                    new ResourceAmount(OAK_LOG, 3),
+                    new ResourceAmount(OAK_PLANKS, 4)
+                ),
+                PatternType.INTERNAL
+            )
         );
 
         // Assert

@@ -79,7 +79,7 @@ abstract class AbstractTaskPattern {
                                              final int ingredientIndex,
                                              final MutableResourceList iterationInputs,
                                              final Action action) {
-        long needed = pattern.ingredients().get(ingredientIndex).amount();
+        long needed = pattern.layout().ingredients().get(ingredientIndex).amount();
         for (final Map.Entry<ResourceKey, Long> possibility : ingredient.getValue().entrySet()) {
             final long available = Math.min(needed, possibility.getValue());
             if (available == 0) {

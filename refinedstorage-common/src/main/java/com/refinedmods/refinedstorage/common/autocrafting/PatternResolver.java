@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternLayout;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -183,15 +184,14 @@ public class PatternResolver {
                                 final List<List<ResourceKey>> inputs,
                                 final ResourceAmount output,
                                 final List<ResourceAmount> byproducts) {
-            this(inputs, output, new Pattern(
-                id,
+            this(inputs, output, new Pattern(id, new PatternLayout(
                 inputs.stream()
                     .filter(i -> !i.isEmpty())
                     .map(i -> new Ingredient(1, i))
                     .toList(),
                 Stream.concat(Stream.of(output), byproducts.stream()).toList(),
                 PatternType.INTERNAL
-            ));
+            )));
         }
     }
 
@@ -199,7 +199,7 @@ public class PatternResolver {
         ResolvedProcessingPattern(final UUID id,
                                   final List<Ingredient> ingredients,
                                   final List<ResourceAmount> outputs) {
-            this(new Pattern(id, ingredients, outputs, PatternType.EXTERNAL));
+            this(new Pattern(id, new PatternLayout(ingredients, outputs, PatternType.EXTERNAL)));
         }
     }
 
@@ -207,12 +207,11 @@ public class PatternResolver {
                                              ItemResource output,
                                              Pattern pattern) {
         ResolvedStonecutterPattern(final UUID id, final ItemResource input, final ItemResource output) {
-            this(input, output, new Pattern(
-                id,
+            this(input, output, new Pattern(id, new PatternLayout(
                 List.of(new Ingredient(1, List.of(input))),
                 List.of(new ResourceAmount(output, 1)),
                 PatternType.INTERNAL
-            ));
+            )));
         }
     }
 
@@ -226,12 +225,11 @@ public class PatternResolver {
                                      final ItemResource base,
                                      final ItemResource addition,
                                      final ItemResource output) {
-            this(template, base, addition, output, new Pattern(
-                id,
+            this(template, base, addition, output, new Pattern(id, new PatternLayout(
                 List.of(single(template), single(base), single(addition)),
                 List.of(new ResourceAmount(output, 1)),
                 PatternType.INTERNAL
-            ));
+            )));
         }
 
         private static Ingredient single(final ResourceKey input) {

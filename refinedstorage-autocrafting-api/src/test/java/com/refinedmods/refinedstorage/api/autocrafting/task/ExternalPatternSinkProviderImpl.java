@@ -38,7 +38,7 @@ class ExternalPatternSinkProviderImpl implements ExternalPatternSinkProvider {
     }
 
     @Override
-    public List<ExternalPatternSink> getByPattern(final Pattern pattern) {
+    public List<ExternalPatternSink> getSinksByPattern(final Pattern pattern) {
         final ExternalPatternSink sink = sinks.get(pattern);
         if (sink == null) {
             return List.of();

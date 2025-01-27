@@ -231,7 +231,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
-    public List<ExternalPatternSink> getByPattern(final Pattern pattern) {
+    public List<ExternalPatternSink> getSinksByPattern(final Pattern pattern) {
         final PatternProvider provider = providerByPattern.get(pattern);
         if (provider == null) {
             return List.of();

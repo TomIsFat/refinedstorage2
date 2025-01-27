@@ -343,7 +343,7 @@ class RelayNetworkNodeTest {
             new ResourceAmount(C, 1)
         );
         assertThat(outputAutocrafting.getOutputs()).containsExactly(B);
-        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.outputs()
+        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.layout().outputs()
             .stream()
             .anyMatch(patternOutput -> patternOutput.resource().equals(B)));
         assertThat(inputAlternativeStorage.getAll()).usingRecursiveFieldByFieldElementComparator()
@@ -394,7 +394,7 @@ class RelayNetworkNodeTest {
         assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
         assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
         assertThat(outputAutocrafting.getOutputs()).containsExactly(A);
-        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.outputs()
+        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.layout().outputs()
             .stream()
             .anyMatch(patternOutput -> patternOutput.resource().equals(A)));
         assertThat(output.getEnergyUsage()).isEqualTo(OUTPUT_ENERGY_USAGE);
@@ -439,7 +439,7 @@ class RelayNetworkNodeTest {
         assertThat(outputStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
         assertThat(outputStorage.extract(A, 1, Action.EXECUTE, Actor.EMPTY)).isEqualTo(1);
         assertThat(outputAutocrafting.getOutputs()).containsExactly(A);
-        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.outputs()
+        assertThat(outputAutocrafting.getPatterns()).allMatch(p -> p.layout().outputs()
             .stream()
             .anyMatch(patternOutput -> patternOutput.resource().equals(A)));
         assertThat(output.getEnergyUsage()).isEqualTo(OUTPUT_ENERGY_USAGE);

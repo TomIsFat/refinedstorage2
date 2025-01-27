@@ -8,6 +8,7 @@ import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -65,8 +66,9 @@ class CraftingTree<T> {
             throw new PatternCycleDetectedException(pattern);
         }
         CalculationResult result = CalculationResult.SUCCESS;
-        for (int ingredientIndex = 0; ingredientIndex < pattern.ingredients().size(); ++ingredientIndex) {
-            final Ingredient ingredient = pattern.ingredients().get(ingredientIndex);
+        final List<Ingredient> ingredients = pattern.layout().ingredients();
+        for (int ingredientIndex = 0; ingredientIndex < ingredients.size(); ++ingredientIndex) {
+            final Ingredient ingredient = ingredients.get(ingredientIndex);
             final IngredientState ingredientState = new IngredientState(ingredient, craftingState);
             final CalculationResult ingredientResult = calculateIngredient(ingredientIndex, ingredientState);
             if (ingredientResult == CalculationResult.MISSING_RESOURCES) {

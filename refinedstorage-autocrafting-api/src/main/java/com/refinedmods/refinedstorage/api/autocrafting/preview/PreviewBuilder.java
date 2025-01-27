@@ -27,7 +27,7 @@ public class PreviewBuilder {
     }
 
     public PreviewBuilder withPatternWithCycle(final Pattern pattern) {
-        this.outputsOfPatternWithCycle = pattern.outputs();
+        this.outputsOfPatternWithCycle = pattern.layout().outputs();
         return this;
     }
 

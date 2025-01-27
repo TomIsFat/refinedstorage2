@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.autocrafting.autocrafter;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternLayout;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
@@ -70,16 +71,16 @@ final class TaskSnapshotPersistence {
         final CompoundTag tag = new CompoundTag();
         tag.putUUID("id", pattern.id());
         final ListTag ingredients = new ListTag();
-        for (final Ingredient ingredient : pattern.ingredients()) {
+        for (final Ingredient ingredient : pattern.layout().ingredients()) {
             ingredients.add(encodeIngredient(ingredient));
         }
         tag.put("ingredients", ingredients);
         final ListTag outputs = new ListTag();
-        for (final ResourceAmount output : pattern.outputs()) {
+        for (final ResourceAmount output : pattern.layout().outputs()) {
             outputs.add(ResourceCodecs.AMOUNT_CODEC.encode(output, NbtOps.INSTANCE, new CompoundTag()).getOrThrow());
         }
         tag.put("outputs", outputs);
-        tag.putString("type", pattern.type().name());
+        tag.putString("type", pattern.layout().type().name());
         return tag;
     }
 
@@ -253,7 +254,7 @@ final class TaskSnapshotPersistence {
             outputs.add(ResourceCodecs.AMOUNT_CODEC.parse(NbtOps.INSTANCE, outputTag).result().orElseThrow());
         }
         final PatternType type = PatternType.valueOf(tag.getString("type"));
-        return new Pattern(id, ingredients, outputs, type);
+        return new Pattern(id, new PatternLayout(ingredients, outputs, type));
     }
 
     private static Ingredient decodeIngredient(final CompoundTag tag) {

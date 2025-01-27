@@ -47,8 +47,12 @@ public class PatternBuilder {
         return this;
     }
 
+    public PatternLayout buildLayout() {
+        return new PatternLayout(ingredients, outputs, type);
+    }
+
     public Pattern build() {
-        return new Pattern(id, ingredients, outputs, type);
+        return new Pattern(id, buildLayout());
     }
 
     public class IngredientBuilder {

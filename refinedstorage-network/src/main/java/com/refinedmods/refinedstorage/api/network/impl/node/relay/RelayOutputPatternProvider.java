@@ -73,7 +73,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     private boolean isPatternAllowed(final Pattern pattern) {
-        return pattern.outputs().stream().map(ResourceAmount::resource).anyMatch(filter::isAllowed);
+        return pattern.layout().outputs().stream().map(ResourceAmount::resource).anyMatch(filter::isAllowed);
     }
 
     @Override

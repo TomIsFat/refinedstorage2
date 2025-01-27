@@ -17,5 +17,5 @@ public interface ExternalPatternSinkProvider {
      * @param pattern the pattern
      * @return a list of sinks for a pattern
      */
-    List<ExternalPatternSink> getByPattern(Pattern pattern);
+    List<ExternalPatternSink> getSinksByPattern(Pattern pattern);
 }

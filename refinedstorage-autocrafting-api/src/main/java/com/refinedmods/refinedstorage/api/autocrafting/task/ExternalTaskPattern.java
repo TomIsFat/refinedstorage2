@@ -37,7 +37,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         super(pattern, plan);
         this.originalIterationsToSendToSink = plan.iterations();
         this.expectedOutputs = MutableResourceListImpl.create();
-        pattern.outputs().forEach(
+        pattern.layout().outputs().forEach(
             output -> expectedOutputs.add(output.resource(), output.amount() * plan.iterations())
         );
         this.iterationsToSendToSink = plan.iterations();
@@ -102,7 +102,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
 
     private void updateIterationsReceived() {
         long result = originalIterationsToSendToSink;
-        for (final ResourceAmount output : pattern.outputs()) {
+        for (final ResourceAmount output : pattern.layout().outputs()) {
             final long expected = output.amount() * originalIterationsToSendToSink;
             final long stillNeeded = expectedOutputs.get(output.resource());
             final long receivedOutputs = expected - stillNeeded;
@@ -117,8 +117,9 @@ class ExternalTaskPattern extends AbstractTaskPattern {
 
     @Override
     void appendStatus(final TaskStatusBuilder builder) {
+        final List<ResourceAmount> outputs = pattern.layout().outputs();
         if (iterationsToSendToSink > 0) {
-            for (final ResourceAmount output : pattern.outputs()) {
+            for (final ResourceAmount output : outputs) {
                 builder.scheduled(output.resource(), output.amount() * iterationsToSendToSink);
             }
         }
@@ -135,9 +136,9 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         }
         if (lastSinkResult != null) {
             switch (lastSinkResult) {
-                case REJECTED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::rejected);
-                case SKIPPED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::noneFound);
-                case LOCKED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::locked);
+                case REJECTED -> outputs.stream().map(ResourceAmount::resource).forEach(builder::rejected);
+                case SKIPPED -> outputs.stream().map(ResourceAmount::resource).forEach(builder::noneFound);
+                case LOCKED -> outputs.stream().map(ResourceAmount::resource).forEach(builder::locked);
                 case ACCEPTED -> {
                     // does not need to be reported
                 }
@@ -161,7 +162,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
             return false;
         }
-        final List<ExternalPatternSink> sinks = sinkProvider.getByPattern(pattern);
+        final List<ExternalPatternSink> sinks = sinkProvider.getSinksByPattern(pattern);
         if (sinks.isEmpty()) {
             lastSinkResult = ExternalPatternSink.Result.SKIPPED;
             return false;
