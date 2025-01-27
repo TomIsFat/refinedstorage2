@@ -4,7 +4,6 @@ import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusBuilder;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
@@ -12,7 +11,6 @@ import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,35 +24,58 @@ import org.slf4j.LoggerFactory;
 public class TaskImpl implements Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskImpl.class);
 
-    private final TaskId id = TaskId.create();
+    private final TaskId id;
     private final ResourceKey resource;
     private final long amount;
     private final Actor actor;
     private final boolean notify;
-    private final long startTime = System.currentTimeMillis();
+    private final long startTime;
     private final Map<Pattern, AbstractTaskPattern> patterns;
     private final List<AbstractTaskPattern> completedPatterns = new ArrayList<>();
-    private final MutableResourceList initialRequirements = MutableResourceListImpl.create();
+    private final MutableResourceList initialRequirements;
     private final MutableResourceList internalStorage;
     private TaskState state = TaskState.READY;
     private boolean cancelled;
+
+    public TaskImpl(final TaskSnapshot snapshot) {
+        this.id = snapshot.id();
+        this.resource = snapshot.resource();
+        this.amount = snapshot.amount();
+        this.actor = snapshot.actor();
+        this.notify = snapshot.notifyActor();
+        this.startTime = snapshot.startTime();
+        this.patterns = snapshot.patterns().entrySet().stream().collect(Collectors.toMap(
+            Map.Entry::getKey,
+            e -> e.getValue().toTaskPattern(),
+            (a, b) -> a,
+            LinkedHashMap::new
+        ));
+        snapshot.completedPatterns().forEach(patternSnapshot -> completedPatterns.add(patternSnapshot.toTaskPattern()));
+        this.initialRequirements = snapshot.copyInitialRequirements();
+        this.internalStorage = snapshot.copyInternalStorage();
+        this.state = snapshot.state();
+        this.cancelled = snapshot.cancelled();
+    }
 
     public TaskImpl(final TaskPlan plan, final Actor actor, final boolean notify) {
         this(plan, MutableResourceListImpl.create(), actor, notify);
     }
 
     TaskImpl(final TaskPlan plan, final MutableResourceList internalStorage, final Actor actor, final boolean notify) {
+        this.id = TaskId.create();
         this.internalStorage = internalStorage;
         this.resource = plan.resource();
         this.amount = plan.amount();
         this.actor = actor;
         this.notify = notify;
+        this.startTime = System.currentTimeMillis();
         this.patterns = plan.patterns().entrySet().stream().collect(Collectors.toMap(
             Map.Entry::getKey,
             e -> createTaskPattern(e.getKey(), e.getValue()),
             (a, b) -> a,
             LinkedHashMap::new
         ));
+        this.initialRequirements = MutableResourceListImpl.create();
         plan.initialRequirements().forEach(initialRequirements::add);
     }
 
@@ -138,6 +159,32 @@ public class TaskImpl implements Task {
             internalResource -> builder.stored(internalResource, internalStorage.get(internalResource))
         );
         return builder.build(totalWeight == 0 ? 0 : totalWeightedCompleted / totalWeight);
+    }
+
+    public TaskSnapshot createSnapshot() {
+        return new TaskSnapshot(
+            id,
+            resource,
+            amount,
+            actor,
+            notify,
+            startTime,
+            patterns.entrySet().stream().collect(Collectors.toMap(
+                Map.Entry::getKey,
+                e -> e.getValue().createSnapshot(),
+                (a, b) -> a,
+                LinkedHashMap::new
+            )),
+            completedPatterns.stream()
+                .filter(InternalTaskPattern.class::isInstance)
+                .map(InternalTaskPattern.class::cast)
+                .map(InternalTaskPattern::createSnapshot)
+                .toList(),
+            initialRequirements.copy(),
+            internalStorage.copy(),
+            state,
+            cancelled
+        );
     }
 
     private boolean startTask(final RootStorage rootStorage) {
@@ -241,11 +288,6 @@ public class TaskImpl implements Task {
             updateState(TaskState.COMPLETED);
         }
         return returnedAny;
-    }
-
-    @Override
-    public Collection<ResourceAmount> copyInternalStorageState() {
-        return internalStorage.copyState();
     }
 
     @Override

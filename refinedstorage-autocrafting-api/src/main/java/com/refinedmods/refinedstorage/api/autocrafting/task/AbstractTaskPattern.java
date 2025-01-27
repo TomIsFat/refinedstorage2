@@ -39,6 +39,8 @@ abstract class AbstractTaskPattern {
 
     abstract RootStorageListener.InterceptResult interceptInsertion(ResourceKey resource, long amount);
 
+    abstract TaskSnapshot.PatternSnapshot createSnapshot();
+
     abstract void appendStatus(TaskStatusBuilder builder);
 
     abstract long getWeight();

@@ -3,6 +3,9 @@ package com.refinedmods.refinedstorage.common.autocrafting.autocrafter;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
+import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskSnapshot;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
@@ -32,6 +35,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamEncoder;
@@ -44,7 +48,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import static com.refinedmods.refinedstorage.common.autocrafting.autocrafter.TaskSnapshotPersistence.decodeSnapshot;
+import static com.refinedmods.refinedstorage.common.autocrafting.autocrafter.TaskSnapshotPersistence.encodeSnapshot;
 import static com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock.tryExtractDirection;
 
 public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntity<PatternProviderNetworkNode>
@@ -52,11 +60,14 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     ExternalPatternInputSinkKeyProvider {
     static final int PATTERNS = 9;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AutocrafterBlockEntity.class);
+
     private static final int MAX_CHAINED_AUTOCRAFTERS = 8;
     private static final String TAG_UPGRADES = "upgr";
     private static final String TAG_PATTERNS = "patterns";
     private static final String TAG_LOCK_MODE = "lm";
     private static final String TAG_PRIORITY = "pri";
+    private static final String TAG_TASKS = "tasks";
     private static final String TAG_VISIBLE_TO_THE_AUTOCRAFTER_MANAGER = "vaum";
 
     private final PatternInventory patternContainer = new PatternInventory(PATTERNS, this::getLevel);
@@ -95,6 +106,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         this.patternContainer.setListener(this);
         this.mainNetworkNode.setStepBehavior(this);
         this.mainNetworkNode.setSinkKeyProvider(this);
+        this.mainNetworkNode.onAddedIntoContainer(new AutocrafterParentContainer(this));
     }
 
     @Override
@@ -215,6 +227,17 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         super.saveAdditional(tag, provider);
         tag.put(TAG_PATTERNS, ContainerUtil.write(patternContainer, provider));
         tag.put(TAG_UPGRADES, ContainerUtil.write(upgradeContainer, provider));
+        final ListTag tasks = new ListTag();
+        for (final Task task : mainNetworkNode.getTasks()) {
+            if (task instanceof TaskImpl taskImpl) {
+                try {
+                    tasks.add(encodeSnapshot(taskImpl.createSnapshot()));
+                } catch (final Exception e) {
+                    LOGGER.error("Error while saving task {} {}", task.getResource(), task.getAmount(), e);
+                }
+            }
+        }
+        tag.put(TAG_TASKS, tasks);
     }
 
     @Override
@@ -232,6 +255,18 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         }
         if (tag.contains(TAG_UPGRADES)) {
             ContainerUtil.read(tag.getCompound(TAG_UPGRADES), upgradeContainer, provider);
+        }
+        if (tag.contains(TAG_TASKS)) {
+            final ListTag tasks = tag.getList(TAG_TASKS, CompoundTag.TAG_COMPOUND);
+            for (int i = 0; i < tasks.size(); ++i) {
+                final CompoundTag taskTag = tasks.getCompound(i);
+                try {
+                    final TaskSnapshot snapshot = decodeSnapshot(taskTag);
+                    mainNetworkNode.addTask(new TaskImpl(snapshot));
+                } catch (final Exception e) {
+                    LOGGER.error("Error while loading task, skipping", e);
+                }
+            }
         }
         super.loadAdditional(tag, provider);
     }

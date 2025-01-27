@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.util;
 
 import javax.annotation.Nullable;
 
+import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -15,6 +16,10 @@ public final class PlatformUtil {
 
     public static <T extends Enum<T>> StreamCodec<ByteBuf, T> enumStreamCodec(final T[] values) {
         return ByteBufCodecs.idMapper(id -> id < 0 || id >= values.length ? values[0] : values[id], Enum::ordinal);
+    }
+
+    public static <T extends Enum<T>> Codec<T> enumCodec(final T[] values) {
+        return Codec.INT.xmap(i -> values[i], Enum::ordinal);
     }
 
     public static void sendBlockUpdateToClient(@Nullable final Level level, final BlockPos pos) {

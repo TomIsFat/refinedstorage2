@@ -25,9 +25,13 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
-// TODO(feat): persistence of tasks
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 // TODO(feat): autocrafter locking support
 public class PatternProviderNetworkNode extends SimpleNetworkNode implements PatternProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PatternProviderNetworkNode.class);
+
     private final Pattern[] patterns;
     private final Set<ParentContainer> parents = new HashSet<>();
     private final List<Task> tasks = new CopyOnWriteArrayList<>();
@@ -176,17 +180,29 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         final ExternalPatternInputSink outerExternalPatternInputSink = network.getComponent(
             AutocraftingNetworkComponent.class
         );
-        tasks.removeIf(task -> {
-            final boolean changed = task.step(storage, outerExternalPatternInputSink, stepBehavior);
-            final boolean completed = task.getState() == TaskState.COMPLETED;
-            if (completed) {
-                cleanupTask(task, storage);
-                parents.forEach(parent -> parent.taskRemoved(task));
-            } else if (changed) {
-                parents.forEach(parent -> parent.taskChanged(task));
-            }
-            return completed;
-        });
+        tasks.removeIf(task -> stepPattern(task, storage, outerExternalPatternInputSink));
+    }
+
+    private boolean stepPattern(final Task task,
+                                final StorageNetworkComponent storage,
+                                final ExternalPatternInputSink outerExternalPatternInputSink) {
+        boolean changed;
+        boolean completed;
+        try {
+            changed = task.step(storage, outerExternalPatternInputSink, stepBehavior);
+            completed = task.getState() == TaskState.COMPLETED;
+        } catch (final Exception e) {
+            LOGGER.error("Exception while stepping task {} {}, removing task", task.getResource(), task.getAmount(), e);
+            changed = false;
+            completed = true;
+        }
+        if (completed) {
+            cleanupTask(task, storage);
+            parents.forEach(parent -> parent.taskRemoved(task));
+        } else if (changed) {
+            parents.forEach(parent -> parent.taskChanged(task));
+        }
+        return completed;
     }
 
     public int getPriority() {

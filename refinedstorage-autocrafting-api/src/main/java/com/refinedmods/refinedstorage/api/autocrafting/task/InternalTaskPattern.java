@@ -14,6 +14,8 @@ import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Objects.requireNonNull;
+
 class InternalTaskPattern extends AbstractTaskPattern {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalTaskPattern.class);
 
@@ -24,6 +26,16 @@ class InternalTaskPattern extends AbstractTaskPattern {
         super(pattern, plan);
         this.originalIterationsRemaining = plan.iterations();
         this.iterationsRemaining = plan.iterations();
+    }
+
+    InternalTaskPattern(final TaskSnapshot.PatternSnapshot snapshot) {
+        super(snapshot.pattern(), new TaskPlan.PatternPlan(
+            snapshot.root(),
+            requireNonNull(snapshot.internalPattern()).originalIterationsRemaining(),
+            snapshot.ingredients()
+        ));
+        this.originalIterationsRemaining = snapshot.internalPattern().originalIterationsRemaining();
+        this.iterationsRemaining = snapshot.internalPattern().iterationsRemaining();
     }
 
     @Override
@@ -88,5 +100,16 @@ class InternalTaskPattern extends AbstractTaskPattern {
         iterationsRemaining--;
         LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsRemaining);
         return iterationsRemaining == 0 ? PatternStepResult.COMPLETED : PatternStepResult.RUNNING;
+    }
+
+    @Override
+    TaskSnapshot.PatternSnapshot createSnapshot() {
+        return new TaskSnapshot.PatternSnapshot(
+            root,
+            pattern,
+            ingredients,
+            new TaskSnapshot.InternalPatternSnapshot(originalIterationsRemaining, iterationsRemaining),
+            null
+        );
     }
 }
