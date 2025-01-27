@@ -31,7 +31,7 @@ public record TaskSnapshot(
         return copy;
     }
 
-    MutableResourceList copyInternalStorage() {
+    public MutableResourceList copyInternalStorage() {
         final MutableResourceList copy = MutableResourceListImpl.create();
         internalStorage.getAll().forEach(key -> copy.add(key, internalStorage.get(key)));
         return copy;

@@ -579,7 +579,7 @@
   "text.autoconfig.refinedstorage.option.upgrade.silkTouchUpgradeEnergyUsage": "Silk Touch Upgrade energy usage",
   "text.autoconfig.refinedstorage.option.upgrade.silkTouchUpgradeEnergyUsage.tooltip": "The additional energy used by the Silk Touch Upgrade.",
   "text.autoconfig.refinedstorage.option.upgrade.regulatorUpgradeEnergyUsage": "Regulator Upgrade energy usage",
-  "text.autoconfig.refinedstorage.option.upgrade.regulatorUpgradeEnergyUsage.tooltip": "The additional energy used by the Regulator Upgrade.",
+  "text.autoconfig.refinedstorage.option.upgrade.regulatorUpgradeEnergyUsage.tooltip": "The additional energy used per Regulator Upgrade.",
   "text.autoconfig.refinedstorage.option.upgrade.rangeUpgradeEnergyUsage": "Range Upgrade energy usage",
   "text.autoconfig.refinedstorage.option.upgrade.rangeUpgradeEnergyUsage.tooltip": "The additional energy used per Range Upgrade.",
   "text.autoconfig.refinedstorage.option.upgrade.creativeRangeUpgradeEnergyUsage": "Creative Range Upgrade energy usage",

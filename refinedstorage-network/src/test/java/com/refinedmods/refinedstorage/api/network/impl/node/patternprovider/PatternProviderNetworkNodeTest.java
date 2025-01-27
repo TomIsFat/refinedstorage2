@@ -6,7 +6,9 @@ import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
+import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
@@ -23,6 +25,7 @@ import com.refinedmods.refinedstorage.network.test.NetworkTest;
 import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import com.refinedmods.refinedstorage.network.test.nodefactory.PatternProviderNetworkNodeFactory;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Nested;
@@ -275,7 +278,7 @@ class PatternProviderNetworkNodeTest {
         );
         assertThat(sinkContents.getAll()).isEmpty();
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
 
         sut.doWork();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -283,7 +286,7 @@ class PatternProviderNetworkNodeTest {
         );
         assertThat(sinkContents.getAll()).isEmpty();
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
         );
 
@@ -295,7 +298,7 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 3)
         );
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
     }
 
     @Test
@@ -316,14 +319,14 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 10)
         );
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
 
         sut.doWork();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7)
         );
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
         );
 
@@ -332,7 +335,7 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 7)
         );
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
         );
     }
@@ -354,14 +357,14 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 10)
         );
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
 
         sut.doWork();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7)
         );
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
         );
 
@@ -370,7 +373,7 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 7)
         );
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
         );
     }
@@ -393,7 +396,7 @@ class PatternProviderNetworkNodeTest {
 
         sut.doWork();
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
         );
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -402,14 +405,14 @@ class PatternProviderNetworkNodeTest {
 
         sut.doWork();
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7)
         );
 
         storage.insert(B, 3, Action.EXECUTE, Actor.EMPTY);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7),
             new ResourceAmount(B, 3)
@@ -417,7 +420,7 @@ class PatternProviderNetworkNodeTest {
 
         storage.insert(B, 4, Action.EXECUTE, Actor.EMPTY);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7),
             new ResourceAmount(B, 7)
@@ -526,7 +529,7 @@ class PatternProviderNetworkNodeTest {
         sut.doWork();
         taskShouldBeMarkedAsChangedOnce(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 2)
         );
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -536,7 +539,7 @@ class PatternProviderNetworkNodeTest {
         sut.doWork();
         taskShouldBeMarkedAsChangedOnce(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactlyInAnyOrder(
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 1)
         );
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -546,7 +549,7 @@ class PatternProviderNetworkNodeTest {
         sut.doWork();
         taskShouldBeMarkedAsChangedOnce(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 8)
         );
@@ -554,7 +557,7 @@ class PatternProviderNetworkNodeTest {
         sut.doWork();
         taskShouldNotBeMarkedAsChanged(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 8)
         );
@@ -562,7 +565,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(B, 1, Action.EXECUTE, Actor.EMPTY);
         taskShouldNotBeMarkedAsChanged(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 8),
             new ResourceAmount(B, 1)
@@ -571,7 +574,7 @@ class PatternProviderNetworkNodeTest {
         sut.doWork();
         taskShouldBeMarkedAsChangedOnce(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 8),
             new ResourceAmount(B, 1)
@@ -580,7 +583,7 @@ class PatternProviderNetworkNodeTest {
         sut.doWork();
         taskShouldNotBeMarkedAsChanged(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 8),
             new ResourceAmount(B, 1)
@@ -589,7 +592,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(B, 1, Action.EXECUTE, Actor.EMPTY);
         taskShouldNotBeMarkedAsChanged(listener);
         assertThat(sut.getTasks()).hasSize(1);
-        assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+        assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 8),
             new ResourceAmount(B, 2)
@@ -608,6 +611,10 @@ class PatternProviderNetworkNodeTest {
 
     private static void taskShouldNotBeMarkedAsChanged(final TaskStatusListener listener) {
         verify(listener, never()).taskStatusChanged(any());
+    }
+
+    private static Collection<ResourceAmount> copyInternalStorage(final Task task) {
+        return ((TaskImpl) task).createSnapshot().copyInternalStorage().copyState();
     }
 
     @Nested
@@ -642,7 +649,7 @@ class PatternProviderNetworkNodeTest {
 
             sut.doWork();
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactly(
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
                 new ResourceAmount(C, 3)
             );
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -651,7 +658,7 @@ class PatternProviderNetworkNodeTest {
 
             sut.doWork();
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactly(
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
                 new ResourceAmount(C, 2)
             );
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -660,7 +667,7 @@ class PatternProviderNetworkNodeTest {
 
             sut.doWork();
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).containsExactly(
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
                 new ResourceAmount(C, 1)
             );
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -669,7 +676,7 @@ class PatternProviderNetworkNodeTest {
 
             sut.doWork();
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
                 new ResourceAmount(C, 7)
             );
@@ -679,7 +686,7 @@ class PatternProviderNetworkNodeTest {
 
             storage.insert(B, 3, Action.EXECUTE, Actor.EMPTY);
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
                 new ResourceAmount(C, 7),
                 new ResourceAmount(B, 3)
@@ -688,7 +695,7 @@ class PatternProviderNetworkNodeTest {
 
             otherStorage.insert(B, 3, Action.EXECUTE, Actor.EMPTY);
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState())
+            assertThat(copyInternalStorage(sut.getTasks().getFirst()))
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(new ResourceAmount(B, 3));
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -698,21 +705,21 @@ class PatternProviderNetworkNodeTest {
             assertThat(otherStorage.getAll()).isEmpty();
 
             sut.doWork();
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState())
+            assertThat(copyInternalStorage(sut.getTasks().getFirst()))
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(new ResourceAmount(B, 2));
 
             sut.doWork();
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState())
+            assertThat(copyInternalStorage(sut.getTasks().getFirst()))
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactly(new ResourceAmount(B, 1));
 
             sut.doWork();
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
 
             storage.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
                 new ResourceAmount(A, 3),
                 new ResourceAmount(C, 7),
@@ -722,7 +729,7 @@ class PatternProviderNetworkNodeTest {
 
             otherStorage.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
                 new ResourceAmount(A, 3),
                 new ResourceAmount(C, 7),
@@ -814,14 +821,14 @@ class PatternProviderNetworkNodeTest {
             // Act & assert
             assertThat(autocrafting.startTask(A, 1, Actor.EMPTY, false).join()).isPresent();
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState()).isEmpty();
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
                 new ResourceAmount(C, 10)
             );
 
             sut.doWork();
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState())
+            assertThat(copyInternalStorage(sut.getTasks().getFirst()))
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactlyInAnyOrder(new ResourceAmount(C, 1));
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -832,7 +839,7 @@ class PatternProviderNetworkNodeTest {
 
             sut.doWork();
             assertThat(sut.getTasks()).hasSize(1);
-            assertThat(sut.getTasks().getFirst().copyInternalStorageState())
+            assertThat(copyInternalStorage(sut.getTasks().getFirst()))
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactlyInAnyOrder(new ResourceAmount(C, 1));
             assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(

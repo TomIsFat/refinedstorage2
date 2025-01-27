@@ -1,13 +1,10 @@
 package com.refinedmods.refinedstorage.api.autocrafting.task;
 
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
-
-import java.util.Collection;
 
 import org.apiguardian.api.API;
 
@@ -24,8 +21,6 @@ public interface Task extends RootStorageListener {
     TaskId getId();
 
     TaskState getState();
-
-    Collection<ResourceAmount> copyInternalStorageState();
 
     boolean step(RootStorage rootStorage, ExternalPatternInputSink externalPatternInputSink, StepBehavior stepBehavior);
 

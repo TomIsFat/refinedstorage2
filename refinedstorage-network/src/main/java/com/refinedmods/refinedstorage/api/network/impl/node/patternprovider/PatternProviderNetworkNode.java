@@ -28,7 +28,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TODO(feat): persistence of tasks
 // TODO(feat): autocrafter locking support
 public class PatternProviderNetworkNode extends SimpleNetworkNode implements PatternProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(PatternProviderNetworkNode.class);
