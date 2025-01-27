@@ -52,6 +52,12 @@ import static com.refinedmods.refinedstorage.api.autocrafting.ResourceFixtures.S
 import static com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkProviderImpl.sinkKey;
 import static com.refinedmods.refinedstorage.api.autocrafting.task.TaskPlanCraftingCalculatorListener.calculatePlan;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class TaskImplTest {
     private static final RecursiveComparisonConfiguration STATUS_CONFIG = RecursiveComparisonConfiguration.builder()
@@ -121,7 +127,7 @@ class TaskImplTest {
             );
         assertThat(storage.getAll()).isEmpty();
 
-        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(copyInternalStorage(task)).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -144,7 +150,7 @@ class TaskImplTest {
         final Task task = getTask(storage, patterns, CRAFTING_TABLE, 3);
 
         // Act
-        final boolean changed = task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        final boolean changed = task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
 
         // Assert
         assertThat(changed).isTrue();
@@ -177,7 +183,7 @@ class TaskImplTest {
         storage.extract(SPRUCE_LOG, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Act & assert
-        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isFalse();
+        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isFalse();
         assertThat(task.getState()).isEqualTo(TaskState.EXTRACTING_INITIAL_RESOURCES);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10)
@@ -186,27 +192,27 @@ class TaskImplTest {
         storage.insert(OAK_LOG, 1, Action.EXECUTE, Actor.EMPTY);
         storage.insert(SPRUCE_LOG, 1, Action.EXECUTE, Actor.EMPTY);
 
-        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.EXTRACTING_INITIAL_RESOURCES);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10)
         );
 
-        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isFalse();
+        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isFalse();
         assertThat(task.getState()).isEqualTo(TaskState.EXTRACTING_INITIAL_RESOURCES);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10)
         );
 
         storage.insert(OAK_PLANKS, 2, Action.EXECUTE, Actor.EMPTY);
-        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.EXTRACTING_INITIAL_RESOURCES);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10)
         );
 
         storage.insert(OAK_PLANKS, 3, Action.EXECUTE, Actor.EMPTY);
-        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10),
@@ -227,7 +233,7 @@ class TaskImplTest {
         final Task task = getRunningTask(storage, patterns, EMPTY_SINK_PROVIDER, CRAFTING_TABLE, 3);
 
         // Act & assert
-        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(SIGN, 10)
@@ -239,7 +245,7 @@ class TaskImplTest {
                 new ResourceAmount(OAK_PLANKS, 8)
             );
 
-        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10),
@@ -252,7 +258,7 @@ class TaskImplTest {
                 new ResourceAmount(OAK_PLANKS, 5)
             );
 
-        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10),
@@ -265,7 +271,7 @@ class TaskImplTest {
                 new ResourceAmount(OAK_PLANKS, 2)
             );
 
-        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(SIGN, 10),
@@ -273,7 +279,7 @@ class TaskImplTest {
         );
         assertThat(copyInternalStorage(task)).isEmpty();
 
-        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(copyInternalStorage(task)).isEmpty();
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -301,7 +307,7 @@ class TaskImplTest {
         returnStorage.addSource(new LimitedStorageImpl(3));
 
         // Act & assert
-        task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(returnStorage.getAll()).isEmpty();
         assertThat(copyInternalStorage(task))
@@ -311,7 +317,7 @@ class TaskImplTest {
                 new ResourceAmount(OAK_PLANKS, 4)
             );
 
-        task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(CRAFTING_TABLE, 2)
@@ -323,7 +329,7 @@ class TaskImplTest {
                 new ResourceAmount(SPRUCE_PLANKS, 2)
             );
 
-        assertThat(task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
         assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(CRAFTING_TABLE, 3)
@@ -334,7 +340,7 @@ class TaskImplTest {
                 new ResourceAmount(CRAFTING_TABLE, 1)
             );
 
-        assertThat(task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isFalse();
+        assertThat(task.step(returnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isFalse();
         assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
         assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(CRAFTING_TABLE, 3)
@@ -348,7 +354,8 @@ class TaskImplTest {
         final RootStorage finalReturnStorage = new RootStorageImpl();
         finalReturnStorage.addSource(new StorageImpl());
 
-        assertThat(task.step(finalReturnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT)).isTrue();
+        assertThat(
+            task.step(finalReturnStorage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(returnStorage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(CRAFTING_TABLE, 3)
@@ -362,14 +369,14 @@ class TaskImplTest {
     @Test
     void shouldCompleteTaskWithExternalPatternAsChildPatternOfInternalPattern() {
         // Arrange
+        final TaskListener listener = mock(TaskListener.class);
         final RootStorage storage = storage(
             new ResourceAmount(STICKS, 2),
             new ResourceAmount(IRON_ORE, 3)
         );
         final PatternRepository patterns = patterns(IRON_INGOT_PATTERN, IRON_PICKAXE_PATTERN);
         final ExternalPatternSinkProviderImpl sinkProvider = new ExternalPatternSinkProviderImpl();
-        final ExternalPatternSinkProviderImpl.ExternalPatternSinkImpl ironOreSink =
-            sinkProvider.put(IRON_INGOT_PATTERN);
+        final var ironOreSink = sinkProvider.put(IRON_INGOT_PATTERN);
         Task task = getRunningTask(storage, patterns, sinkProvider, IRON_PICKAXE, 1);
 
         assertThat(storage.getAll()).isEmpty();
@@ -381,7 +388,7 @@ class TaskImplTest {
             );
 
         // Act & assert
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, listener);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -392,8 +399,9 @@ class TaskImplTest {
         assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(IRON_ORE, 1)
         );
+        verify(listener, never()).receivedExternalIteration(any());
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, listener);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -404,8 +412,9 @@ class TaskImplTest {
         assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(IRON_ORE, 2)
         );
+        verify(listener, never()).receivedExternalIteration(any());
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, listener);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -415,8 +424,9 @@ class TaskImplTest {
         assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(IRON_ORE, 3)
         );
+        verify(listener, never()).receivedExternalIteration(any());
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, listener);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -426,6 +436,7 @@ class TaskImplTest {
         assertThat(ironOreSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(IRON_ORE, 3)
         );
+        verify(listener, never()).receivedExternalIteration(any());
 
         storage.removeListener(task);
         task = new TaskImpl(((TaskImpl) task).createSnapshot());
@@ -440,8 +451,9 @@ class TaskImplTest {
                 new ResourceAmount(IRON_INGOT, 1),
                 new ResourceAmount(STICKS, 2)
             );
+        verify(listener, never()).receivedExternalIteration(any());
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, listener);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).isEmpty();
         assertThat(copyInternalStorage(task))
@@ -450,6 +462,8 @@ class TaskImplTest {
                 new ResourceAmount(IRON_INGOT, 1),
                 new ResourceAmount(STICKS, 2)
             );
+        verify(listener, times(1)).receivedExternalIteration(IRON_INGOT_PATTERN);
+        clearInvocations(listener);
 
         storage.insert(IRON_INGOT, 5, Action.EXECUTE, Actor.EMPTY);
         storage.insert(STONE, 2, Action.EXECUTE, Actor.EMPTY);
@@ -464,8 +478,9 @@ class TaskImplTest {
                 new ResourceAmount(IRON_INGOT, 3),
                 new ResourceAmount(STICKS, 2)
             );
+        verify(listener, never()).receivedExternalIteration(any());
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, listener);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(IRON_PICKAXE, 1),
@@ -473,6 +488,8 @@ class TaskImplTest {
             new ResourceAmount(STONE, 2)
         );
         assertThat(copyInternalStorage(task)).isEmpty();
+        verify(listener, times(1)).receivedExternalIteration(IRON_INGOT_PATTERN);
+        clearInvocations(listener);
     }
 
     @Test
@@ -498,7 +515,7 @@ class TaskImplTest {
             );
 
         // Act & assert
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -510,7 +527,7 @@ class TaskImplTest {
         );
         assertThat(stoneSink.getAll()).isEmpty();
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -535,7 +552,7 @@ class TaskImplTest {
         );
         assertThat(stoneSink.getAll()).isEmpty();
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -550,7 +567,7 @@ class TaskImplTest {
             new ResourceAmount(STONE, 1)
         );
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task)).isEmpty();
         assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -560,7 +577,7 @@ class TaskImplTest {
             new ResourceAmount(STONE, 2)
         );
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isFalse();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isFalse();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task)).isEmpty();
         assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -584,7 +601,7 @@ class TaskImplTest {
             new ResourceAmount(STONE, 2)
         );
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task)).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(STONE, 1)
@@ -596,7 +613,7 @@ class TaskImplTest {
             new ResourceAmount(STONE, 3)
         );
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task)).isEmpty();
         assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -620,7 +637,7 @@ class TaskImplTest {
             new ResourceAmount(SMOOTH_STONE, 4)
         );
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isTrue();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isTrue();
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(copyInternalStorage(task)).isEmpty();
         assertThat(cobblestoneSink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -634,7 +651,7 @@ class TaskImplTest {
             new ResourceAmount(SMOOTH_STONE, 4)
         );
 
-        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT)).isFalse();
+        assertThat(task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY)).isFalse();
     }
 
     @Test
@@ -668,7 +685,7 @@ class TaskImplTest {
             );
 
         // Act & assert
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).isEmpty();
         assertThat(copyInternalStorage(task)).isEmpty();
@@ -715,7 +732,7 @@ class TaskImplTest {
 
         // Act & assert
         for (int i = 0; i < 6; ++i) {
-            task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+            task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
             assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
             assertThat(copyInternalStorage(task))
                 .usingRecursiveFieldByFieldElementComparator()
@@ -726,7 +743,7 @@ class TaskImplTest {
         }
 
         final var ironOreSink = sinkProvider.put(IRON_INGOT_PATTERN);
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -762,7 +779,7 @@ class TaskImplTest {
             );
 
         // Act & assert
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -771,7 +788,7 @@ class TaskImplTest {
                 new ResourceAmount(STICKS, 2)
             );
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -780,13 +797,13 @@ class TaskImplTest {
                 new ResourceAmount(STICKS, 2)
             );
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
             .containsExactly(new ResourceAmount(STICKS, 2));
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(copyInternalStorage(task))
             .usingRecursiveFieldByFieldElementComparator()
@@ -808,7 +825,7 @@ class TaskImplTest {
             public int getSteps(final Pattern pattern) {
                 return pattern == OAK_PLANKS_PATTERN ? 3 : 1;
             }
-        });
+        }, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).isEmpty();
         assertThat(copyInternalStorage(task))
@@ -823,7 +840,7 @@ class TaskImplTest {
             public int getSteps(final Pattern pattern) {
                 return pattern == OAK_PLANKS_PATTERN ? 4 : (pattern == CRAFTING_TABLE_PATTERN ? 10 : 1);
             }
-        });
+        }, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(CRAFTING_TABLE, 3)
@@ -845,7 +862,7 @@ class TaskImplTest {
             public int getSteps(final Pattern pattern) {
                 return pattern == OAK_PLANKS_PATTERN ? 999 : 1;
             }
-        });
+        }, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(CRAFTING_TABLE, 3)
@@ -861,7 +878,7 @@ class TaskImplTest {
             public int getSteps(final Pattern pattern) {
                 return 999;
             }
-        });
+        }, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
             new ResourceAmount(CRAFTING_TABLE, 10)
@@ -880,7 +897,7 @@ class TaskImplTest {
         final Task task = getRunningTask(storage, patterns, EMPTY_SINK_PROVIDER, CRAFTING_TABLE, 2);
 
         // Act & assert
-        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), CRAFTING_TABLE, 2, 0)
@@ -916,7 +933,7 @@ class TaskImplTest {
         final Task task = getRunningTask(storage, patterns, EMPTY_SINK_PROVIDER, IRON_PICKAXE, 1);
 
         // Act & assert
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
@@ -937,7 +954,7 @@ class TaskImplTest {
             new ResourceAmount(IRON_ORE, 1)
         );
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
@@ -959,7 +976,7 @@ class TaskImplTest {
             new ResourceAmount(IRON_ORE, 2)
         );
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
@@ -1023,7 +1040,7 @@ class TaskImplTest {
             new ResourceAmount(IRON_ORE, 7)
         );
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RETURNING_INTERNAL_STORAGE);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0)
@@ -1045,7 +1062,7 @@ class TaskImplTest {
             new ResourceAmount(IRON_PICKAXE, 1)
         );
 
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.COMPLETED);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_PICKAXE, 1, 0).build(1.0)
@@ -1073,7 +1090,7 @@ class TaskImplTest {
         final Task task = getRunningTask(storage, patterns, EMPTY_SINK_PROVIDER, IRON_INGOT, 2);
 
         // Act & assert
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
@@ -1082,7 +1099,7 @@ class TaskImplTest {
                 .build(0));
 
         sinkProvider.put(IRON_INGOT_PATTERN, ExternalPatternSink.Result.REJECTED);
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
@@ -1102,7 +1119,7 @@ class TaskImplTest {
         final Task task = getRunningTask(storage, patterns, EMPTY_SINK_PROVIDER, IRON_INGOT, 2);
 
         // Act & assert
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
@@ -1111,7 +1128,7 @@ class TaskImplTest {
                 .build(0));
 
         sinkProvider.remove(IRON_INGOT_PATTERN);
-        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT);
+        task.step(storage, EMPTY_SINK_PROVIDER, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
@@ -1131,7 +1148,7 @@ class TaskImplTest {
         final Task task = getRunningTask(storage, patterns, EMPTY_SINK_PROVIDER, IRON_INGOT, 2);
 
         // Act & assert
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
@@ -1140,7 +1157,7 @@ class TaskImplTest {
                 .build(0));
 
         sinkProvider.put(IRON_INGOT_PATTERN, ExternalPatternSink.Result.LOCKED);
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getStatus()).usingRecursiveComparison(STATUS_CONFIG).isEqualTo(
             new TaskStatusBuilder(task.getId(), IRON_INGOT, 2, 0)
                 .scheduled(IRON_INGOT, 1)
@@ -1172,7 +1189,7 @@ class TaskImplTest {
                                        final long amount) {
         final Task task = getTask(storage, patterns, resource, amount);
         assertThat(task.getState()).isEqualTo(TaskState.READY);
-        task.step(storage, sinkProvider, StepBehavior.DEFAULT);
+        task.step(storage, sinkProvider, StepBehavior.DEFAULT, TaskListener.EMPTY);
         assertThat(task.getState()).isEqualTo(TaskState.RUNNING);
         return task;
     }

@@ -125,11 +125,12 @@ public class TaskImpl implements Task {
     @Override
     public boolean step(final RootStorage rootStorage,
                         final ExternalPatternSinkProvider sinkProvider,
-                        final StepBehavior stepBehavior) {
+                        final StepBehavior stepBehavior,
+                        final TaskListener listener) {
         return switch (state) {
             case READY -> startTask(rootStorage);
             case EXTRACTING_INITIAL_RESOURCES -> extractInitialResourcesAndTryStartRunningTask(rootStorage);
-            case RUNNING -> stepPatterns(rootStorage, sinkProvider, stepBehavior);
+            case RUNNING -> stepPatterns(rootStorage, sinkProvider, stepBehavior, listener);
             case RETURNING_INTERNAL_STORAGE -> returnInternalStorageAndTryCompleteTask(rootStorage);
             case COMPLETED -> false;
         };
@@ -219,12 +220,13 @@ public class TaskImpl implements Task {
 
     private boolean stepPatterns(final RootStorage rootStorage,
                                  final ExternalPatternSinkProvider sinkProvider,
-                                 final StepBehavior stepBehavior) {
+                                 final StepBehavior stepBehavior,
+                                 final TaskListener listener) {
         final var it = patterns.entrySet().iterator();
         boolean changed = false;
         while (it.hasNext()) {
             final var pattern = it.next();
-            final PatternStepResult result = stepPattern(rootStorage, sinkProvider, stepBehavior, pattern);
+            final PatternStepResult result = stepPattern(rootStorage, sinkProvider, stepBehavior, listener, pattern);
             if (result == PatternStepResult.COMPLETED) {
                 it.remove();
             }
@@ -243,6 +245,7 @@ public class TaskImpl implements Task {
     private PatternStepResult stepPattern(final RootStorage rootStorage,
                                           final ExternalPatternSinkProvider sinkProvider,
                                           final StepBehavior stepBehavior,
+                                          final TaskListener listener,
                                           final Map.Entry<Pattern, AbstractTaskPattern> pattern) {
         PatternStepResult result = PatternStepResult.IDLE;
         if (!stepBehavior.canStep(pattern.getKey())) {
@@ -253,7 +256,8 @@ public class TaskImpl implements Task {
             final PatternStepResult stepResult = pattern.getValue().step(
                 internalStorage,
                 rootStorage,
-                sinkProvider
+                sinkProvider,
+                listener
             );
             if (stepResult == PatternStepResult.COMPLETED) {
                 LOGGER.debug("{} completed", pattern.getKey());

@@ -2,8 +2,8 @@ package com.refinedmods.refinedstorage.neoforge.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.common.support.resource.FluidResource;
 import com.refinedmods.refinedstorage.neoforge.storage.CapabilityCache;
 
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.refinedmods.refinedstorage.neoforge.support.resource.VariantUtil.toFluidStack;
 
-class FluidHandlerExternalPatternProviderSink implements PatternProviderExternalPatternSink {
+class FluidHandlerExternalPatternProviderSink implements PlatformPatternProviderExternalPatternSink {
     private static final Logger LOGGER = LoggerFactory.getLogger(FluidHandlerExternalPatternProviderSink.class);
 
     private final CapabilityCache capabilityCache;
@@ -64,5 +64,17 @@ class FluidHandlerExternalPatternProviderSink implements PatternProviderExternal
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return capabilityCache.getFluidHandler().map(handler -> {
+            for (int i = 0; i < handler.getTanks(); i++) {
+                if (!handler.getFluidInTank(i).isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }).orElse(true);
     }
 }

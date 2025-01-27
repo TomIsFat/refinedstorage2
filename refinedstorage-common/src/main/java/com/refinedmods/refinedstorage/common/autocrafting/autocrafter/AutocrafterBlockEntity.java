@@ -1,18 +1,24 @@
 package com.refinedmods.refinedstorage.common.autocrafting.autocrafter;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskSnapshot;
+import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
+import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.ExternalPatternSinkKeyProvider;
+import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderListener;
 import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.PatternProviderNetworkNode;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternInventory;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
@@ -27,6 +33,7 @@ import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeDestinations;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -58,7 +65,7 @@ import static com.refinedmods.refinedstorage.common.support.AbstractDirectionalB
 
 public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBlockEntity<PatternProviderNetworkNode>
     implements ExtendedMenuProvider<AutocrafterData>, BlockEntityWithDrops, PatternInventory.Listener, StepBehavior,
-    ExternalPatternSinkKeyProvider {
+    ExternalPatternSinkKeyProvider, PatternProviderExternalPatternSink, PatternProviderListener {
     static final int PATTERNS = 9;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutocrafterBlockEntity.class);
@@ -70,6 +77,8 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     private static final String TAG_PRIORITY = "pri";
     private static final String TAG_TASKS = "tasks";
     private static final String TAG_VISIBLE_TO_THE_AUTOCRAFTER_MANAGER = "vaum";
+    private static final String TAG_LOCKED = "locked";
+    private static final String TAG_WAS_POWERED = "wp";
 
     private final PatternInventory patternContainer = new PatternInventory(PATTERNS, this::getLevel);
     private final UpgradeContainer upgradeContainer;
@@ -79,7 +88,11 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
     private int steps = getSteps(0);
     private int tickRate = getTickRate(0);
     @Nullable
+    private PlatformPatternProviderExternalPatternSink sink;
+    @Nullable
     private ExternalPatternSinkKey sinkKey;
+    private boolean wasPowered;
+    private boolean locked;
 
     public AutocrafterBlockEntity(final BlockPos pos, final BlockState state) {
         super(
@@ -107,6 +120,8 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         this.patternContainer.setListener(this);
         this.mainNetworkNode.setStepBehavior(this);
         this.mainNetworkNode.setSinkKeyProvider(this);
+        this.mainNetworkNode.setSink(this);
+        this.mainNetworkNode.setListener(this);
         this.mainNetworkNode.onAddedIntoContainer(new AutocrafterParentContainer(this));
     }
 
@@ -228,6 +243,8 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         super.saveAdditional(tag, provider);
         tag.put(TAG_PATTERNS, ContainerUtil.write(patternContainer, provider));
         tag.put(TAG_UPGRADES, ContainerUtil.write(upgradeContainer, provider));
+        tag.putBoolean(TAG_LOCKED, locked);
+        tag.putBoolean(TAG_WAS_POWERED, wasPowered);
         final ListTag tasks = new ListTag();
         for (final Task task : mainNetworkNode.getTasks()) {
             if (task instanceof TaskImpl taskImpl) {
@@ -268,6 +285,12 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
                     LOGGER.error("Error while loading task, skipping", e);
                 }
             }
+        }
+        if (tag.contains(TAG_LOCKED)) {
+            locked = tag.getBoolean(TAG_LOCKED);
+        }
+        if (tag.contains(TAG_WAS_POWERED)) {
+            wasPowered = tag.getBoolean(TAG_WAS_POWERED);
         }
         super.loadAdditional(tag, provider);
     }
@@ -325,6 +348,8 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
 
     void setLockMode(final LockMode lockMode) {
         this.lockMode = lockMode;
+        this.locked = false;
+        this.wasPowered = false;
         setChanged();
     }
 
@@ -363,8 +388,8 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         final Direction incomingDirection = direction.getOpposite();
         final BlockPos sourcePosition = worldPosition.relative(direction);
         invalidateSinkKey();
-        mainNetworkNode.setSink(RefinedStorageApi.INSTANCE.getPatternProviderExternalPatternSinkFactory()
-            .create(level, sourcePosition, incomingDirection));
+        this.sink = RefinedStorageApi.INSTANCE.getPatternProviderExternalPatternSinkFactory()
+            .create(level, sourcePosition, incomingDirection);
     }
 
     @Override
@@ -383,6 +408,41 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         if (mainNetworkNode.isActive()) {
             ticks++;
         }
+        final boolean lockedCurrently = isLocked();
+        if (lockedCurrently != locked) {
+            setLocked(lockedCurrently);
+        }
+    }
+
+    private void setLocked(final boolean locked) {
+        this.locked = locked;
+        setChanged();
+    }
+
+    private boolean isLocked() {
+        if (level == null) {
+            return false;
+        }
+        return switch (lockMode) {
+            case NEVER -> false;
+            case LOCK_UNTIL_REDSTONE_PULSE_RECEIVED -> isLockedInPulseMode();
+            case LOCK_UNTIL_CONNECTED_MACHINE_IS_EMPTY -> sink != null && !sink.isEmpty();
+            case LOCK_UNTIL_ALL_OUTPUTS_ARE_RECEIVED -> locked;
+            case LOCK_UNTIL_HIGH_REDSTONE_SIGNAL -> !level.hasNeighborSignal(worldPosition);
+            case LOCK_UNTIL_LOW_REDSTONE_SIGNAL -> level.hasNeighborSignal(worldPosition);
+        };
+    }
+
+    private boolean isLockedInPulseMode() {
+        if (level != null && level.hasNeighborSignal(worldPosition)) {
+            wasPowered = true;
+            setChanged();
+        } else if (wasPowered) {
+            wasPowered = false;
+            setChanged();
+            return false;
+        }
+        return locked;
     }
 
     @Override
@@ -483,5 +543,30 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
 
     private void invalidateSinkKey() {
         sinkKey = null;
+    }
+
+    @Override
+    public ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        if (sink == null) {
+            return ExternalPatternSink.Result.SKIPPED;
+        }
+        if (locked) {
+            return ExternalPatternSink.Result.LOCKED;
+        }
+        final ExternalPatternSink.Result result = sink.accept(resources, action);
+        if (result == ExternalPatternSink.Result.ACCEPTED
+            && action == Action.EXECUTE
+            && (lockMode == LockMode.LOCK_UNTIL_REDSTONE_PULSE_RECEIVED
+            || lockMode == LockMode.LOCK_UNTIL_ALL_OUTPUTS_ARE_RECEIVED)) {
+            setLocked(true);
+        }
+        return result;
+    }
+
+    @Override
+    public void receivedExternalIteration() {
+        if (lockMode == LockMode.LOCK_UNTIL_ALL_OUTPUTS_ARE_RECEIVED && locked) {
+            setLocked(false);
+        }
     }
 }

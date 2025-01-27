@@ -379,12 +379,15 @@ class PatternProviderNetworkNodeTest {
         @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
     ) {
         // Arrange
+        final PatternProviderListener listener = mock(PatternProviderListener.class);
+
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 5).build());
         // swallow resources
         sut.setSink((resources, action) -> ExternalPatternSink.Result.ACCEPTED);
+        sut.setListener(listener);
 
         // Act & assert
         assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
@@ -397,6 +400,7 @@ class PatternProviderNetworkNodeTest {
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7)
         );
+        verify(listener, never()).receivedExternalIteration();
 
         sut.doWork();
         assertThat(sut.getTasks()).hasSize(1);
@@ -404,6 +408,7 @@ class PatternProviderNetworkNodeTest {
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7)
         );
+        verify(listener, never()).receivedExternalIteration();
 
         storage.insert(B, 3, Action.EXECUTE, Actor.EMPTY);
         assertThat(sut.getTasks()).hasSize(1);
@@ -412,6 +417,7 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 7),
             new ResourceAmount(B, 3)
         );
+        verify(listener, never()).receivedExternalIteration();
 
         storage.insert(B, 4, Action.EXECUTE, Actor.EMPTY);
         assertThat(sut.getTasks()).hasSize(1);
@@ -420,6 +426,7 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 7),
             new ResourceAmount(B, 7)
         );
+        verify(listener, never()).receivedExternalIteration();
 
         sut.doWork();
         assertThat(sut.getTasks()).isEmpty();
@@ -427,6 +434,7 @@ class PatternProviderNetworkNodeTest {
             new ResourceAmount(A, 7),
             new ResourceAmount(B, 7)
         );
+        verify(listener, times(1)).receivedExternalIteration();
     }
 
     @Test

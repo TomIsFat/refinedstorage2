@@ -4,15 +4,16 @@ import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PlatformPatternProviderExternalPatternSink;
 
 import java.util.Collection;
 import java.util.Set;
 
 class CompositePatternProviderExternalPatternSink
-    implements PatternProviderExternalPatternSink {
-    private final Set<PatternProviderExternalPatternSink> sinks;
+    implements PlatformPatternProviderExternalPatternSink {
+    private final Set<PlatformPatternProviderExternalPatternSink> sinks;
 
-    CompositePatternProviderExternalPatternSink(final Set<PatternProviderExternalPatternSink> sinks) {
+    CompositePatternProviderExternalPatternSink(final Set<PlatformPatternProviderExternalPatternSink> sinks) {
         this.sinks = sinks;
     }
 
@@ -38,5 +39,15 @@ class CompositePatternProviderExternalPatternSink
         } else {
             return ExternalPatternSink.Result.ACCEPTED;
         }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (final PlatformPatternProviderExternalPatternSink sink : sinks) {
+            if (!sink.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -22,7 +22,10 @@ public interface Task extends RootStorageListener {
 
     TaskState getState();
 
-    boolean step(RootStorage rootStorage, ExternalPatternSinkProvider sinkProvider, StepBehavior stepBehavior);
+    boolean step(RootStorage rootStorage,
+                 ExternalPatternSinkProvider sinkProvider,
+                 StepBehavior stepBehavior,
+                 TaskListener listener);
 
     void cancel();
 

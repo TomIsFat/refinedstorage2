@@ -12,6 +12,7 @@ import java.util.function.Function;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,5 +55,14 @@ class FabricStorageExternalPatternSinkStrategyImpl<T> implements FabricStorageEx
         return anyResourceWasApplicable
             ? ExternalPatternSink.Result.ACCEPTED
             : ExternalPatternSink.Result.SKIPPED;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        final Storage<T> storage = cache.find(direction);
+        if (storage == null) {
+            return true;
+        }
+        return StorageUtil.findStoredResource(storage) == null;
     }
 }

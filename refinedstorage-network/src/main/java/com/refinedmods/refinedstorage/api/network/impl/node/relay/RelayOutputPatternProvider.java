@@ -113,6 +113,11 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     @Override
+    public void receivedExternalIteration() {
+        // TODO(feat): relay support
+    }
+
+    @Override
     public void onAddedIntoContainer(final ParentContainer parentContainer) {
         if (delegate != null) {
             delegate.getPatterns().forEach(pattern -> parentContainer.add(this, pattern, 0));
