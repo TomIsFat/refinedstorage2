@@ -32,6 +32,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     private ExternalPatternSink.Result lastSinkResult;
     @Nullable
     private ExternalPatternSinkKey lastSinkResultKey;
+    private int currentSinkIndex;
 
     ExternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
@@ -167,14 +168,8 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             lastSinkResult = ExternalPatternSink.Result.SKIPPED;
             return false;
         }
-        final ExternalPatternSink sink = sinks.getFirst(); // TODO: handle multiple sinks
-        final ExternalPatternSink.Result simulatedResult = sink.accept(
-            iterationInputsSimulated.copyState(),
-            Action.SIMULATE
-        );
-        lastSinkResult = simulatedResult;
-        lastSinkResultKey = sink.getKey();
-        if (simulatedResult != ExternalPatternSink.Result.ACCEPTED) {
+        final ExternalPatternSink sink = getSinkThatIsAcceptingResources(sinks, iterationInputsSimulated);
+        if (sink == null) {
             return false;
         }
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
@@ -192,6 +187,29 @@ class ExternalTaskPattern extends AbstractTaskPattern {
             LOGGER.warn("Sink {} did not accept all inputs for pattern {}", sink, pattern);
         }
         return true;
+    }
+
+    @Nullable
+    private ExternalPatternSink getSinkThatIsAcceptingResources(final List<ExternalPatternSink> sinks,
+                                                                final ResourceList iterationInputsSimulated) {
+        if (currentSinkIndex >= sinks.size()) {
+            currentSinkIndex = 0;
+        }
+        while (currentSinkIndex < sinks.size()) {
+            final ExternalPatternSink sink = sinks.get(currentSinkIndex);
+            final ExternalPatternSink.Result simulatedResult = sink.accept(
+                iterationInputsSimulated.copyState(),
+                Action.SIMULATE
+            );
+            lastSinkResult = simulatedResult;
+            lastSinkResultKey = sink.getKey();
+            currentSinkIndex++;
+            if (simulatedResult != ExternalPatternSink.Result.ACCEPTED) {
+                continue;
+            }
+            return sink;
+        }
+        return null;
     }
 
     @Override
