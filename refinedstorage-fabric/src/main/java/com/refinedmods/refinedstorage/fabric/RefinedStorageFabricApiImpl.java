@@ -3,9 +3,9 @@ package com.refinedmods.refinedstorage.fabric;
 import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.api.support.network.NetworkNodeContainerProvider;
-import com.refinedmods.refinedstorage.fabric.api.FabricStorageExternalPatternInputSinkStrategyFactory;
+import com.refinedmods.refinedstorage.fabric.api.FabricStorageExternalPatternSinkStrategyFactory;
 import com.refinedmods.refinedstorage.fabric.api.RefinedStorageFabricApi;
-import com.refinedmods.refinedstorage.fabric.autocrafting.FabricStoragePatternProviderExternalPatternInputSinkFactory;
+import com.refinedmods.refinedstorage.fabric.autocrafting.FabricStoragePatternProviderExternalPatternSinkFactory;
 
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.Direction;
@@ -19,13 +19,12 @@ public class RefinedStorageFabricApiImpl implements RefinedStorageFabricApi {
             NetworkNodeContainerProvider.class,
             Direction.class
         );
-    private final FabricStoragePatternProviderExternalPatternInputSinkFactory
-        storagePatternProviderExternalPatternInputSinkFactory =
-        new FabricStoragePatternProviderExternalPatternInputSinkFactory();
+    private final FabricStoragePatternProviderExternalPatternSinkFactory
+        storagePatternProviderExternalPatternSinkFactory = new FabricStoragePatternProviderExternalPatternSinkFactory();
 
     public RefinedStorageFabricApiImpl(final RefinedStorageApi refinedStorageApi) {
-        refinedStorageApi.addPatternProviderExternalPatternInputSinkFactory(
-            storagePatternProviderExternalPatternInputSinkFactory
+        refinedStorageApi.addPatternProviderExternalPatternSinkFactory(
+            storagePatternProviderExternalPatternSinkFactory
         );
     }
 
@@ -35,8 +34,9 @@ public class RefinedStorageFabricApiImpl implements RefinedStorageFabricApi {
     }
 
     @Override
-    public void addStorageExternalPatternInputSinkStrategyFactory(
-        final FabricStorageExternalPatternInputSinkStrategyFactory factory) {
-        storagePatternProviderExternalPatternInputSinkFactory.addFactory(factory);
+    public void addStorageExternalPatternSinkStrategyFactory(
+        final FabricStorageExternalPatternSinkStrategyFactory factory
+    ) {
+        storagePatternProviderExternalPatternSinkFactory.addFactory(factory);
     }
 }

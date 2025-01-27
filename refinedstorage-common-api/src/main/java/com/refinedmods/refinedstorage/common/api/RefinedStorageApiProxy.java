@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.api.network.NetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyStorage;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNode;
 import com.refinedmods.refinedstorage.api.network.security.SecurityPolicy;
-import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderExternalPatternInputSinkFactory;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderExternalPatternSinkFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.ConstructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.DestructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.exporter.ExporterTransferStrategyFactory;
@@ -166,14 +166,14 @@ public class RefinedStorageApiProxy implements RefinedStorageApi {
     }
 
     @Override
-    public void addPatternProviderExternalPatternInputSinkFactory(
-        final PatternProviderExternalPatternInputSinkFactory factory) {
-        ensureLoaded().addPatternProviderExternalPatternInputSinkFactory(factory);
+    public void addPatternProviderExternalPatternSinkFactory(
+        final PatternProviderExternalPatternSinkFactory factory) {
+        ensureLoaded().addPatternProviderExternalPatternSinkFactory(factory);
     }
 
     @Override
-    public PatternProviderExternalPatternInputSinkFactory getPatternProviderExternalPatternInputSinkFactory() {
-        return ensureLoaded().getPatternProviderExternalPatternInputSinkFactory();
+    public PatternProviderExternalPatternSinkFactory getPatternProviderExternalPatternSinkFactory() {
+        return ensureLoaded().getPatternProviderExternalPatternSinkFactory();
     }
 
     @Override

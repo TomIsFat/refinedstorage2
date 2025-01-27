@@ -60,9 +60,9 @@ public record TaskSnapshot(
         long iterationsReceived,
         boolean interceptedAnythingSinceLastStep,
         @Nullable
-        ExternalPatternInputSink.Result lastSinkResult,
+        ExternalPatternSink.Result lastSinkResult,
         @Nullable
-        ExternalPatternInputSinkKey lastSinkResultKey
+        ExternalPatternSinkKey lastSinkResultKey
     ) {
         MutableResourceList copyExpectedOutputs() {
             final MutableResourceList copy = MutableResourceListImpl.create();

@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.neoforge.autocrafting;
 
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.support.resource.FluidResource;
 import com.refinedmods.refinedstorage.neoforge.storage.CapabilityCache;
@@ -16,32 +16,32 @@ import org.slf4j.LoggerFactory;
 
 import static com.refinedmods.refinedstorage.neoforge.support.resource.VariantUtil.toFluidStack;
 
-class FluidHandlerExternalPatternProviderInputSink implements PatternProviderExternalPatternInputSink {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FluidHandlerExternalPatternProviderInputSink.class);
+class FluidHandlerExternalPatternProviderSink implements PatternProviderExternalPatternSink {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FluidHandlerExternalPatternProviderSink.class);
 
     private final CapabilityCache capabilityCache;
 
-    FluidHandlerExternalPatternProviderInputSink(final CapabilityCache capabilityCache) {
+    FluidHandlerExternalPatternProviderSink(final CapabilityCache capabilityCache) {
         this.capabilityCache = capabilityCache;
     }
 
     @Override
-    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+    public ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
         return capabilityCache.getFluidHandler()
             .map(handler -> accept(resources, action, handler))
-            .orElse(ExternalPatternInputSink.Result.SKIPPED);
+            .orElse(ExternalPatternSink.Result.SKIPPED);
     }
 
-    private ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources,
-                                                   final Action action,
-                                                   final IFluidHandler handler) {
+    private ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources,
+                                              final Action action,
+                                              final IFluidHandler handler) {
         for (final ResourceAmount resource : resources) {
             if (resource.resource() instanceof FluidResource fluidResource
                 && !accept(action, handler, resource.amount(), fluidResource)) {
-                return ExternalPatternInputSink.Result.REJECTED;
+                return ExternalPatternSink.Result.REJECTED;
             }
         }
-        return ExternalPatternInputSink.Result.ACCEPTED;
+        return ExternalPatternSink.Result.ACCEPTED;
     }
 
     private boolean accept(final Action action,

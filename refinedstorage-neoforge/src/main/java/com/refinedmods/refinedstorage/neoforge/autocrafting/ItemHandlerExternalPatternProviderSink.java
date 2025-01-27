@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.neoforge.autocrafting;
 
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import com.refinedmods.refinedstorage.neoforge.storage.CapabilityCache;
@@ -19,25 +19,25 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ItemHandlerExternalPatternProviderInputSink implements PatternProviderExternalPatternInputSink {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ItemHandlerExternalPatternProviderInputSink.class);
+class ItemHandlerExternalPatternProviderSink implements PatternProviderExternalPatternSink {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ItemHandlerExternalPatternProviderSink.class);
 
     private final CapabilityCache capabilityCache;
 
-    ItemHandlerExternalPatternProviderInputSink(final CapabilityCache capabilityCache) {
+    ItemHandlerExternalPatternProviderSink(final CapabilityCache capabilityCache) {
         this.capabilityCache = capabilityCache;
     }
 
     @Override
-    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+    public ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
         return capabilityCache.getItemHandler()
             .map(handler -> accept(resources, action, handler))
-            .orElse(ExternalPatternInputSink.Result.SKIPPED);
+            .orElse(ExternalPatternSink.Result.SKIPPED);
     }
 
-    private ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources,
-                                                   final Action action,
-                                                   final IItemHandler handler) {
+    private ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources,
+                                              final Action action,
+                                              final IItemHandler handler) {
         final Deque<ItemStack> stacks = getStacks(resources);
         ItemStack current = stacks.poll();
         final List<Integer> availableSlots = IntStream.range(0, handler.getSlots())
@@ -61,7 +61,7 @@ class ItemHandlerExternalPatternProviderInputSink implements PatternProviderExte
                 stacks
             );
         }
-        return success ? ExternalPatternInputSink.Result.ACCEPTED : ExternalPatternInputSink.Result.REJECTED;
+        return success ? ExternalPatternSink.Result.ACCEPTED : ExternalPatternSink.Result.REJECTED;
     }
 
     private ItemStack insert(final Action action,

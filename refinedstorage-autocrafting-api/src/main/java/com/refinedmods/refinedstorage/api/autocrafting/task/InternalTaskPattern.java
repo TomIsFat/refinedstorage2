@@ -41,7 +41,7 @@ class InternalTaskPattern extends AbstractTaskPattern {
     @Override
     PatternStepResult step(final MutableResourceList internalStorage,
                            final RootStorage rootStorage,
-                           final ExternalPatternInputSink externalPatternInputSink) {
+                           final ExternalPatternSinkProvider sinkProvider) {
         final ResourceList iterationInputsSimulated = calculateIterationInputs(Action.SIMULATE);
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
             return PatternStepResult.IDLE;

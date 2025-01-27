@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.api.network.NetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyStorage;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNode;
 import com.refinedmods.refinedstorage.api.network.security.SecurityPolicy;
-import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderExternalPatternInputSinkFactory;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderExternalPatternSinkFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.ConstructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.DestructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.exporter.ExporterTransferStrategyFactory;
@@ -108,9 +108,9 @@ public interface RefinedStorageApi {
 
     StorageMonitorInsertionStrategy getStorageMonitorInsertionStrategy();
 
-    void addPatternProviderExternalPatternInputSinkFactory(PatternProviderExternalPatternInputSinkFactory factory);
+    void addPatternProviderExternalPatternSinkFactory(PatternProviderExternalPatternSinkFactory factory);
 
-    PatternProviderExternalPatternInputSinkFactory getPatternProviderExternalPatternInputSinkFactory();
+    PatternProviderExternalPatternSinkFactory getPatternProviderExternalPatternSinkFactory();
 
     ComponentMapFactory<NetworkComponent, Network> getNetworkComponentMapFactory();
 

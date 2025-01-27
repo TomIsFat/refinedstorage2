@@ -8,24 +8,21 @@ import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewCraftingCalculatorListener;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskPlan;
-import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -233,23 +230,12 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
         statusListeners.forEach(listener -> listener.taskStatusChanged(status));
     }
 
-    // TODO(feat): processing pattern balancing
     @Override
-    public Result accept(final Pattern pattern, final Collection<ResourceAmount> resources, final Action action) {
-        final PatternProvider patternProvider = providerByPattern.get(pattern);
-        if (patternProvider == null) {
-            return Result.SKIPPED;
+    public List<ExternalPatternSink> getByPattern(final Pattern pattern) {
+        final PatternProvider provider = providerByPattern.get(pattern);
+        if (provider == null) {
+            return List.of();
         }
-        return patternProvider.accept(resources, action);
-    }
-
-    @Nullable
-    @Override
-    public ExternalPatternInputSinkKey getKey(final Pattern pattern) {
-        final PatternProvider patternProvider = providerByPattern.get(pattern);
-        if (patternProvider == null) {
-            return null;
-        }
-        return patternProvider.getSinkKey();
+        return List.of(provider);
     }
 }

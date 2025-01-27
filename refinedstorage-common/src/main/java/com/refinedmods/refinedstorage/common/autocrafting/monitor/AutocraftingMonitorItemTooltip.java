@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.common.autocrafting.monitor;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
-import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.InWorldExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.InWorldExternalPatternSinkKey;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -60,7 +60,7 @@ class AutocraftingMonitorItemTooltip implements ClientTooltipComponent {
             );
             yy += 9 + SPACING;
         }
-        if (item.sinkKey() instanceof InWorldExternalPatternInputSinkKey(String name, ItemStack stack)) {
+        if (item.sinkKey() instanceof InWorldExternalPatternSinkKey(String name, ItemStack stack)) {
             graphics.renderItem(stack, x, yy);
             graphics.drawString(
                 font,
@@ -83,7 +83,7 @@ class AutocraftingMonitorItemTooltip implements ClientTooltipComponent {
     public int getWidth(final Font font) {
         final int resourceWidth = font.width(rendering.getDisplayName(item.resource()));
         final int errorWidth = item.type() != TaskStatus.ItemType.NORMAL ? font.width(getErrorTooltip(item.type())) : 0;
-        final int sinkWidth = item.sinkKey() instanceof InWorldExternalPatternInputSinkKey sinkKey
+        final int sinkWidth = item.sinkKey() instanceof InWorldExternalPatternSinkKey sinkKey
             ? (18 + SPACING + font.width(sinkKey.name()))
             : 0;
         return Math.max(resourceWidth, Math.max(errorWidth, sinkWidth));

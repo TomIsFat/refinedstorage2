@@ -3,8 +3,8 @@ package com.refinedmods.refinedstorage.common.autocrafting.autocrafter;
 import com.refinedmods.refinedstorage.api.autocrafting.Ingredient;
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskSnapshot;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskState;
@@ -127,8 +127,8 @@ final class TaskSnapshotPersistence {
         if (externalPattern.lastSinkResult() != null) {
             tag.putString("lastSinkResult", externalPattern.lastSinkResult().name());
         }
-        final ExternalPatternInputSinkKey lastSinkResultKey = externalPattern.lastSinkResultKey();
-        if (lastSinkResultKey instanceof InWorldExternalPatternInputSinkKey(String name, ItemStack stack)) {
+        final ExternalPatternSinkKey lastSinkResultKey = externalPattern.lastSinkResultKey();
+        if (lastSinkResultKey instanceof InWorldExternalPatternSinkKey(String name, ItemStack stack)) {
             tag.putString("lastSinkResultKeyName", name);
             tag.put("lastSinkResultKeyStack", ItemStack.CODEC
                 .encode(stack, NbtOps.INSTANCE, new CompoundTag()).getOrThrow());
@@ -279,10 +279,10 @@ final class TaskSnapshotPersistence {
         final long iterationsToSendToSink = tag.getLong("iterationsToSendToSink");
         final long iterationsReceived = tag.getLong("iterationsReceived");
         final boolean interceptedAnythingSinceLastStep = tag.getBoolean("interceptedAnythingSinceLastStep");
-        final ExternalPatternInputSink.Result lastSinkResult = tag.contains("lastSinkResult", Tag.TAG_STRING)
-            ? ExternalPatternInputSink.Result.valueOf(tag.getString("lastSinkResult"))
+        final ExternalPatternSink.Result lastSinkResult = tag.contains("lastSinkResult", Tag.TAG_STRING)
+            ? ExternalPatternSink.Result.valueOf(tag.getString("lastSinkResult"))
             : null;
-        final ExternalPatternInputSinkKey lastSinkResultKey = tag.contains("lastSinkResultKeyName", Tag.TAG_STRING)
+        final ExternalPatternSinkKey lastSinkResultKey = tag.contains("lastSinkResultKeyName", Tag.TAG_STRING)
             ? decodeSinkResultKey(tag)
             : null;
         return new TaskSnapshot.ExternalPatternSnapshot(
@@ -297,8 +297,8 @@ final class TaskSnapshotPersistence {
         );
     }
 
-    private static InWorldExternalPatternInputSinkKey decodeSinkResultKey(final CompoundTag tag) {
-        return new InWorldExternalPatternInputSinkKey(
+    private static InWorldExternalPatternSinkKey decodeSinkResultKey(final CompoundTag tag) {
+        return new InWorldExternalPatternSinkKey(
             tag.getString("lastSinkResultKeyName"),
             ItemStack.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("lastSinkResultKeyStack")).result().orElseThrow()
         );
