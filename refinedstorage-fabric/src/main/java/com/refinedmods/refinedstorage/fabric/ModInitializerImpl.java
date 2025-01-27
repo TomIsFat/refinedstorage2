@@ -59,6 +59,7 @@ import com.refinedmods.refinedstorage.common.support.packet.c2s.SecurityCardRese
 import com.refinedmods.refinedstorage.common.support.packet.c2s.SingleAmountChangePacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.StorageInfoRequestPacket;
 import com.refinedmods.refinedstorage.common.support.packet.c2s.UseSlotReferencedItemPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterLockedUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterManagerActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterNameUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorActivePacket;
@@ -509,6 +510,10 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
         PayloadTypeRegistry.playS2C().register(
             AutocrafterNameUpdatePacket.PACKET_TYPE,
             AutocrafterNameUpdatePacket.STREAM_CODEC
+        );
+        PayloadTypeRegistry.playS2C().register(
+            AutocrafterLockedUpdatePacket.PACKET_TYPE,
+            AutocrafterLockedUpdatePacket.STREAM_CODEC
         );
         PayloadTypeRegistry.playS2C().register(
             AutocraftingPreviewResponsePacket.PACKET_TYPE,

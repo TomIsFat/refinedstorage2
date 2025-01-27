@@ -230,7 +230,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
 
     @Override
     public AutocrafterData getMenuData() {
-        return new AutocrafterData(isPartOfChain(), isHeadOfChain());
+        return new AutocrafterData(isPartOfChain(), isHeadOfChain(), locked);
     }
 
     @Override
@@ -408,7 +408,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         if (mainNetworkNode.isActive()) {
             ticks++;
         }
-        final boolean lockedCurrently = isLocked();
+        final boolean lockedCurrently = calculateLocked();
         if (lockedCurrently != locked) {
             setLocked(lockedCurrently);
         }
@@ -419,7 +419,11 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
         setChanged();
     }
 
-    private boolean isLocked() {
+    boolean isLocked() {
+        return locked;
+    }
+
+    private boolean calculateLocked() {
         if (level == null) {
             return false;
         }

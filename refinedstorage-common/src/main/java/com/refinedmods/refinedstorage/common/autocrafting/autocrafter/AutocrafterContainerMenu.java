@@ -33,6 +33,7 @@ public class AutocrafterContainerMenu extends AbstractBaseContainerMenu {
     private final Player player;
     private final boolean partOfChain;
     private final boolean headOfChain;
+    private boolean locked;
     private final RateLimiter nameRateLimiter = RateLimiter.create(0.5);
 
     @Nullable
@@ -54,6 +55,7 @@ public class AutocrafterContainerMenu extends AbstractBaseContainerMenu {
         this.name = Component.empty();
         this.partOfChain = data.partOfChain();
         this.headOfChain = data.headOfChain();
+        this.locked = data.locked();
     }
 
     public AutocrafterContainerMenu(final int syncId,
@@ -65,6 +67,7 @@ public class AutocrafterContainerMenu extends AbstractBaseContainerMenu {
         this.name = autocrafter.getDisplayName();
         this.partOfChain = false;
         this.headOfChain = false;
+        this.locked = autocrafter.isLocked();
         registerProperty(new ServerProperty<>(
             AutocrafterPropertyTypes.LOCK_MODE,
             autocrafter::getLockMode,
@@ -95,6 +98,10 @@ public class AutocrafterContainerMenu extends AbstractBaseContainerMenu {
         return headOfChain;
     }
 
+    boolean isLocked() {
+        return locked;
+    }
+
     void setListener(@Nullable final Listener listener) {
         this.listener = listener;
     }
@@ -107,6 +114,11 @@ public class AutocrafterContainerMenu extends AbstractBaseContainerMenu {
         }
         if (nameRateLimiter.tryAcquire()) {
             detectNameChange();
+        }
+        final boolean newLocked = autocrafter.isLocked();
+        if (locked != newLocked) {
+            locked = newLocked;
+            S2CPackets.sendAutocrafterLockedUpdate((ServerPlayer) player, locked);
         }
     }
 
@@ -167,8 +179,16 @@ public class AutocrafterContainerMenu extends AbstractBaseContainerMenu {
         }
     }
 
-    @FunctionalInterface
+    public void lockedChanged(final boolean newLocked) {
+        this.locked = newLocked;
+        if (listener != null) {
+            listener.lockedChanged(newLocked);
+        }
+    }
+
     public interface Listener {
         void nameChanged(Component name);
+
+        void lockedChanged(boolean locked);
     }
 }

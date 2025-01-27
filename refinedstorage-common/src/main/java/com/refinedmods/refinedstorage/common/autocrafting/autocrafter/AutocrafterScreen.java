@@ -27,7 +27,8 @@ import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTr
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslationAsHeading;
 import static java.util.Objects.requireNonNull;
 
-public class AutocrafterScreen extends AbstractBaseScreen<AutocrafterContainerMenu> {
+public class AutocrafterScreen extends AbstractBaseScreen<AutocrafterContainerMenu>
+    implements AutocrafterContainerMenu.Listener {
     private static final Component EMPTY_PATTERN_SLOT = createTranslationAsHeading(
         "gui", "autocrafter.empty_pattern_slot"
     );
@@ -38,11 +39,15 @@ public class AutocrafterScreen extends AbstractBaseScreen<AutocrafterContainerMe
     private static final Component NOT_CHAINED = createTranslation("gui", "autocrafter.not_chained");
     private static final Component NOT_CHAINED_HELP = createTranslation("gui", "autocrafter.not_chained.help");
     private static final Component EDIT = createTranslation("gui", "autocrafter.edit_name");
+    private static final Component CURRENTLY_LOCKED = createTranslation("gui", "autocrafter.currently_locked");
 
     private static final ResourceLocation NAME_BACKGROUND = createIdentifier("widget/autocrafter_name");
     private static final List<String> CRAFTER_NAME_HISTORY = new ArrayList<>();
 
     private final Inventory playerInventory;
+
+    @Nullable
+    private LockModeSideButtonWidget lockModeSideButtonWidget;
 
     @Nullable
     private EditBox nameField;
@@ -96,17 +101,13 @@ public class AutocrafterScreen extends AbstractBaseScreen<AutocrafterContainerMe
     @Override
     protected void init() {
         super.init();
-        getMenu().setListener(name -> {
-            titleMarquee.setText(name);
-            if (nameField != null) {
-                nameField.setValue(name.getString());
-            }
-            if (editButton != null) {
-                editButton.setX(getEditButtonX());
-            }
-        });
+        getMenu().setListener(this);
 
-        addSideButton(new LockModeSideButtonWidget(getMenu().getProperty(AutocrafterPropertyTypes.LOCK_MODE)));
+        lockModeSideButtonWidget = new LockModeSideButtonWidget(
+            getMenu().getProperty(AutocrafterPropertyTypes.LOCK_MODE)
+        );
+        lockedChanged(getMenu().isLocked());
+        addSideButton(lockModeSideButtonWidget);
         addSideButton(new AutocrafterPrioritySideButtonWidget(
             getMenu().getProperty(AutocrafterPropertyTypes.PRIORITY),
             playerInventory,
@@ -233,5 +234,28 @@ public class AutocrafterScreen extends AbstractBaseScreen<AutocrafterContainerMe
     @Override
     protected ResourceLocation getTexture() {
         return AbstractFilterScreen.TEXTURE;
+    }
+
+    @Override
+    public void nameChanged(final Component name) {
+        titleMarquee.setText(name);
+        if (nameField != null) {
+            nameField.setValue(name.getString());
+        }
+        if (editButton != null) {
+            editButton.setX(getEditButtonX());
+        }
+    }
+
+    @Override
+    public void lockedChanged(final boolean locked) {
+        if (lockModeSideButtonWidget == null) {
+            return;
+        }
+        if (locked) {
+            lockModeSideButtonWidget.setWarning(CURRENTLY_LOCKED);
+            return;
+        }
+        lockModeSideButtonWidget.setWarning(null);
     }
 }

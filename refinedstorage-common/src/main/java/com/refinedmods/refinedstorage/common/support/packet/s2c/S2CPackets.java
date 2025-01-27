@@ -93,6 +93,10 @@ public final class S2CPackets {
         Platform.INSTANCE.sendPacketToClient(player, new AutocrafterNameUpdatePacket(name));
     }
 
+    public static void sendAutocrafterLockedUpdate(final ServerPlayer player, final boolean locked) {
+        Platform.INSTANCE.sendPacketToClient(player, new AutocrafterLockedUpdatePacket(locked));
+    }
+
     public static void sendAutocraftingPreviewResponse(final ServerPlayer player,
                                                        final UUID id,
                                                        final Preview preview) {
