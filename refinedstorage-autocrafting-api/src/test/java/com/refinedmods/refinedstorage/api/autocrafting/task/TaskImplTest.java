@@ -75,7 +75,7 @@ class TaskImplTest {
         // Assert
         assertThat(task.getState()).isEqualTo(TaskState.READY);
         assertThat(task.getId()).isNotNull();
-        assertThat(task.getId().toString()).isEqualTo(task.getId().id().toString());
+        assertThat(task.getId()).hasToString(task.getId().id().toString());
         assertThat(task.shouldNotify()).isTrue();
         assertThat(task.getActor()).isEqualTo(Actor.EMPTY);
         assertThat(task.getResource()).isEqualTo(CRAFTING_TABLE);

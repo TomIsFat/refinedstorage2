@@ -179,7 +179,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public void cancel(final TaskId taskId) {
         final PatternProvider provider = providerByTaskId.get(taskId);
         if (provider == null) {
-            return; // TODO: provider is no longer found after restarting :/
+            return;
         }
         provider.cancelTask(taskId);
     }

@@ -36,6 +36,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamEncoder;
@@ -257,7 +258,7 @@ public class AutocrafterBlockEntity extends AbstractBaseNetworkNodeContainerBloc
             ContainerUtil.read(tag.getCompound(TAG_UPGRADES), upgradeContainer, provider);
         }
         if (tag.contains(TAG_TASKS)) {
-            final ListTag tasks = tag.getList(TAG_TASKS, CompoundTag.TAG_COMPOUND);
+            final ListTag tasks = tag.getList(TAG_TASKS, Tag.TAG_COMPOUND);
             for (int i = 0; i < tasks.size(); ++i) {
                 final CompoundTag taskTag = tasks.getCompound(i);
                 try {
