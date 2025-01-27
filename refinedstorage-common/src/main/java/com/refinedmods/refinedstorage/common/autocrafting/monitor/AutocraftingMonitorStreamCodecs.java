@@ -1,10 +1,10 @@
 package com.refinedmods.refinedstorage.common.autocrafting.monitor;
 
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
-import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.InWorldExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.InWorldExternalPatternSinkKey;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceCodecs;
 import com.refinedmods.refinedstorage.common.util.PlatformUtil;
 
@@ -63,9 +63,9 @@ public final class AutocraftingMonitorStreamCodecs {
         }
 
         @Nullable
-        private ExternalPatternInputSinkKey decodeSinkKey(final RegistryFriendlyByteBuf buf) {
+        private ExternalPatternSinkKey decodeSinkKey(final RegistryFriendlyByteBuf buf) {
             if (buf.readBoolean()) {
-                return new InWorldExternalPatternInputSinkKey(buf.readUtf(), ItemStack.STREAM_CODEC.decode(buf));
+                return new InWorldExternalPatternSinkKey(buf.readUtf(), ItemStack.STREAM_CODEC.decode(buf));
             }
             return null;
         }
@@ -82,8 +82,8 @@ public final class AutocraftingMonitorStreamCodecs {
         }
 
         private void encodeSinkKey(final RegistryFriendlyByteBuf buf,
-                                   @Nullable final ExternalPatternInputSinkKey sinkKey) {
-            if (sinkKey instanceof InWorldExternalPatternInputSinkKey(String name, ItemStack stack)) {
+                                   @Nullable final ExternalPatternSinkKey sinkKey) {
+            if (sinkKey instanceof InWorldExternalPatternSinkKey(String name, ItemStack stack)) {
                 buf.writeBoolean(true);
                 buf.writeUtf(name);
                 ItemStack.STREAM_CODEC.encode(buf, stack);

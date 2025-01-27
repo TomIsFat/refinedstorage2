@@ -11,6 +11,7 @@ import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
+import java.util.List;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -28,15 +29,16 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     private long iterationsReceived;
     private boolean interceptedAnythingSinceLastStep;
     @Nullable
-    private ExternalPatternInputSink.Result lastSinkResult;
+    private ExternalPatternSink.Result lastSinkResult;
     @Nullable
-    private ExternalPatternInputSinkKey lastSinkResultKey;
+    private ExternalPatternSinkKey lastSinkResultKey;
+    private int currentSinkIndex;
 
     ExternalTaskPattern(final Pattern pattern, final TaskPlan.PatternPlan plan) {
         super(pattern, plan);
         this.originalIterationsToSendToSink = plan.iterations();
         this.expectedOutputs = MutableResourceListImpl.create();
-        pattern.outputs().forEach(
+        pattern.layout().outputs().forEach(
             output -> expectedOutputs.add(output.resource(), output.amount() * plan.iterations())
         );
         this.iterationsToSendToSink = plan.iterations();
@@ -62,14 +64,14 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     @Override
     PatternStepResult step(final MutableResourceList internalStorage,
                            final RootStorage rootStorage,
-                           final ExternalPatternInputSink externalPatternInputSink) {
+                           final ExternalPatternSinkProvider sinkProvider) {
         if (expectedOutputs.isEmpty()) {
             return PatternStepResult.COMPLETED;
         }
         if (iterationsToSendToSink == 0) {
             return idleOrRunning();
         }
-        if (!acceptsIterationInputs(internalStorage, externalPatternInputSink)) {
+        if (!acceptsIterationInputs(internalStorage, sinkProvider)) {
             return idleOrRunning();
         }
         LOGGER.debug("Stepped {} with {} iterations remaining", pattern, iterationsToSendToSink);
@@ -101,7 +103,7 @@ class ExternalTaskPattern extends AbstractTaskPattern {
 
     private void updateIterationsReceived() {
         long result = originalIterationsToSendToSink;
-        for (final ResourceAmount output : pattern.outputs()) {
+        for (final ResourceAmount output : pattern.layout().outputs()) {
             final long expected = output.amount() * originalIterationsToSendToSink;
             final long stillNeeded = expectedOutputs.get(output.resource());
             final long receivedOutputs = expected - stillNeeded;
@@ -116,8 +118,9 @@ class ExternalTaskPattern extends AbstractTaskPattern {
 
     @Override
     void appendStatus(final TaskStatusBuilder builder) {
+        final List<ResourceAmount> outputs = pattern.layout().outputs();
         if (iterationsToSendToSink > 0) {
-            for (final ResourceAmount output : pattern.outputs()) {
+            for (final ResourceAmount output : outputs) {
                 builder.scheduled(output.resource(), output.amount() * iterationsToSendToSink);
             }
         }
@@ -134,9 +137,9 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         }
         if (lastSinkResult != null) {
             switch (lastSinkResult) {
-                case REJECTED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::rejected);
-                case SKIPPED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::noneFound);
-                case LOCKED -> pattern.outputs().stream().map(ResourceAmount::resource).forEach(builder::locked);
+                case REJECTED -> outputs.stream().map(ResourceAmount::resource).forEach(builder::rejected);
+                case SKIPPED -> outputs.stream().map(ResourceAmount::resource).forEach(builder::noneFound);
+                case LOCKED -> outputs.stream().map(ResourceAmount::resource).forEach(builder::locked);
                 case ACCEPTED -> {
                     // does not need to be reported
                 }
@@ -155,19 +158,18 @@ class ExternalTaskPattern extends AbstractTaskPattern {
     }
 
     private boolean acceptsIterationInputs(final MutableResourceList internalStorage,
-                                           final ExternalPatternInputSink externalPatternInputSink) {
+                                           final ExternalPatternSinkProvider sinkProvider) {
         final ResourceList iterationInputsSimulated = calculateIterationInputs(Action.SIMULATE);
         if (!extractAll(iterationInputsSimulated, internalStorage, Action.SIMULATE)) {
             return false;
         }
-        final ExternalPatternInputSink.Result simulatedResult = externalPatternInputSink.accept(
-            pattern,
-            iterationInputsSimulated.copyState(),
-            Action.SIMULATE
-        );
-        lastSinkResult = simulatedResult;
-        lastSinkResultKey = externalPatternInputSink.getKey(pattern);
-        if (simulatedResult != ExternalPatternInputSink.Result.ACCEPTED) {
+        final List<ExternalPatternSink> sinks = sinkProvider.getSinksByPatternLayout(pattern.layout());
+        if (sinks.isEmpty()) {
+            lastSinkResult = ExternalPatternSink.Result.SKIPPED;
+            return false;
+        }
+        final ExternalPatternSink sink = getSinkThatIsAcceptingResources(sinks, iterationInputsSimulated);
+        if (sink == null) {
             return false;
         }
         final ResourceList iterationInputs = calculateIterationInputs(Action.EXECUTE);
@@ -181,11 +183,33 @@ class ExternalTaskPattern extends AbstractTaskPattern {
         // across the sink and the internal storage.
         // The end result is that we lie, do as if the insertion was successful,
         // and potentially void the extracted resources from the internal storage.
-        if (externalPatternInputSink.accept(pattern, iterationInputs.copyState(), Action.EXECUTE)
-            != ExternalPatternInputSink.Result.ACCEPTED) {
-            LOGGER.warn("External sink {} did not accept all inputs for pattern {}", externalPatternInputSink, pattern);
+        if (sink.accept(iterationInputs.copyState(), Action.EXECUTE) != ExternalPatternSink.Result.ACCEPTED) {
+            LOGGER.warn("Sink {} did not accept all inputs for pattern {}", sink, pattern);
         }
         return true;
+    }
+
+    @Nullable
+    private ExternalPatternSink getSinkThatIsAcceptingResources(final List<ExternalPatternSink> sinks,
+                                                                final ResourceList iterationInputsSimulated) {
+        if (currentSinkIndex >= sinks.size()) {
+            currentSinkIndex = 0;
+        }
+        while (currentSinkIndex < sinks.size()) {
+            final ExternalPatternSink sink = sinks.get(currentSinkIndex);
+            final ExternalPatternSink.Result simulatedResult = sink.accept(
+                iterationInputsSimulated.copyState(),
+                Action.SIMULATE
+            );
+            lastSinkResult = simulatedResult;
+            lastSinkResultKey = sink.getKey();
+            currentSinkIndex++;
+            if (simulatedResult != ExternalPatternSink.Result.ACCEPTED) {
+                continue;
+            }
+            return sink;
+        }
+        return null;
     }
 
     @Override

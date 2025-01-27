@@ -2,8 +2,9 @@ package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkProvider;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
@@ -13,7 +14,7 @@ import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
-import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProviderExternalPatternSink;
 import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
@@ -37,9 +38,9 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     private final List<Task> tasks = new CopyOnWriteArrayList<>();
     private int priority;
     @Nullable
-    private PatternProviderExternalPatternInputSink externalPatternInputSink;
+    private PatternProviderExternalPatternSink sink;
     @Nullable
-    private ExternalPatternInputSinkKeyProvider externalPatternInputSinkKeyProvider;
+    private ExternalPatternSinkKeyProvider sinkKeyProvider;
     private StepBehavior stepBehavior = StepBehavior.DEFAULT;
 
     public PatternProviderNetworkNode(final long energyUsage, final int patterns) {
@@ -47,8 +48,8 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         this.patterns = new Pattern[patterns];
     }
 
-    public void setExternalPatternInputSink(final PatternProviderExternalPatternInputSink externalPatternInputSink) {
-        this.externalPatternInputSink = externalPatternInputSink;
+    public void setSink(final PatternProviderExternalPatternSink sink) {
+        this.sink = sink;
     }
 
     public void setPattern(final int index, @Nullable final Pattern pattern) {
@@ -100,7 +101,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     @Override
     public void onAddedIntoContainer(final ParentContainer parentContainer) {
         parents.add(parentContainer);
-        tasks.forEach(parentContainer::taskAdded);
+        tasks.forEach(task -> parentContainer.taskAdded(this, task));
         for (final Pattern pattern : patterns) {
             if (pattern != null) {
                 parentContainer.add(this, pattern, priority);
@@ -125,7 +126,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         if (network != null) {
             setupTask(task, network.getComponent(StorageNetworkComponent.class));
         }
-        parents.forEach(parent -> parent.taskAdded(task));
+        parents.forEach(parent -> parent.taskAdded(this, task));
     }
 
     @Override
@@ -144,12 +145,6 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         return tasks.stream().map(Task::getStatus).toList();
     }
 
-    @Override
-    @Nullable
-    public ExternalPatternInputSinkKey getSinkKey() {
-        return externalPatternInputSinkKeyProvider != null ? externalPatternInputSinkKeyProvider.getKey() : null;
-    }
-
     private void setupTask(final Task task, final StorageNetworkComponent storage) {
         storage.addListener(task);
     }
@@ -159,11 +154,11 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     }
 
     @Override
-    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
-        if (externalPatternInputSink == null) {
-            return ExternalPatternInputSink.Result.SKIPPED;
+    public ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        if (sink == null) {
+            return ExternalPatternSink.Result.SKIPPED;
         }
-        return externalPatternInputSink.accept(resources, action);
+        return sink.accept(resources, action);
     }
 
     public List<Task> getTasks() {
@@ -177,19 +172,17 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
             return;
         }
         final StorageNetworkComponent storage = network.getComponent(StorageNetworkComponent.class);
-        final ExternalPatternInputSink outerExternalPatternInputSink = network.getComponent(
-            AutocraftingNetworkComponent.class
-        );
-        tasks.removeIf(task -> stepPattern(task, storage, outerExternalPatternInputSink));
+        final ExternalPatternSinkProvider sinkProvider = network.getComponent(AutocraftingNetworkComponent.class);
+        tasks.removeIf(task -> stepPattern(task, storage, sinkProvider));
     }
 
     private boolean stepPattern(final Task task,
                                 final StorageNetworkComponent storage,
-                                final ExternalPatternInputSink outerExternalPatternInputSink) {
+                                final ExternalPatternSinkProvider sinkProvider) {
         boolean changed;
         boolean completed;
         try {
-            changed = task.step(storage, outerExternalPatternInputSink, stepBehavior);
+            changed = task.step(storage, sinkProvider, stepBehavior);
             completed = task.getState() == TaskState.COMPLETED;
         } catch (final Exception e) {
             LOGGER.error("Exception while stepping task {} {}, removing task", task.getResource(), task.getAmount(), e);
@@ -203,6 +196,12 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
             parents.forEach(parent -> parent.taskChanged(task));
         }
         return completed;
+    }
+
+    @Nullable
+    @Override
+    public ExternalPatternSinkKey getKey() {
+        return sinkKeyProvider != null ? sinkKeyProvider.getKey() : null;
     }
 
     public int getPriority() {
@@ -222,7 +221,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         this.stepBehavior = stepBehavior;
     }
 
-    public void setSinkKeyProvider(final ExternalPatternInputSinkKeyProvider provider) {
-        this.externalPatternInputSinkKeyProvider = provider;
+    public void setSinkKeyProvider(final ExternalPatternSinkKeyProvider provider) {
+        this.sinkKeyProvider = provider;
     }
 }

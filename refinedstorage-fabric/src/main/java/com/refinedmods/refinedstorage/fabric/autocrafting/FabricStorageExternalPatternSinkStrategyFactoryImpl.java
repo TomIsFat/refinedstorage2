@@ -2,8 +2,8 @@ package com.refinedmods.refinedstorage.fabric.autocrafting;
 
 import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.fabric.api.FabricStorageExternalPatternInputSinkStrategy;
-import com.refinedmods.refinedstorage.fabric.api.FabricStorageExternalPatternInputSinkStrategyFactory;
+import com.refinedmods.refinedstorage.fabric.api.FabricStorageExternalPatternSinkStrategy;
+import com.refinedmods.refinedstorage.fabric.api.FabricStorageExternalPatternSinkStrategyFactory;
 
 import java.util.function.Function;
 
@@ -13,12 +13,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 
-public class FabricStorageExternalPatternInputSinkStrategyFactoryImpl<T>
-    implements FabricStorageExternalPatternInputSinkStrategyFactory {
+public class FabricStorageExternalPatternSinkStrategyFactoryImpl<T>
+    implements FabricStorageExternalPatternSinkStrategyFactory {
     private final BlockApiLookup<Storage<T>, Direction> lookup;
     private final Function<ResourceKey, @NullableType T> toPlatformMapper;
 
-    public FabricStorageExternalPatternInputSinkStrategyFactoryImpl(
+    public FabricStorageExternalPatternSinkStrategyFactoryImpl(
         final BlockApiLookup<Storage<T>, Direction> lookup,
         final Function<ResourceKey, @NullableType T> toPlatformMapper
     ) {
@@ -27,10 +27,10 @@ public class FabricStorageExternalPatternInputSinkStrategyFactoryImpl<T>
     }
 
     @Override
-    public FabricStorageExternalPatternInputSinkStrategy create(final ServerLevel level,
-                                                                final BlockPos pos,
-                                                                final Direction direction) {
-        return new FabricStorageExternalPatternInputSinkStrategyImpl<>(
+    public FabricStorageExternalPatternSinkStrategy create(final ServerLevel level,
+                                                           final BlockPos pos,
+                                                           final Direction direction) {
+        return new FabricStorageExternalPatternSinkStrategyImpl<>(
             lookup,
             toPlatformMapper,
             level,

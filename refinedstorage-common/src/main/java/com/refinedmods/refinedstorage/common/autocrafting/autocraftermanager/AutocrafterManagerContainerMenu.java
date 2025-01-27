@@ -263,14 +263,14 @@ public class AutocrafterManagerContainerMenu extends AbstractBaseContainerMenu i
         boolean hasPatternInput(final Level level, final String normalizedQuery, final int index) {
             final ItemStack patternStack = backingInventory.getItem(index);
             return RefinedStorageApi.INSTANCE.getPattern(patternStack, level).map(
-                pattern -> hasIngredient(pattern.ingredients(), normalizedQuery)
+                pattern -> hasIngredient(pattern.layout().ingredients(), normalizedQuery)
             ).orElse(false);
         }
 
         boolean hasPatternOutput(final Level level, final String normalizedQuery, final int index) {
             final ItemStack patternStack = backingInventory.getItem(index);
             return RefinedStorageApi.INSTANCE.getPattern(patternStack, level).map(
-                pattern -> hasResource(pattern.outputs(), normalizedQuery)
+                pattern -> hasResource(pattern.layout().outputs(), normalizedQuery)
             ).orElse(false);
         }
 

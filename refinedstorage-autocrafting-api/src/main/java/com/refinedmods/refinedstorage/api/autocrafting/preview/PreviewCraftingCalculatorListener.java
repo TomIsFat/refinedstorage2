@@ -34,7 +34,7 @@ public class PreviewCraftingCalculatorListener implements CraftingCalculatorList
         try {
             calculator.calculate(resource, amount, listener);
         } catch (final PatternCycleDetectedException e) {
-            return new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), e.getPattern().outputs());
+            return new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), e.getPattern().layout().outputs());
         } catch (final NumberOverflowDuringCalculationException e) {
             return new Preview(PreviewType.OVERFLOW, Collections.emptyList(), Collections.emptyList());
         }

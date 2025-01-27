@@ -85,8 +85,8 @@ import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
 import com.refinedmods.refinedstorage.common.util.ServerListener;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApi;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApiProxy;
-import com.refinedmods.refinedstorage.neoforge.autocrafting.FluidHandlerExternalPatternProviderInputSinkFactory;
-import com.refinedmods.refinedstorage.neoforge.autocrafting.ItemHandlerExternalPatternProviderInputSinkFactory;
+import com.refinedmods.refinedstorage.neoforge.autocrafting.FluidHandlerExternalPatternProviderSinkFactory;
+import com.refinedmods.refinedstorage.neoforge.autocrafting.ItemHandlerExternalPatternProviderSinkFactory;
 import com.refinedmods.refinedstorage.neoforge.constructordestructor.ForgeConstructorBlockEntity;
 import com.refinedmods.refinedstorage.neoforge.constructordestructor.ForgeDestructorBlockEntity;
 import com.refinedmods.refinedstorage.neoforge.exporter.FluidHandlerExporterTransferStrategyFactory;
@@ -217,7 +217,7 @@ public class ModInitializer extends AbstractModInitializer {
         registerImporterTransferStrategyFactories();
         registerExporterTransferStrategyFactories();
         registerExternalStorageProviderFactories();
-        registerPatternProviderInputSinkFactories();
+        registerPatternProviderSinkFactories();
         registerContent(eventBus);
         registerSounds(eventBus);
         registerRecipeSerializers(eventBus);
@@ -289,12 +289,12 @@ public class ModInitializer extends AbstractModInitializer {
         );
     }
 
-    private void registerPatternProviderInputSinkFactories() {
-        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternInputSinkFactory(
-            new ItemHandlerExternalPatternProviderInputSinkFactory()
+    private void registerPatternProviderSinkFactories() {
+        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternSinkFactory(
+            new ItemHandlerExternalPatternProviderSinkFactory()
         );
-        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternInputSinkFactory(
-            new FluidHandlerExternalPatternProviderInputSinkFactory()
+        RefinedStorageApi.INSTANCE.addPatternProviderExternalPatternSinkFactory(
+            new FluidHandlerExternalPatternProviderSinkFactory()
         );
     }
 

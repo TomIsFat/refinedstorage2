@@ -31,8 +31,8 @@ public class RefinedStorageFabricApiProxy implements RefinedStorageFabricApi {
     }
 
     @Override
-    public void addStorageExternalPatternInputSinkStrategyFactory(
-        final FabricStorageExternalPatternInputSinkStrategyFactory factory) {
-        ensureLoaded().addStorageExternalPatternInputSinkStrategyFactory(factory);
+    public void addStorageExternalPatternSinkStrategyFactory(
+        final FabricStorageExternalPatternSinkStrategyFactory factory) {
+        ensureLoaded().addStorageExternalPatternSinkStrategyFactory(factory);
     }
 }

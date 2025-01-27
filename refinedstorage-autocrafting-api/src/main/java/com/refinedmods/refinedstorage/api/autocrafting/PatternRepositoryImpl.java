@@ -22,8 +22,8 @@ public class PatternRepositoryImpl implements PatternRepository {
     @Override
     public void add(final Pattern pattern, final int priority) {
         patterns.add(pattern);
-        pattern.outputs().forEach(output -> outputs.add(output.resource()));
-        for (final ResourceAmount output : pattern.outputs()) {
+        pattern.layout().outputs().forEach(output -> outputs.add(output.resource()));
+        for (final ResourceAmount output : pattern.layout().outputs()) {
             patternsByOutput.computeIfAbsent(output.resource(), k -> new PriorityQueue<>(
                 Comparator.comparingInt(PatternHolder::priority).reversed()
             )).add(new PatternHolder(pattern, priority));
@@ -32,7 +32,7 @@ public class PatternRepositoryImpl implements PatternRepository {
 
     @Override
     public void update(final Pattern pattern, final int priority) {
-        for (final ResourceAmount output : pattern.outputs()) {
+        for (final ResourceAmount output : pattern.layout().outputs()) {
             final PriorityQueue<PatternHolder> holders = patternsByOutput.get(output.resource());
             if (holders == null) {
                 continue;
@@ -45,7 +45,7 @@ public class PatternRepositoryImpl implements PatternRepository {
     @Override
     public void remove(final Pattern pattern) {
         patterns.remove(pattern);
-        for (final ResourceAmount output : pattern.outputs()) {
+        for (final ResourceAmount output : pattern.layout().outputs()) {
             final PriorityQueue<PatternHolder> holders = patternsByOutput.get(output.resource());
             if (holders == null) {
                 continue;
@@ -55,7 +55,7 @@ public class PatternRepositoryImpl implements PatternRepository {
                 patternsByOutput.remove(output.resource());
             }
             final boolean noOtherPatternHasThisOutput = patterns.stream()
-                .noneMatch(otherPattern -> otherPattern.outputs().stream()
+                .noneMatch(otherPattern -> otherPattern.layout().outputs().stream()
                     .anyMatch(o -> o.resource().equals(output.resource())));
             if (noOtherPatternHasThisOutput) {
                 outputs.remove(output.resource());

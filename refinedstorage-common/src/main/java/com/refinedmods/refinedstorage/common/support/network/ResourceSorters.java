@@ -56,17 +56,17 @@ public final class ResourceSorters {
             list.add(ItemResource.ofItemStack(playerInventoryStack), playerInventoryStack.getCount());
             if (playerInventoryStack.getItem() instanceof PatternProviderItem) {
                 RefinedStorageApi.INSTANCE.getPattern(playerInventoryStack, playerInventory.player.level())
-                    .ifPresent(pattern -> addPatternOutputIntoList(list, pattern));
+                    .ifPresent(pattern -> addPatternOutputsIntoList(list, pattern));
             }
         }
     }
 
     private static void addPatternOutputsIntoList(final Set<Pattern> patterns, final MutableResourceList available) {
-        patterns.forEach(pattern -> addPatternOutputIntoList(available, pattern));
+        patterns.forEach(pattern -> addPatternOutputsIntoList(available, pattern));
     }
 
-    private static void addPatternOutputIntoList(final MutableResourceList available, final Pattern pattern) {
-        pattern.outputs().forEach(output -> available.add(output.resource(), output.amount()));
+    private static void addPatternOutputsIntoList(final MutableResourceList available, final Pattern pattern) {
+        pattern.layout().outputs().forEach(output -> available.add(output.resource(), output.amount()));
     }
 
     private static <T> Comparator<T> sortByHighestAvailableFirst(

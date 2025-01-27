@@ -2,8 +2,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.Action;
@@ -74,7 +73,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     private boolean isPatternAllowed(final Pattern pattern) {
-        return pattern.outputs().stream().map(ResourceAmount::resource).anyMatch(filter::isAllowed);
+        return pattern.layout().outputs().stream().map(ResourceAmount::resource).anyMatch(filter::isAllowed);
     }
 
     @Override
@@ -130,13 +129,7 @@ class RelayOutputPatternProvider implements PatternProvider, PatternListener {
     }
 
     @Override
-    public ExternalPatternInputSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
-        return ExternalPatternInputSink.Result.SKIPPED; // TODO(feat): relay support
-    }
-
-    @Nullable
-    @Override
-    public ExternalPatternInputSinkKey getSinkKey() {
-        return null; // TODO(feat): relay support
+    public ExternalPatternSink.Result accept(final Collection<ResourceAmount> resources, final Action action) {
+        return ExternalPatternSink.Result.SKIPPED; // TODO(feat): relay support
     }
 }

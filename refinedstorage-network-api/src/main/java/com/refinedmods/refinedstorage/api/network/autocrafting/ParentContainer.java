@@ -13,7 +13,7 @@ public interface ParentContainer {
 
     void update(Pattern pattern, int priority);
 
-    void taskAdded(Task task);
+    void taskAdded(PatternProvider provider, Task task);
 
     void taskRemoved(Task task);
 

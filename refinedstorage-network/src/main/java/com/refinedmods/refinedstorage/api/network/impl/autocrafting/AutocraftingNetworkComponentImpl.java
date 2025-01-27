@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.autocrafting;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternLayout;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternRepositoryImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculator;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.CraftingCalculatorImpl;
@@ -8,24 +9,23 @@ import com.refinedmods.refinedstorage.api.autocrafting.preview.Preview;
 import com.refinedmods.refinedstorage.api.autocrafting.preview.PreviewCraftingCalculatorListener;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskPlan;
-import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.autocrafting.ParentContainer;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternListener;
 import com.refinedmods.refinedstorage.api.network.autocrafting.PatternProvider;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,6 +49,7 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     private final ExecutorService executorService;
     private final Set<PatternProvider> providers = new HashSet<>();
     private final Map<Pattern, PatternProvider> providerByPattern = new HashMap<>();
+    private final Map<PatternLayout, List<ExternalPatternSink>> sinksByPatternLayout = new HashMap<>();
     private final Map<TaskId, PatternProvider> providerByTaskId = new HashMap<>();
     private final Set<PatternListener> patternListeners = new HashSet<>();
     private final Set<TaskStatusListener> statusListeners = new HashSet<>();
@@ -136,7 +137,6 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             "No provider for pattern " + plan.rootPattern()
         );
         provider.addTask(task);
-        providerByTaskId.put(task.getId(), provider);
         return task.getId();
     }
 
@@ -182,7 +182,6 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             return;
         }
         provider.cancelTask(taskId);
-        providerByTaskId.remove(taskId);
     }
 
     @Override
@@ -192,13 +191,19 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             final TaskId taskId = entry.getKey();
             provider.cancelTask(taskId);
         }
-        providerByTaskId.clear();
     }
 
     @Override
     public void add(final PatternProvider provider, final Pattern pattern, final int priority) {
         patternRepository.add(pattern, priority);
         providerByPattern.put(pattern, provider);
+        final List<ExternalPatternSink> sinks = sinksByPatternLayout.computeIfAbsent(
+            pattern.layout(),
+            layout -> new ArrayList<>()
+        );
+        if (!sinks.contains(provider)) {
+            sinks.add(provider);
+        }
         patternListeners.forEach(listener -> listener.onAdded(pattern));
     }
 
@@ -206,6 +211,13 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public void remove(final PatternProvider provider, final Pattern pattern) {
         patternListeners.forEach(listener -> listener.onRemoved(pattern));
         providerByPattern.remove(pattern);
+        final List<ExternalPatternSink> sinksByLayout = sinksByPatternLayout.get(pattern.layout());
+        if (sinksByLayout != null) {
+            sinksByLayout.remove(provider);
+            if (sinksByLayout.isEmpty()) {
+                sinksByPatternLayout.remove(pattern.layout());
+            }
+        }
         patternRepository.remove(pattern);
     }
 
@@ -215,12 +227,14 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
-    public void taskAdded(final Task task) {
+    public void taskAdded(final PatternProvider provider, final Task task) {
+        providerByTaskId.put(task.getId(), provider);
         statusListeners.forEach(listener -> listener.taskAdded(task.getStatus()));
     }
 
     @Override
     public void taskRemoved(final Task task) {
+        providerByTaskId.remove(task.getId());
         statusListeners.forEach(listener -> listener.taskRemoved(task.getId()));
     }
 
@@ -233,23 +247,8 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
         statusListeners.forEach(listener -> listener.taskStatusChanged(status));
     }
 
-    // TODO(feat): processing pattern balancing
     @Override
-    public Result accept(final Pattern pattern, final Collection<ResourceAmount> resources, final Action action) {
-        final PatternProvider patternProvider = providerByPattern.get(pattern);
-        if (patternProvider == null) {
-            return Result.SKIPPED;
-        }
-        return patternProvider.accept(resources, action);
-    }
-
-    @Nullable
-    @Override
-    public ExternalPatternInputSinkKey getKey(final Pattern pattern) {
-        final PatternProvider patternProvider = providerByPattern.get(pattern);
-        if (patternProvider == null) {
-            return null;
-        }
-        return patternProvider.getSinkKey();
+    public List<ExternalPatternSink> getSinksByPatternLayout(final PatternLayout patternLayout) {
+        return sinksByPatternLayout.getOrDefault(patternLayout, Collections.emptyList());
     }
 }

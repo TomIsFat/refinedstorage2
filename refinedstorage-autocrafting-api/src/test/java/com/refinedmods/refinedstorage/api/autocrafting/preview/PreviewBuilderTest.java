@@ -39,8 +39,9 @@ class PreviewBuilderTest {
             .build();
 
         // Assert
-        assertThat(preview).usingRecursiveComparison()
-            .isEqualTo(new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), pattern.outputs()));
+        assertThat(preview)
+            .usingRecursiveComparison()
+            .isEqualTo(new Preview(PreviewType.CYCLE_DETECTED, Collections.emptyList(), pattern.layout().outputs()));
     }
 
     @Test

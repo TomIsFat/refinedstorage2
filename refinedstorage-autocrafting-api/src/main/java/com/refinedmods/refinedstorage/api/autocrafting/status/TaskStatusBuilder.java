@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.api.autocrafting.status;
 
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSinkKey;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSinkKey;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -25,7 +25,7 @@ public class TaskStatusBuilder {
 
     public TaskStatusBuilder processing(final ResourceKey resource,
                                         final long processing,
-                                        @Nullable final ExternalPatternInputSinkKey sinkKey) {
+                                        @Nullable final ExternalPatternSinkKey sinkKey) {
         CoreValidations.validateLargerThanZero(processing, "Processing");
         get(resource).processing += processing;
         get(resource).sinkKey = sinkKey;
@@ -80,7 +80,7 @@ public class TaskStatusBuilder {
         private long stored;
         private long processing;
         @Nullable
-        private ExternalPatternInputSinkKey sinkKey;
+        private ExternalPatternSinkKey sinkKey;
         private long scheduled;
         private long crafting;
 

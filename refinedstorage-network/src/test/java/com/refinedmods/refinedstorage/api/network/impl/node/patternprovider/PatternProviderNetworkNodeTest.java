@@ -1,21 +1,22 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.patternprovider;
 
 import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.api.autocrafting.PatternBuilder;
 import com.refinedmods.refinedstorage.api.autocrafting.PatternType;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatus;
 import com.refinedmods.refinedstorage.api.autocrafting.status.TaskStatusListener;
-import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternInputSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
 import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskState;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetwork;
@@ -260,23 +261,17 @@ class PatternProviderNetworkNodeTest {
         storage.addSource(new StorageImpl());
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage sinkContents = new StorageImpl();
+        final PatternProviderExternalPatternSinkImpl sink = new PatternProviderExternalPatternSinkImpl();
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 1).build());
-        sut.setExternalPatternInputSink((resources, action) -> {
-            if (action == Action.EXECUTE) {
-                resources.forEach(resource ->
-                    sinkContents.insert(resource.resource(), resource.amount(), Action.EXECUTE, Actor.EMPTY));
-            }
-            return ExternalPatternInputSink.Result.ACCEPTED;
-        });
+        sut.setSink(sink);
         assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 10)
         );
-        assertThat(sinkContents.getAll()).isEmpty();
+        assertThat(sink.getAll()).isEmpty();
         assertThat(sut.getTasks()).hasSize(1);
         assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
 
@@ -284,7 +279,7 @@ class PatternProviderNetworkNodeTest {
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7)
         );
-        assertThat(sinkContents.getAll()).isEmpty();
+        assertThat(sink.getAll()).isEmpty();
         assertThat(sut.getTasks()).hasSize(1);
         assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
@@ -294,7 +289,7 @@ class PatternProviderNetworkNodeTest {
         assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 7)
         );
-        assertThat(sinkContents.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
             new ResourceAmount(A, 3)
         );
         assertThat(sut.getTasks()).hasSize(1);
@@ -311,7 +306,7 @@ class PatternProviderNetworkNodeTest {
         storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 1).build());
-        sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.REJECTED);
+        sut.setSink((resources, action) -> ExternalPatternSink.Result.REJECTED);
         assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
 
         // Act & assert
@@ -389,7 +384,7 @@ class PatternProviderNetworkNodeTest {
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 3).output(B, 5).build());
         // swallow resources
-        sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.ACCEPTED);
+        sut.setSink((resources, action) -> ExternalPatternSink.Result.ACCEPTED);
 
         // Act & assert
         assertThat(autocrafting.startTask(B, 1, Actor.EMPTY, false).join()).isPresent();
@@ -521,7 +516,7 @@ class PatternProviderNetworkNodeTest {
 
         sut.setPattern(1, pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1).build());
         // swallow resources
-        sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.ACCEPTED);
+        sut.setSink((resources, action) -> ExternalPatternSink.Result.ACCEPTED);
 
         // Act & assert
         assertThat(autocrafting.startTask(B, 2, Actor.EMPTY, false).join()).isPresent();
@@ -618,6 +613,343 @@ class PatternProviderNetworkNodeTest {
     }
 
     @Nested
+    class ExternalBalancingTest {
+        @AddNetworkNode(properties = {
+            @AddNetworkNode.Property(key = PatternProviderNetworkNodeFactory.PROPERTY_SIZE, intValue = 3)
+        })
+        private PatternProviderNetworkNode sut2;
+
+        @AddNetworkNode(properties = {
+            @AddNetworkNode.Property(key = PatternProviderNetworkNodeFactory.PROPERTY_SIZE, intValue = 3)
+        })
+        private PatternProviderNetworkNode sut3;
+
+        @Test
+        void shouldBalanceExternalInputsOverMultipleSinks(
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            storage.addSource(new StorageImpl());
+            storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+            final PatternBuilder patternBuilder = pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1);
+
+            sut.setPattern(1, patternBuilder.build());
+            final PatternProviderExternalPatternSinkImpl sink = new PatternProviderExternalPatternSinkImpl();
+            sut.setSink(sink);
+
+            sut2.setPattern(1, patternBuilder.build());
+            final PatternProviderExternalPatternSinkImpl sink2 = new PatternProviderExternalPatternSinkImpl();
+            sut2.setSink(sink2);
+
+            assertThat(autocrafting.startTask(B, 3, Actor.EMPTY, false).join()).isPresent();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(sut2.getTasks()).isEmpty();
+
+            // Act & assert
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 3)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).isEmpty();
+            assertThat(sink2.getAll()).isEmpty();
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+            assertThat(sink2.getAll()).isEmpty();
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst()))
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(new ResourceAmount(A, 1));
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+            assertThat(sink2.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(sink2.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+        }
+
+        @Test
+        void shouldUseNextAvailableSinkIfItIsNotAcceptingResources(
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            storage.addSource(new StorageImpl());
+            storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+            final PatternBuilder patternBuilder = pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1);
+
+            sut.setPattern(1, patternBuilder.build());
+            final PatternProviderExternalPatternSinkImpl sink = new PatternProviderExternalPatternSinkImpl();
+            sut.setSink(sink);
+
+            sut2.setPattern(1, patternBuilder.build());
+            sut2.setSink((resources, action) -> ExternalPatternSink.Result.REJECTED);
+
+            sut3.setPattern(1, patternBuilder.build());
+            final PatternProviderExternalPatternSinkImpl sink3 = new PatternProviderExternalPatternSinkImpl();
+            sut3.setSink(sink3);
+
+            assertThat(autocrafting.startTask(B, 3, Actor.EMPTY, false).join()).isPresent();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(sut2.getTasks()).isEmpty();
+            assertThat(sut3.getTasks()).isEmpty();
+
+            // Act & assert
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 3)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).isEmpty();
+            assertThat(sink3.getAll()).isEmpty();
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+            assertThat(sink3.getAll()).isEmpty();
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst()))
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsExactly(new ResourceAmount(A, 1));
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+            assertThat(sink3.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).isEmpty();
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(sink3.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+        }
+
+        @Test
+        void shouldDoNothingIfNoSinkAcceptsResources(
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            storage.addSource(new StorageImpl());
+            storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+            final PatternBuilder patternBuilder = pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1);
+
+            sut.setPattern(1, patternBuilder.build());
+            sut.setSink((resources, action) -> ExternalPatternSink.Result.REJECTED);
+
+            sut2.setPattern(1, patternBuilder.build());
+            sut2.setSink((resources, action) -> ExternalPatternSink.Result.REJECTED);
+
+            assertThat(autocrafting.startTask(B, 3, Actor.EMPTY, false).join()).isPresent();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(sut2.getTasks()).isEmpty();
+
+            // Act & assert
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 3)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 3)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+        }
+
+        @Test
+        void shouldNotWrapAroundIfLastSinkIsNotAcceptingResources(
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            storage.addSource(new StorageImpl());
+            storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+            final PatternBuilder patternBuilder = pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1);
+
+            sut.setPattern(1, patternBuilder.build());
+            final PatternProviderExternalPatternSinkImpl sink = new PatternProviderExternalPatternSinkImpl();
+            sut.setSink(sink);
+
+            sut2.setPattern(1, patternBuilder.build());
+            sut2.setSink((resources, action) -> ExternalPatternSink.Result.REJECTED);
+
+            assertThat(autocrafting.startTask(B, 3, Actor.EMPTY, false).join()).isPresent();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(sut2.getTasks()).isEmpty();
+
+            // Act & assert
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 3)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).isEmpty();
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 1)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 2)
+            );
+        }
+
+        @Test
+        void shouldDoNothingIfThereAreNoSinksAnymore(
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting
+        ) {
+            // Arrange
+            storage.addSource(new StorageImpl());
+            storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+
+            final PatternBuilder patternBuilder = pattern(PatternType.EXTERNAL).ingredient(A, 1).output(B, 1);
+
+            sut.setPattern(1, patternBuilder.build());
+            final PatternProviderExternalPatternSinkImpl sink = new PatternProviderExternalPatternSinkImpl();
+            sut.setSink(sink);
+
+            assertThat(autocrafting.startTask(B, 3, Actor.EMPTY, false).join()).isPresent();
+            assertThat(sut.getTasks()).hasSize(1);
+
+            // Act & assert
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 3)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).isEmpty();
+
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+
+            sut.setPattern(1, null);
+            sut.doWork();
+            assertThat(sut.getTasks()).hasSize(1);
+            assertThat(copyInternalStorage(sut.getTasks().getFirst())).containsExactly(
+                new ResourceAmount(A, 2)
+            );
+            assertThat(storage.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 7)
+            );
+            assertThat(sink.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
+                new ResourceAmount(A, 1)
+            );
+        }
+    }
+
+    @Nested
     @SetupNetwork(id = "other")
     class NetworkChangeTest {
         @Test
@@ -642,7 +974,7 @@ class PatternProviderNetworkNodeTest {
                 .output(B, 1)
                 .build());
             // swallow resources
-            sut.setExternalPatternInputSink((resources, action) -> ExternalPatternInputSink.Result.ACCEPTED);
+            sut.setSink((resources, action) -> ExternalPatternSink.Result.ACCEPTED);
 
             // Act & assert
             assertThat(autocrafting.startTask(A, 3, Actor.EMPTY, false).join()).isPresent();
@@ -790,6 +1122,37 @@ class PatternProviderNetworkNodeTest {
             final ArgumentCaptor<TaskStatus> addedTaskCaptor = ArgumentCaptor.forClass(TaskStatus.class);
             verify(otherListener, times(1)).taskAdded(addedTaskCaptor.capture());
             verify(otherListener, never()).taskRemoved(any());
+        }
+
+        @Test
+        void shouldBeAbleToCancelTaskInNewNetworkWhenNetworkChanges(
+            @InjectNetwork final Network network,
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting,
+            @InjectNetwork("other") final Network otherNetwork,
+            @InjectNetworkAutocraftingComponent(networkId = "other")
+            final AutocraftingNetworkComponent otherAutocrafting
+        ) {
+            // Arrange
+            storage.addSource(new StorageImpl());
+            storage.insert(C, 10, Action.EXECUTE, Actor.EMPTY);
+
+            sut.setPattern(1, PATTERN_A);
+
+            // Act & assert
+            final var taskId = autocrafting.startTask(A, 1, Actor.EMPTY, false).join();
+            assertThat(taskId).isPresent();
+            assertThat(sut.getTasks()).hasSize(1).allMatch(t -> t.getState() == TaskState.READY);
+
+            network.removeContainer(() -> sut);
+            sut.setNetwork(otherNetwork);
+            otherNetwork.addContainer(() -> sut);
+
+            autocrafting.cancel(taskId.get());
+            assertThat(sut.getTasks()).hasSize(1).allMatch(t -> t.getState() == TaskState.READY);
+
+            otherAutocrafting.cancel(taskId.get());
+            assertThat(sut.getTasks()).hasSize(1).allMatch(t -> t.getState() == TaskState.RETURNING_INTERNAL_STORAGE);
         }
     }
 

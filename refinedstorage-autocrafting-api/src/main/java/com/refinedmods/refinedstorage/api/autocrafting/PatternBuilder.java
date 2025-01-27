@@ -12,12 +12,10 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.4.12")
 public class PatternBuilder {
     private final PatternType type;
-    private final UUID id;
     private final List<Ingredient> ingredients = new ArrayList<>();
     private final List<ResourceAmount> outputs = new ArrayList<>();
 
-    private PatternBuilder(final UUID id, final PatternType type) {
-        this.id = id;
+    private PatternBuilder(final PatternType type) {
         this.type = type;
     }
 
@@ -26,11 +24,7 @@ public class PatternBuilder {
     }
 
     public static PatternBuilder pattern(final PatternType type) {
-        return pattern(UUID.randomUUID(), type);
-    }
-
-    public static PatternBuilder pattern(final UUID id, final PatternType type) {
-        return new PatternBuilder(id, type);
+        return new PatternBuilder(type);
     }
 
     public IngredientBuilder ingredient(final long amount) {
@@ -47,8 +41,12 @@ public class PatternBuilder {
         return this;
     }
 
+    public PatternLayout buildLayout() {
+        return new PatternLayout(ingredients, outputs, type);
+    }
+
     public Pattern build() {
-        return new Pattern(id, ingredients, outputs, type);
+        return new Pattern(UUID.randomUUID(), buildLayout());
     }
 
     public class IngredientBuilder {

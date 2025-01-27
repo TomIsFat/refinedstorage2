@@ -168,8 +168,8 @@ public class PatternItem extends Item implements PatternProviderItem {
                 .map(ItemResource::toItemStack);
             case PROCESSING -> getCachedProcessingPattern(state, stack)
                 .map(PatternResolver.ResolvedProcessingPattern::pattern)
-                .filter(pattern -> pattern.outputs().size() == 1)
-                .map(pattern -> pattern.outputs().getFirst().resource())
+                .filter(pattern -> pattern.layout().outputs().size() == 1)
+                .map(pattern -> pattern.layout().outputs().getFirst().resource())
                 .filter(ItemResource.class::isInstance)
                 .map(ItemResource.class::cast)
                 .map(ItemResource::toItemStack);
