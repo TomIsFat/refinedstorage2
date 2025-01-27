@@ -10,6 +10,7 @@ import com.refinedmods.refinedstorage.api.autocrafting.task.StepBehavior;
 import com.refinedmods.refinedstorage.api.autocrafting.task.Task;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskId;
 import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskState;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
@@ -1121,6 +1122,37 @@ class PatternProviderNetworkNodeTest {
             final ArgumentCaptor<TaskStatus> addedTaskCaptor = ArgumentCaptor.forClass(TaskStatus.class);
             verify(otherListener, times(1)).taskAdded(addedTaskCaptor.capture());
             verify(otherListener, never()).taskRemoved(any());
+        }
+
+        @Test
+        void shouldBeAbleToCancelTaskInNewNetworkWhenNetworkChanges(
+            @InjectNetwork final Network network,
+            @InjectNetworkStorageComponent final StorageNetworkComponent storage,
+            @InjectNetworkAutocraftingComponent final AutocraftingNetworkComponent autocrafting,
+            @InjectNetwork("other") final Network otherNetwork,
+            @InjectNetworkAutocraftingComponent(networkId = "other")
+            final AutocraftingNetworkComponent otherAutocrafting
+        ) {
+            // Arrange
+            storage.addSource(new StorageImpl());
+            storage.insert(C, 10, Action.EXECUTE, Actor.EMPTY);
+
+            sut.setPattern(1, PATTERN_A);
+
+            // Act & assert
+            final var taskId = autocrafting.startTask(A, 1, Actor.EMPTY, false).join();
+            assertThat(taskId).isPresent();
+            assertThat(sut.getTasks()).hasSize(1).allMatch(t -> t.getState() == TaskState.READY);
+
+            network.removeContainer(() -> sut);
+            sut.setNetwork(otherNetwork);
+            otherNetwork.addContainer(() -> sut);
+
+            autocrafting.cancel(taskId.get());
+            assertThat(sut.getTasks()).hasSize(1).allMatch(t -> t.getState() == TaskState.READY);
+
+            otherAutocrafting.cancel(taskId.get());
+            assertThat(sut.getTasks()).hasSize(1).allMatch(t -> t.getState() == TaskState.RETURNING_INTERNAL_STORAGE);
         }
     }
 

@@ -101,7 +101,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
     @Override
     public void onAddedIntoContainer(final ParentContainer parentContainer) {
         parents.add(parentContainer);
-        tasks.forEach(parentContainer::taskAdded);
+        tasks.forEach(task -> parentContainer.taskAdded(this, task));
         for (final Pattern pattern : patterns) {
             if (pattern != null) {
                 parentContainer.add(this, pattern, priority);
@@ -126,7 +126,7 @@ public class PatternProviderNetworkNode extends SimpleNetworkNode implements Pat
         if (network != null) {
             setupTask(task, network.getComponent(StorageNetworkComponent.class));
         }
-        parents.forEach(parent -> parent.taskAdded(task));
+        parents.forEach(parent -> parent.taskAdded(this, task));
     }
 
     @Override

@@ -137,7 +137,6 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             "No provider for pattern " + plan.rootPattern()
         );
         provider.addTask(task);
-        providerByTaskId.put(task.getId(), provider);
         return task.getId();
     }
 
@@ -180,10 +179,9 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     public void cancel(final TaskId taskId) {
         final PatternProvider provider = providerByTaskId.get(taskId);
         if (provider == null) {
-            return;
+            return; // TODO: provider is no longer found after restarting :/
         }
         provider.cancelTask(taskId);
-        providerByTaskId.remove(taskId);
     }
 
     @Override
@@ -193,7 +191,6 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
             final TaskId taskId = entry.getKey();
             provider.cancelTask(taskId);
         }
-        providerByTaskId.clear();
     }
 
     @Override
@@ -230,12 +227,14 @@ public class AutocraftingNetworkComponentImpl implements AutocraftingNetworkComp
     }
 
     @Override
-    public void taskAdded(final Task task) {
+    public void taskAdded(final PatternProvider provider, final Task task) {
+        providerByTaskId.put(task.getId(), provider);
         statusListeners.forEach(listener -> listener.taskAdded(task.getStatus()));
     }
 
     @Override
     public void taskRemoved(final Task task) {
+        providerByTaskId.remove(task.getId());
         statusListeners.forEach(listener -> listener.taskRemoved(task.getId()));
     }
 
