@@ -1,7 +1,6 @@
 {
-  "parent": "refinedstorage:block/cutout",
+  "parent": "refinedstorage:block/sides_cutout",
   "textures": {
-    "cutout_down": "refinedstorage:block/bottom",
     "cutout_east": "refinedstorage:block/autocrafter/cutouts/side/inactive",
     "cutout_north": "refinedstorage:block/autocrafter/cutouts/side/inactive",
     "cutout_south": "refinedstorage:block/autocrafter/cutouts/side/inactive",

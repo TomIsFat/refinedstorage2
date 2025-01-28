@@ -5,6 +5,7 @@ import com.refinedmods.refinedstorage.common.PlatformProxy;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.api.support.network.AbstractNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.WirelessAutocraftingMonitorItem;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridBlockEntity;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
 import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.content.BlockEntityProviders;
@@ -148,6 +149,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -465,6 +467,15 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
                 .title(ContentNames.MOD)
                 .icon(() -> new ItemStack(Blocks.INSTANCE.getCreativeController().getDefault()))
                 .displayItems((params, output) -> CreativeModeTabItems.append(output::accept))
+                .build()
+        );
+        Registry.register(
+            BuiltInRegistries.CREATIVE_MODE_TAB,
+            RefinedStorageApi.INSTANCE.getColoredCreativeModeTabId(),
+            CreativeModeTab.builder(CreativeModeTab.Row.TOP, 1)
+                .title(ContentNames.MOD_COLORIZED)
+                .icon(() -> new ItemStack(Blocks.INSTANCE.getCreativeController().get(DyeColor.LIME)))
+                .displayItems((params, output) -> CreativeModeTabItems.appendColoredVariants(output::accept))
                 .build()
         );
     }
@@ -821,6 +832,12 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
             InterfaceBlockEntity.class::cast,
             InterfaceBlockEntity::getExportedResourcesAsContainer,
             BlockEntities.INSTANCE.getInterface()
+        );
+        registerItemStorage(
+            PatternGridBlockEntity.class::isInstance,
+            PatternGridBlockEntity.class::cast,
+            PatternGridBlockEntity::getPatternInput,
+            BlockEntities.INSTANCE.getPatternGrid()
         );
         ItemStorage.SIDED.registerForBlockEntity((blockEntity, context) -> {
             final InventoryStorage storage = InventoryStorage.of(blockEntity.getDiskInventory(), context);

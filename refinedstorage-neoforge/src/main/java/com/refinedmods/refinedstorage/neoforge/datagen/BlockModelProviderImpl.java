@@ -19,9 +19,11 @@ public class BlockModelProviderImpl extends BlockModelProvider {
 
     private static final ResourceLocation EMISSIVE_CUTOUT = createIdentifier("block/emissive_cutout");
     private static final ResourceLocation EMISSIVE_ALL_CUTOUT = createIdentifier("block/emissive_all_cutout");
+    private static final ResourceLocation EMISSIVE_SIDES_CUTOUT = createIdentifier("block/emissive_sides_cutout");
     private static final ResourceLocation EMISSIVE_NORTH_CUTOUT = createIdentifier("block/emissive_north_cutout");
 
     private static final ResourceLocation CUTOUT = createIdentifier("block/cutout");
+    private static final ResourceLocation SIDES_CUTOUT = createIdentifier("block/sides_cutout");
     private static final ResourceLocation ALL_CUTOUT = createIdentifier("block/all_cutout");
     private static final ResourceLocation NORTH_CUTOUT = createIdentifier("block/north_cutout");
 
@@ -212,7 +214,7 @@ public class BlockModelProviderImpl extends BlockModelProvider {
             final ResourceLocation cutoutTop = createIdentifier(
                 "block/security_manager/cutouts/top/" + color.getName()
             );
-            withExistingParent("block/security_manager/" + color.getName(), EMISSIVE_CUTOUT)
+            withExistingParent("block/security_manager/" + color.getName(), EMISSIVE_SIDES_CUTOUT)
                 .texture(PARTICLE_TEXTURE, back)
                 .texture(NORTH, front)
                 .texture(EAST, right)
@@ -224,15 +226,14 @@ public class BlockModelProviderImpl extends BlockModelProvider {
                 .texture(CUTOUT_EAST, cutoutRight)
                 .texture(CUTOUT_SOUTH, cutoutBack)
                 .texture(CUTOUT_WEST, cutoutLeft)
-                .texture(CUTOUT_UP, cutoutTop)
-                .texture(CUTOUT_DOWN, BOTTOM_TEXTURE);
+                .texture(CUTOUT_UP, cutoutTop);
         });
         final ResourceLocation cutoutBack = createIdentifier("block/security_manager/cutouts/back/inactive");
         final ResourceLocation cutoutFront = createIdentifier("block/security_manager/cutouts/front/inactive");
         final ResourceLocation cutoutLeft = createIdentifier("block/security_manager/cutouts/left/inactive");
         final ResourceLocation cutoutRight = createIdentifier("block/security_manager/cutouts/right/inactive");
         final ResourceLocation cutoutTop = createIdentifier("block/security_manager/cutouts/top/inactive");
-        withExistingParent("block/security_manager/inactive", CUTOUT)
+        withExistingParent("block/security_manager/inactive", SIDES_CUTOUT)
             .texture(PARTICLE_TEXTURE, back)
             .texture(NORTH, front)
             .texture(EAST, right)
@@ -244,8 +245,7 @@ public class BlockModelProviderImpl extends BlockModelProvider {
             .texture(CUTOUT_EAST, cutoutRight)
             .texture(CUTOUT_SOUTH, cutoutBack)
             .texture(CUTOUT_WEST, cutoutLeft)
-            .texture(CUTOUT_UP, cutoutTop)
-            .texture(CUTOUT_DOWN, BOTTOM_TEXTURE);
+            .texture(CUTOUT_UP, cutoutTop);
     }
 
     private void registerRelays() {
@@ -306,7 +306,7 @@ public class BlockModelProviderImpl extends BlockModelProvider {
         Blocks.INSTANCE.getAutocrafter().forEach((color, id, autocrafter) -> {
             final ResourceLocation cutoutSide = createIdentifier("block/autocrafter/cutouts/side/" + color.getName());
             final ResourceLocation cutoutTop = createIdentifier("block/autocrafter/cutouts/top/" + color.getName());
-            withExistingParent("block/autocrafter/" + color.getName(), EMISSIVE_CUTOUT)
+            withExistingParent("block/autocrafter/" + color.getName(), EMISSIVE_SIDES_CUTOUT)
                 .texture(PARTICLE_TEXTURE, side)
                 .texture(NORTH, side)
                 .texture(EAST, side)
@@ -318,12 +318,11 @@ public class BlockModelProviderImpl extends BlockModelProvider {
                 .texture(CUTOUT_EAST, cutoutSide)
                 .texture(CUTOUT_SOUTH, cutoutSide)
                 .texture(CUTOUT_WEST, cutoutSide)
-                .texture(CUTOUT_UP, cutoutTop)
-                .texture(CUTOUT_DOWN, BOTTOM_TEXTURE);
+                .texture(CUTOUT_UP, cutoutTop);
         });
         final ResourceLocation cutoutSide = createIdentifier("block/autocrafter/cutouts/side/inactive");
         final ResourceLocation cutoutTop = createIdentifier("block/autocrafter/cutouts/top/inactive");
-        withExistingParent("block/autocrafter/inactive", CUTOUT)
+        withExistingParent("block/autocrafter/inactive", SIDES_CUTOUT)
             .texture(PARTICLE_TEXTURE, side)
             .texture(NORTH, side)
             .texture(EAST, side)
@@ -335,7 +334,6 @@ public class BlockModelProviderImpl extends BlockModelProvider {
             .texture(CUTOUT_EAST, cutoutSide)
             .texture(CUTOUT_SOUTH, cutoutSide)
             .texture(CUTOUT_WEST, cutoutSide)
-            .texture(CUTOUT_UP, cutoutTop)
-            .texture(CUTOUT_DOWN, BOTTOM_TEXTURE);
+            .texture(CUTOUT_UP, cutoutTop);
     }
 }

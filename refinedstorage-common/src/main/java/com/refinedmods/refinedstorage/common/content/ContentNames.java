@@ -10,6 +10,9 @@ import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTr
 public final class ContentNames {
     public static final String MOD_TRANSLATION_KEY = "mod." + MOD_ID;
     public static final MutableComponent MOD = Component.translatable(MOD_TRANSLATION_KEY);
+    public static final MutableComponent MOD_COLORIZED = Component.translatable(
+        MOD_TRANSLATION_KEY + ".colorized"
+    );
 
     public static final MutableComponent CABLE = name("cable");
     public static final MutableComponent GRID = name("grid");

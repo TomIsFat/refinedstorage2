@@ -37,6 +37,8 @@ public class SearchFieldWidget extends EditBox {
             setFocused(true);
         } else if (wasFocused != isFocused()) {
             saveHistory();
+        } else if (!clickedWidget) {
+            setFocused(false);
         }
 
         return result;
