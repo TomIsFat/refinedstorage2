@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixed
 
 -   Fixed Crafter and Security Manager bottom sides being lit on NeoForge.
+-   Fixed pattern input slot in the Pattern Grid not being accessible as an external inventory.
 
 ## [2.0.0-milestone.4.12] - 2025-01-27
 

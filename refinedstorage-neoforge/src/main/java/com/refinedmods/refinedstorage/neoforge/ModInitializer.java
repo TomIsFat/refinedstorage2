@@ -495,6 +495,11 @@ public class ModInitializer extends AbstractModInitializer {
             (be, side) -> new InvWrapper(be.getExportedResourcesAsContainer())
         );
         event.registerBlockEntity(
+            Capabilities.ItemHandler.BLOCK,
+            BlockEntities.INSTANCE.getPatternGrid(),
+            (be, side) -> new InvWrapper(be.getPatternInput())
+        );
+        event.registerBlockEntity(
             Capabilities.FluidHandler.BLOCK,
             BlockEntities.INSTANCE.getInterface(),
             (be, side) -> new ResourceContainerFluidHandlerAdapter(be.getExportedResources())

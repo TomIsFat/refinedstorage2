@@ -123,7 +123,7 @@ public class PatternGridBlockEntity extends AbstractGridBlockEntity implements B
         return processingOutput;
     }
 
-    FilteredContainer getPatternInput() {
+    public FilteredContainer getPatternInput() {
         return patternInput;
     }
 

@@ -5,6 +5,7 @@ import com.refinedmods.refinedstorage.common.PlatformProxy;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.api.support.network.AbstractNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.autocrafting.monitor.WirelessAutocraftingMonitorItem;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridBlockEntity;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
 import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.content.BlockEntityProviders;
@@ -821,6 +822,12 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
             InterfaceBlockEntity.class::cast,
             InterfaceBlockEntity::getExportedResourcesAsContainer,
             BlockEntities.INSTANCE.getInterface()
+        );
+        registerItemStorage(
+            PatternGridBlockEntity.class::isInstance,
+            PatternGridBlockEntity.class::cast,
+            PatternGridBlockEntity::getPatternInput,
+            BlockEntities.INSTANCE.getPatternGrid()
         );
         ItemStorage.SIDED.registerForBlockEntity((blockEntity, context) -> {
             final InventoryStorage storage = InventoryStorage.of(blockEntity.getDiskInventory(), context);
