@@ -13,17 +13,6 @@ subprojects {
     group = "com.refinedmods.refinedstorage"
 }
 
-/* publish all subprojects to mavenLocal */
-subprojects {
-    apply(plugin = "maven-publish")
-
-    publishing {
-        repositories {
-            mavenLocal()
-        }
-    }
-}
-
 project.extensions.getByType<SonarExtension>().apply {
     properties {
         property(
