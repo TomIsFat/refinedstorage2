@@ -1,7 +1,6 @@
 {
-  "parent": "refinedstorage:block/emissive_cutout",
+  "parent": "refinedstorage:block/emissive_sides_cutout",
   "textures": {
-    "cutout_down": "refinedstorage:block/bottom",
     "cutout_east": "refinedstorage:block/autocrafter/cutouts/side/blue",
     "cutout_north": "refinedstorage:block/autocrafter/cutouts/side/blue",
     "cutout_south": "refinedstorage:block/autocrafter/cutouts/side/blue",
