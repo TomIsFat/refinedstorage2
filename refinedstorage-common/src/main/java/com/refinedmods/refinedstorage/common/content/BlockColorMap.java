@@ -2,7 +2,6 @@ package com.refinedmods.refinedstorage.common.content;
 
 import com.refinedmods.refinedstorage.common.support.BlockItemProvider;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -25,6 +24,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
+import static java.util.Objects.requireNonNull;
+
 public class BlockColorMap<T extends Block & BlockItemProvider<I>, I extends BlockItem> extends ColorMap<T> {
     private final BlockFactory<T> blockFactory;
     private final MutableComponent baseName;
@@ -34,8 +36,8 @@ public class BlockColorMap<T extends Block & BlockItemProvider<I>, I extends Blo
                          final MutableComponent baseName,
                          final DyeColor defaultColor) {
         super(baseId, defaultColor);
-        this.blockFactory = Objects.requireNonNull(blockFactory);
-        this.baseName = Objects.requireNonNull(baseName);
+        this.blockFactory = requireNonNull(blockFactory);
+        this.baseName = requireNonNull(baseName);
     }
 
     public Optional<InteractionResult> updateColor(final BlockState state,
@@ -83,7 +85,9 @@ public class BlockColorMap<T extends Block & BlockItemProvider<I>, I extends Blo
 
     private MutableComponent getName(final DyeColor color) {
         if (color != defaultColor) {
-            return Component.translatable("color.minecraft." + color.getName()).append(" ").append(baseName);
+            final MutableComponent colorTranslation = Component.translatable("color.minecraft." + color.getName());
+            // this is a translation because concatting color and item names hardcoded reads unnatural in Japanese
+            return createTranslation("item", "color_and_item_name", colorTranslation, baseName);
         } else {
             return baseName;
         }
