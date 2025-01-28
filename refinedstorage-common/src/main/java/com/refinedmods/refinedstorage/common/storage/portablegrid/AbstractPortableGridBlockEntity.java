@@ -22,6 +22,7 @@ import com.refinedmods.refinedstorage.common.support.energy.BlockEntityEnergySto
 import com.refinedmods.refinedstorage.common.support.energy.CreativeEnergyStorage;
 import com.refinedmods.refinedstorage.common.support.energy.ItemBlockEnergyStorage;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
+import com.refinedmods.refinedstorage.common.util.PlatformUtil;
 
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -29,10 +30,13 @@ import javax.annotation.Nullable;
 import com.google.common.util.concurrent.RateLimiter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.StreamEncoder;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -55,15 +59,19 @@ public abstract class AbstractPortableGridBlockEntity extends BlockEntity
     private static final String TAG_DISK_INVENTORY = "inv";
     private static final String TAG_DISKS = "disks";
     private static final String TAG_REDSTONE_MODE = "rm";
+    private static final String TAG_CUSTOM_NAME = "CustomName";
 
     @Nullable
     protected Disk disk;
+    @Nullable
+    private Component name;
 
     private final DiskInventory diskInventory;
     private final DiskStateChangeListener diskStateListener = new DiskStateChangeListener(this);
     private final EnergyStorage energyStorage;
     private final RateLimiter activenessChangeRateLimiter = RateLimiter.create(1);
     private final PortableGrid grid;
+    private final PortableGridType type;
 
     private RedstoneMode redstoneMode = RedstoneMode.IGNORE;
 
@@ -72,6 +80,7 @@ public abstract class AbstractPortableGridBlockEntity extends BlockEntity
         this.diskInventory = new DiskInventory((inventory, slot) -> onDiskChanged(), 1);
         this.energyStorage = createEnergyStorage(type, this);
         this.grid = new InWorldPortableGrid(energyStorage, diskInventory, diskStateListener, this);
+        this.type = type;
     }
 
     static void readDiskInventory(final CompoundTag tag,
@@ -138,7 +147,7 @@ public abstract class AbstractPortableGridBlockEntity extends BlockEntity
             return;
         }
         grid.updateStorage();
-        diskStateListener.immediateUpdate();
+        PlatformUtil.sendBlockUpdateToClient(level, worldPosition);
         setChanged();
     }
 
@@ -169,6 +178,9 @@ public abstract class AbstractPortableGridBlockEntity extends BlockEntity
         if (tag.contains(TAG_REDSTONE_MODE)) {
             redstoneMode = RedstoneModeSettings.getRedstoneMode(tag.getInt(TAG_REDSTONE_MODE));
         }
+        if (tag.contains(TAG_CUSTOM_NAME, Tag.TAG_STRING)) {
+            this.name = parseCustomNameSafe(tag.getString(TAG_CUSTOM_NAME), provider);
+        }
     }
 
     private void fromClientTag(final CompoundTag tag) {
@@ -180,7 +192,10 @@ public abstract class AbstractPortableGridBlockEntity extends BlockEntity
     }
 
     protected void onClientDriveStateUpdated() {
-        diskStateListener.immediateUpdate();
+        if (level == null) {
+            return;
+        }
+        Platform.INSTANCE.requestModelDataUpdateOnClient(level, worldPosition, true);
     }
 
     @Override
@@ -194,6 +209,21 @@ public abstract class AbstractPortableGridBlockEntity extends BlockEntity
     @Override
     public void writeConfiguration(final CompoundTag tag, final HolderLookup.Provider provider) {
         tag.putInt(TAG_REDSTONE_MODE, RedstoneModeSettings.getRedstoneMode(redstoneMode));
+        if (name != null) {
+            tag.putString(TAG_CUSTOM_NAME, Component.Serializer.toJson(name, provider));
+        }
+    }
+
+    @Override
+    protected void applyImplicitComponents(final BlockEntity.DataComponentInput componentInput) {
+        super.applyImplicitComponents(componentInput);
+        this.name = componentInput.get(DataComponents.CUSTOM_NAME);
+    }
+
+    @Override
+    protected void collectImplicitComponents(final DataComponentMap.Builder components) {
+        super.collectImplicitComponents(components);
+        components.set(DataComponents.CUSTOM_NAME, name);
     }
 
     @Override
@@ -219,7 +249,10 @@ public abstract class AbstractPortableGridBlockEntity extends BlockEntity
 
     @Override
     public Component getDisplayName() {
-        return ContentNames.PORTABLE_GRID;
+        final MutableComponent defaultName = type == PortableGridType.CREATIVE
+            ? ContentNames.CREATIVE_PORTABLE_GRID
+            : ContentNames.PORTABLE_GRID;
+        return name == null ? defaultName : name;
     }
 
     @Override

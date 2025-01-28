@@ -27,6 +27,9 @@ public final class Tags {
     public static final TagKey<Item> SECURITY_MANAGERS = createTag("security_managers");
     public static final TagKey<Item> RELAYS = createTag("relays");
     public static final TagKey<Item> DISK_INTERFACES = createTag("disk_interfaces");
+    public static final TagKey<Item> AUTOCRAFTERS = createTag("autocrafters");
+    public static final TagKey<Item> AUTOCRAFTER_MANAGERS = createTag("autocrafter_managers");
+    public static final TagKey<Item> AUTOCRAFTING_MONITORS = createTag("autocrafting_monitors");
 
     private Tags() {
     }

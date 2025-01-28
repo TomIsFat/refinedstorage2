@@ -2,8 +2,11 @@ package com.refinedmods.refinedstorage.common.constructordestructor;
 
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceContainer;
 import com.refinedmods.refinedstorage.common.content.Menus;
-import com.refinedmods.refinedstorage.common.support.containermenu.AbstractSchedulingContainerMenu;
+import com.refinedmods.refinedstorage.common.support.RedstoneMode;
+import com.refinedmods.refinedstorage.common.support.SchedulingModeType;
+import com.refinedmods.refinedstorage.common.support.containermenu.AbstractSimpleFilterContainerMenu;
 import com.refinedmods.refinedstorage.common.support.containermenu.ClientProperty;
+import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes;
 import com.refinedmods.refinedstorage.common.support.containermenu.ServerProperty;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerData;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeContainer;
@@ -15,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
-public class ConstructorContainerMenu extends AbstractSchedulingContainerMenu<ConstructorBlockEntity> {
+public class ConstructorContainerMenu extends AbstractSimpleFilterContainerMenu<AbstractConstructorBlockEntity> {
     private static final MutableComponent FILTER_HELP = createTranslation("gui", "constructor.filter_help");
 
     public ConstructorContainerMenu(final int syncId,
@@ -33,7 +36,7 @@ public class ConstructorContainerMenu extends AbstractSchedulingContainerMenu<Co
 
     ConstructorContainerMenu(final int syncId,
                              final Player player,
-                             final ConstructorBlockEntity constructor,
+                             final AbstractConstructorBlockEntity constructor,
                              final ResourceContainer resourceContainer,
                              final UpgradeContainer upgradeContainer) {
         super(
@@ -49,13 +52,29 @@ public class ConstructorContainerMenu extends AbstractSchedulingContainerMenu<Co
 
     @Override
     protected void registerClientProperties() {
-        super.registerClientProperties();
+        registerProperty(new ClientProperty<>(PropertyTypes.FUZZY_MODE, false));
+        registerProperty(new ClientProperty<>(PropertyTypes.REDSTONE_MODE, RedstoneMode.IGNORE));
+        registerProperty(new ClientProperty<>(PropertyTypes.SCHEDULING_MODE, SchedulingModeType.DEFAULT));
         registerProperty(new ClientProperty<>(ConstructorDestructorPropertyTypes.DROP_ITEMS, false));
     }
 
     @Override
-    protected void registerServerProperties(final ConstructorBlockEntity blockEntity) {
-        super.registerServerProperties(blockEntity);
+    protected void registerServerProperties(final AbstractConstructorBlockEntity blockEntity) {
+        registerProperty(new ServerProperty<>(
+            PropertyTypes.FUZZY_MODE,
+            blockEntity::isFuzzyMode,
+            blockEntity::setFuzzyMode
+        ));
+        registerProperty(new ServerProperty<>(
+            PropertyTypes.REDSTONE_MODE,
+            blockEntity::getRedstoneMode,
+            blockEntity::setRedstoneMode
+        ));
+        registerProperty(new ServerProperty<>(
+            PropertyTypes.SCHEDULING_MODE,
+            blockEntity::getSchedulingModeType,
+            blockEntity::setSchedulingModeType
+        ));
         registerProperty(new ServerProperty<>(
             ConstructorDestructorPropertyTypes.DROP_ITEMS,
             blockEntity::isDropItems,

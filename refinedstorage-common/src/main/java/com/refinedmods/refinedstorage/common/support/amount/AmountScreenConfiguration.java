@@ -2,9 +2,15 @@ package com.refinedmods.refinedstorage.common.support.amount;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import org.joml.Vector3f;
 
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
+
 public final class AmountScreenConfiguration<T extends Number> {
+    private static final MutableComponent SET_TEXT = createTranslation("gui", "configure_amount.set");
+
     @Nullable
     private final T initialAmount;
     private final int[] incrementsTop;
@@ -14,7 +20,9 @@ public final class AmountScreenConfiguration<T extends Number> {
     private final int amountFieldWidth;
     private final Vector3f amountFieldPosition;
     private final Vector3f actionButtonsStartPosition;
+    private final boolean horizontalActionButtons;
     private final boolean actionButtonsEnabled;
+    private final Component confirmButtonText;
     @Nullable
     private final T minAmount;
     @Nullable
@@ -30,7 +38,9 @@ public final class AmountScreenConfiguration<T extends Number> {
                                       final int amountFieldWidth,
                                       final Vector3f amountFieldPosition,
                                       final Vector3f actionButtonsStartPosition,
+                                      final boolean horizontalActionButtons,
                                       final boolean actionButtonsEnabled,
+                                      final Component confirmButtonText,
                                       @Nullable final T minAmount,
                                       @Nullable final T maxAmount,
                                       @Nullable final T resetAmount) {
@@ -42,7 +52,9 @@ public final class AmountScreenConfiguration<T extends Number> {
         this.amountFieldWidth = amountFieldWidth;
         this.amountFieldPosition = amountFieldPosition;
         this.actionButtonsStartPosition = actionButtonsStartPosition;
+        this.horizontalActionButtons = horizontalActionButtons;
         this.actionButtonsEnabled = actionButtonsEnabled;
+        this.confirmButtonText = confirmButtonText;
         this.minAmount = minAmount;
         this.maxAmount = maxAmount;
         this.resetAmount = resetAmount;
@@ -81,8 +93,16 @@ public final class AmountScreenConfiguration<T extends Number> {
         return actionButtonsStartPosition;
     }
 
+    public boolean isHorizontalActionButtons() {
+        return horizontalActionButtons;
+    }
+
     public boolean isActionButtonsEnabled() {
         return actionButtonsEnabled;
+    }
+
+    public Component getConfirmButtonText() {
+        return confirmButtonText;
     }
 
     @Nullable
@@ -110,6 +130,8 @@ public final class AmountScreenConfiguration<T extends Number> {
         private int amountFieldWidth = 68;
         private Vector3f amountFieldPosition = new Vector3f(0, 0, 0);
         private Vector3f actionButtonsStartPosition = new Vector3f(0, 0, 0);
+        private boolean horizontalActionButtons = false;
+        private Component confirmButtonText = SET_TEXT;
         private boolean actionButtonsEnabled = true;
         @Nullable
         private T minAmount;
@@ -167,6 +189,20 @@ public final class AmountScreenConfiguration<T extends Number> {
             return this;
         }
 
+        public AmountScreenConfigurationBuilder<T> withHorizontalActionButtons(
+            final boolean newHorizontalActionButtons
+        ) {
+            this.horizontalActionButtons = newHorizontalActionButtons;
+            return this;
+        }
+
+        public AmountScreenConfigurationBuilder<T> withConfirmButtonText(
+            final Component newConfirmButtonText
+        ) {
+            this.confirmButtonText = newConfirmButtonText;
+            return this;
+        }
+
         public AmountScreenConfigurationBuilder<T> withActionButtonsEnabled(
             final boolean newActionButtonsEnabled
         ) {
@@ -199,7 +235,9 @@ public final class AmountScreenConfiguration<T extends Number> {
                 amountFieldWidth,
                 amountFieldPosition,
                 actionButtonsStartPosition,
+                horizontalActionButtons,
                 actionButtonsEnabled,
+                confirmButtonText,
                 minAmount,
                 maxAmount,
                 resetAmount

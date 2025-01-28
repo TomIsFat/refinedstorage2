@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.common.storage;
 
 import com.refinedmods.refinedstorage.api.core.Action;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.InsertableStorage;
@@ -37,9 +38,10 @@ public class BucketPlayerInventoryInsertableStorage implements InsertableStorage
         if (amount != Platform.INSTANCE.getBucketAmount()) {
             return 0;
         }
-        return Platform.INSTANCE.getFilledBucket(fluidResource).map(
-            filledBucketStack -> insert(filledBucketStack, amount, action, actor)
-        ).orElse(0L);
+        final ResourceAmount toFill = new ResourceAmount(fluidResource, amount);
+        return Platform.INSTANCE.fillContainer(EMPTY_BUCKET_STACK, toFill)
+            .map(result -> insert(result.container(), amount, action, actor))
+            .orElse(0L);
     }
 
     private long insert(final ItemStack filledBucketStack, final long amount, final Action action, final Actor actor) {

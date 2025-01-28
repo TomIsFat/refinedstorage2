@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.constructordestructor;
 
 import com.refinedmods.refinedstorage.common.content.BlockColorMap;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.content.Blocks;
 import com.refinedmods.refinedstorage.common.support.BaseBlockItem;
 import com.refinedmods.refinedstorage.common.support.BlockItemProvider;
@@ -20,15 +21,20 @@ import net.minecraft.world.level.block.state.BlockState;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public class ConstructorBlock extends AbstractConstructorDestructorBlock<
-    ConstructorBlock, ConstructorBlockEntity, BaseBlockItem
+    ConstructorBlock, AbstractConstructorBlockEntity, BaseBlockItem
     > implements BlockItemProvider<BaseBlockItem> {
     private static final Component HELP = createTranslation("item", "constructor.help");
 
-    public ConstructorBlock(final DyeColor color, final MutableComponent name) {
+    private final BlockEntityProvider<AbstractConstructorBlockEntity> blockEntityProvider;
+
+    public ConstructorBlock(final DyeColor color,
+                            final MutableComponent name,
+                            final BlockEntityProvider<AbstractConstructorBlockEntity> blockEntityProvider) {
         super(color, name, new NetworkNodeBlockEntityTicker<>(
             BlockEntities.INSTANCE::getConstructor,
             ACTIVE
         ));
+        this.blockEntityProvider = blockEntityProvider;
     }
 
     @Override
@@ -38,8 +44,8 @@ public class ConstructorBlock extends AbstractConstructorDestructorBlock<
 
     @Nullable
     @Override
-    public BlockEntity newBlockEntity(final BlockPos blockPos, final BlockState blockState) {
-        return new ConstructorBlockEntity(blockPos, blockState);
+    public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
+        return blockEntityProvider.create(pos, state);
     }
 
     @Override

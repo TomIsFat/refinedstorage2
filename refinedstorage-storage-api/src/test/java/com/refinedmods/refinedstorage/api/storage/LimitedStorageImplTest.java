@@ -20,7 +20,7 @@ class LimitedStorageImplTest {
 
     @BeforeEach
     void setUp() {
-        backed = new ActorCapturingStorage(new InMemoryStorageImpl());
+        backed = new ActorCapturingStorage(new StorageImpl());
         sut = new LimitedStorageImpl(backed, 100);
     }
 
@@ -36,7 +36,7 @@ class LimitedStorageImplTest {
         sut = new LimitedStorageImpl(backed, 0);
 
         // Act
-        final long inserted = sut.insert(TestResource.A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(TestResource.A, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isZero();
@@ -113,9 +113,9 @@ class LimitedStorageImplTest {
     @SuppressWarnings("ConstantConditions")
     void shouldNotInsertInvalidResourceOrAmount(final Action action) {
         // Act
-        final Executable action1 = () -> sut.insert(TestResource.A, 0, action, EmptyActor.INSTANCE);
-        final Executable action2 = () -> sut.insert(TestResource.A, -1, action, EmptyActor.INSTANCE);
-        final Executable action3 = () -> sut.insert(null, 1, action, EmptyActor.INSTANCE);
+        final Executable action1 = () -> sut.insert(TestResource.A, 0, action, Actor.EMPTY);
+        final Executable action2 = () -> sut.insert(TestResource.A, -1, action, Actor.EMPTY);
+        final Executable action3 = () -> sut.insert(null, 1, action, Actor.EMPTY);
 
         // Assert
         assertThrows(IllegalArgumentException.class, action1);

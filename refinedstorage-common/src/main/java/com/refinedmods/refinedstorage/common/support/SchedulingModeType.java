@@ -1,9 +1,9 @@
 package com.refinedmods.refinedstorage.common.support;
 
-import com.refinedmods.refinedstorage.api.network.impl.node.task.DefaultTaskExecutor;
-import com.refinedmods.refinedstorage.api.network.impl.node.task.RandomTaskExecutor;
-import com.refinedmods.refinedstorage.api.network.impl.node.task.RoundRobinTaskExecutor;
-import com.refinedmods.refinedstorage.api.network.node.task.TaskExecutor;
+import com.refinedmods.refinedstorage.api.network.impl.node.task.DefaultSchedulingMode;
+import com.refinedmods.refinedstorage.api.network.impl.node.task.RandomSchedulingMode;
+import com.refinedmods.refinedstorage.api.network.impl.node.task.RoundRobinSchedulingMode;
+import com.refinedmods.refinedstorage.api.network.node.SchedulingMode;
 
 import javax.annotation.Nullable;
 
@@ -14,21 +14,9 @@ import net.minecraft.network.chat.MutableComponent;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public enum SchedulingModeType {
-    DEFAULT(
-        0,
-        createTranslation("gui", "scheduling_mode.default"),
-        createTranslation("gui", "scheduling_mode.default.help")
-    ),
-    ROUND_ROBIN(
-        1,
-        createTranslation("gui", "scheduling_mode.round_robin"),
-        createTranslation("gui", "scheduling_mode.round_robin.help")
-    ),
-    RANDOM(
-        2,
-        createTranslation("gui", "scheduling_mode.random"),
-        createTranslation("gui", "scheduling_mode.random.help")
-    );
+    DEFAULT(0, "default"),
+    ROUND_ROBIN(1, "round_robin"),
+    RANDOM(2, "random");
 
     private static final String TAG_ROUND_ROBIN_INDEX = "rri";
 
@@ -36,10 +24,10 @@ public enum SchedulingModeType {
     private final MutableComponent name;
     private final Component help;
 
-    SchedulingModeType(final int id, final MutableComponent name, final MutableComponent help) {
+    SchedulingModeType(final int id, final String name) {
         this.id = id;
-        this.name = name;
-        this.help = help;
+        this.name = createTranslation("gui", "scheduling_mode." + name);
+        this.help = createTranslation("gui", "scheduling_mode." + name + ".help");
     }
 
     public static SchedulingModeType getById(final int id) {
@@ -63,27 +51,24 @@ public enum SchedulingModeType {
         return id;
     }
 
-    public <C> TaskExecutor<C> createTaskExecutor(@Nullable final CompoundTag tag,
-                                                  final RandomTaskExecutor.Randomizer<C> randomizer,
-                                                  final Runnable dirtyCallback) {
+    public SchedulingMode createSchedulingMode(@Nullable final CompoundTag tag,
+                                               final RandomSchedulingMode.Randomizer randomizer,
+                                               final Runnable listener) {
         return switch (this) {
-            case DEFAULT -> new DefaultTaskExecutor<>();
-            case RANDOM -> new RandomTaskExecutor<>(randomizer);
-            case ROUND_ROBIN -> createRoundRobinExecutor(tag, dirtyCallback);
+            case DEFAULT -> new DefaultSchedulingMode();
+            case RANDOM -> new RandomSchedulingMode(randomizer);
+            case ROUND_ROBIN -> createRoundRobinSchedulingMode(tag, listener);
         };
     }
 
-    private <C> RoundRobinTaskExecutor<C> createRoundRobinExecutor(@Nullable final CompoundTag tag,
-                                                                   final Runnable dirtyCallback) {
+    private RoundRobinSchedulingMode createRoundRobinSchedulingMode(@Nullable final CompoundTag tag,
+                                                                    final Runnable listener) {
         final int index = tag != null ? tag.getInt(TAG_ROUND_ROBIN_INDEX) : 0;
-        return new RoundRobinTaskExecutor<>(new RoundRobinTaskExecutor.State(
-            dirtyCallback,
-            index
-        ));
+        return new RoundRobinSchedulingMode(new RoundRobinSchedulingMode.State(listener, index));
     }
 
-    public <C> void writeToTag(final CompoundTag tag, final TaskExecutor<C> taskExecutor) {
-        if (taskExecutor instanceof RoundRobinTaskExecutor<C> roundRobin) {
+    public void writeToTag(final CompoundTag tag, final SchedulingMode schedulingMode) {
+        if (schedulingMode instanceof RoundRobinSchedulingMode roundRobin) {
             tag.putInt(TAG_ROUND_ROBIN_INDEX, roundRobin.getIndex());
         }
     }

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 public class ResourceSlot extends Slot {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceSlot.class);
 
-    private final ResourceContainer resourceContainer;
+    protected final ResourceContainer resourceContainer;
     private final Component helpText;
     private final ResourceSlotType type;
     @Nullable
@@ -56,22 +56,7 @@ public class ResourceSlot extends Slot {
     }
 
     public ResourceSlot forAmountScreen(final int newX, final int newY) {
-        return new ResourceSlot(resourceContainer, container, getContainerSlot(), helpText, newX, newY, type) {
-            @Override
-            public boolean canModifyAmount() {
-                return false;
-            }
-
-            @Override
-            public boolean shouldRenderAmount() {
-                return false;
-            }
-
-            @Override
-            public boolean isDisabled() {
-                return true;
-            }
-        };
+        return new DisabledResourceSlot(resourceContainer, container, getContainerSlot(), helpText, newX, newY, type);
     }
 
     public boolean shouldRenderAmount() {
@@ -117,11 +102,11 @@ public class ResourceSlot extends Slot {
         resourceContainer.change(getContainerSlot(), stack, tryAlternatives);
     }
 
-    public void change(@Nullable final ResourceAmount instance) {
-        if (instance == null) {
+    public void change(@Nullable final ResourceAmount resourceAmount) {
+        if (resourceAmount == null) {
             resourceContainer.remove(getContainerSlot());
         } else {
-            resourceContainer.set(getContainerSlot(), instance);
+            resourceContainer.set(getContainerSlot(), resourceAmount);
         }
     }
 
@@ -167,13 +152,15 @@ public class ResourceSlot extends Slot {
         return ItemStack.matches(stack, getStackRepresentation());
     }
 
-    public void broadcastChanges(final Player player) {
+    public boolean broadcastChanges(final Player player) {
         final ResourceAmount currentResourceAmount = resourceContainer.get(getContainerSlot());
         if (!Objects.equals(currentResourceAmount, cachedResource)) {
             LOGGER.debug("Resource slot {} has changed", getContainerSlot());
             this.cachedResource = currentResourceAmount;
             broadcastChange((ServerPlayer) player, currentResourceAmount);
+            return true;
         }
+        return false;
     }
 
     private void broadcastChange(final ServerPlayer player, @Nullable final ResourceAmount contents) {
@@ -200,10 +187,10 @@ public class ResourceSlot extends Slot {
 
     public double getMaxAmountWhenModifying() {
         final ResourceKey resource = getResource();
-        if (resource == null) {
+        if (!(resource instanceof PlatformResourceKey platformResource)) {
             return 0;
         }
-        return resourceContainer.getMaxAmount(resource);
+        return platformResource.getResourceType().getDisplayAmount(resourceContainer.getMaxAmount(resource));
     }
 
     public Component getHelpText() {

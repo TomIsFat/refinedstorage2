@@ -12,6 +12,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -23,14 +24,16 @@ import net.neoforged.neoforge.fluids.FluidType;
 public class FluidStackFluidRenderer extends AbstractFluidRenderer {
     private final Map<FluidResource, FluidStack> stackCache = new HashMap<>();
 
-    @SuppressWarnings("deprecation")
     private FluidStack getFluidStackFromCache(final FluidResource fluidResource) {
+        if (stackCache.size() > 1000) {
+            stackCache.clear();
+        }
         return stackCache.computeIfAbsent(
             fluidResource,
-            r -> new FluidStack(
-                r.fluid().builtInRegistryHolder(),
+            fluid -> new FluidStack(
+                BuiltInRegistries.FLUID.wrapAsHolder(fluid.fluid()),
                 FluidType.BUCKET_VOLUME,
-                r.components()
+                fluid.components()
             )
         );
     }

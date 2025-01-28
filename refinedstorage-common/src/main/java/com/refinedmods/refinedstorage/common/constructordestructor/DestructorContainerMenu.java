@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
-public class DestructorContainerMenu extends AbstractSimpleFilterContainerMenu<DestructorBlockEntity> {
+public class DestructorContainerMenu extends AbstractSimpleFilterContainerMenu<AbstractDestructorBlockEntity> {
     private static final MutableComponent FILTER_HELP = createTranslation("gui", "destructor.filter_help");
 
     public DestructorContainerMenu(final int syncId,
@@ -36,7 +36,7 @@ public class DestructorContainerMenu extends AbstractSimpleFilterContainerMenu<D
 
     DestructorContainerMenu(final int syncId,
                             final Player player,
-                            final DestructorBlockEntity destructor,
+                            final AbstractDestructorBlockEntity destructor,
                             final ResourceContainer resourceContainer,
                             final UpgradeContainer upgradeContainer) {
         super(
@@ -58,7 +58,7 @@ public class DestructorContainerMenu extends AbstractSimpleFilterContainerMenu<D
     }
 
     @Override
-    protected void registerServerProperties(final DestructorBlockEntity blockEntity) {
+    protected void registerServerProperties(final AbstractDestructorBlockEntity blockEntity) {
         registerProperty(new ServerProperty<>(
             PropertyTypes.REDSTONE_MODE,
             blockEntity::getRedstoneMode,

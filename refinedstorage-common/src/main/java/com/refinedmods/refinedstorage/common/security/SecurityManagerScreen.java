@@ -22,8 +22,8 @@ public class SecurityManagerScreen extends AbstractBaseScreen<SecurityManagerCon
 
     public SecurityManagerScreen(final SecurityManagerContainerMenu menu,
                                  final Inventory playerInventory,
-                                 final Component text) {
-        super(menu, playerInventory, text);
+                                 final Component title) {
+        super(menu, playerInventory, title);
         this.inventoryLabelY = 59;
         this.imageWidth = 197;
         this.imageHeight = 154;

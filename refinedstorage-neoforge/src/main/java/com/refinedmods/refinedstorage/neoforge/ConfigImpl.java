@@ -2,9 +2,12 @@ package com.refinedmods.refinedstorage.neoforge;
 
 import com.refinedmods.refinedstorage.api.grid.view.GridSortingDirection;
 import com.refinedmods.refinedstorage.common.Config;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerSearchMode;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerViewType;
 import com.refinedmods.refinedstorage.common.content.DefaultEnergyUsage;
 import com.refinedmods.refinedstorage.common.grid.CraftingGridMatrixCloseBehavior;
 import com.refinedmods.refinedstorage.common.grid.GridSortingTypes;
+import com.refinedmods.refinedstorage.common.grid.GridViewType;
 import com.refinedmods.refinedstorage.common.support.stretching.ScreenSize;
 
 import java.util.Optional;
@@ -17,6 +20,7 @@ import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTr
 public class ConfigImpl implements Config {
     private static final String ENERGY_USAGE = "energyUsage";
     private static final String ENERGY_CAPACITY = "energyCapacity";
+    private static final String OPEN_ENERGY_USAGE = "openEnergyUsage";
 
     private final ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
     private final ModConfigSpec spec;
@@ -24,6 +28,8 @@ public class ConfigImpl implements Config {
     private final ModConfigSpec.EnumValue<ScreenSize> screenSize;
     private final ModConfigSpec.BooleanValue smoothScrolling;
     private final ModConfigSpec.IntValue maxRowsStretch;
+    private final ModConfigSpec.BooleanValue searchBoxAutoSelected;
+    private final ModConfigSpec.BooleanValue autocraftingNotification;
     private final SimpleEnergyUsageEntry cable;
     private final ControllerEntry controller;
     private final DiskDriveEntry diskDrive;
@@ -51,6 +57,10 @@ public class ConfigImpl implements Config {
     private final SimpleEnergyUsageEntry fallbackSecurityCard;
     private final SimpleEnergyUsageEntry securityManager;
     private final RelayEntry relay;
+    private final AutocrafterEntryImpl autocrafter;
+    private final AutocrafterManagerEntryImpl autocrafterManager;
+    private final SimpleEnergyUsageEntry autocraftingMonitor;
+    private final WirelessAutocraftingMonitorEntryImpl wirelessAutocraftingMonitor;
 
     public ConfigImpl() {
         screenSize = builder
@@ -62,6 +72,12 @@ public class ConfigImpl implements Config {
         maxRowsStretch = builder
             .translation(translationKey("maxRowsStretch"))
             .defineInRange("maxRowsStretch", 256, 3, 256);
+        searchBoxAutoSelected = builder
+            .translation(translationKey("searchBoxAutoSelected"))
+            .define("searchBoxAutoSelected", false);
+        autocraftingNotification = builder
+            .translation(translationKey("autocraftingNotification"))
+            .define("autocraftingNotification", true);
         cable = new SimpleEnergyUsageEntryImpl("cable", DefaultEnergyUsage.CABLE);
         controller = new ControllerEntryImpl();
         diskDrive = new DiskDriveEntryImpl();
@@ -95,6 +111,13 @@ public class ConfigImpl implements Config {
         );
         securityManager = new SimpleEnergyUsageEntryImpl("securityManager", DefaultEnergyUsage.SECURITY_MANAGER);
         relay = new RelayEntryImpl();
+        autocrafter = new AutocrafterEntryImpl();
+        autocrafterManager = new AutocrafterManagerEntryImpl();
+        autocraftingMonitor = new SimpleEnergyUsageEntryImpl(
+            "autocraftingMonitor",
+            DefaultEnergyUsage.AUTOCRAFTING_MONITOR
+        );
+        wirelessAutocraftingMonitor = new WirelessAutocraftingMonitorEntryImpl();
         spec = builder.build();
     }
 
@@ -118,8 +141,37 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public boolean isAutocraftingNotification() {
+        return autocraftingNotification.get();
+    }
+
+    @Override
+    public void setAutocraftingNotification(final boolean autocraftingNotification) {
+        if (autocraftingNotification != Boolean.TRUE.equals(this.autocraftingNotification.get())) {
+            this.autocraftingNotification.set(autocraftingNotification);
+            ConfigImpl.this.spec.save();
+        }
+    }
+
+    @Override
     public void setScreenSize(final ScreenSize screenSize) {
-        this.screenSize.set(screenSize);
+        if (screenSize != this.screenSize.get()) {
+            this.screenSize.set(screenSize);
+            this.spec.save();
+        }
+    }
+
+    @Override
+    public boolean isSearchBoxAutoSelected() {
+        return searchBoxAutoSelected.get();
+    }
+
+    @Override
+    public void setSearchBoxAutoSelected(final boolean searchBoxAutoSelected) {
+        if (searchBoxAutoSelected != Boolean.TRUE.equals(this.searchBoxAutoSelected.get())) {
+            this.searchBoxAutoSelected.set(searchBoxAutoSelected);
+            ConfigImpl.this.spec.save();
+        }
     }
 
     @Override
@@ -257,6 +309,26 @@ public class ConfigImpl implements Config {
         return relay;
     }
 
+    @Override
+    public AutocrafterEntry getAutocrafter() {
+        return autocrafter;
+    }
+
+    @Override
+    public AutocrafterManagerEntry getAutocrafterManager() {
+        return autocrafterManager;
+    }
+
+    @Override
+    public SimpleEnergyUsageEntry getAutocraftingMonitor() {
+        return autocraftingMonitor;
+    }
+
+    @Override
+    public WirelessAutocraftingMonitorEntry getWirelessAutocraftingMonitor() {
+        return wirelessAutocraftingMonitor;
+    }
+
     private static String translationKey(final String value) {
         return createTranslationKey("text.autoconfig", "option." + value);
     }
@@ -354,11 +426,11 @@ public class ConfigImpl implements Config {
         private final ModConfigSpec.BooleanValue detailedTooltip;
         private final ModConfigSpec.BooleanValue rememberSearchQuery;
         private final ModConfigSpec.LongValue energyUsage;
-        private final ModConfigSpec.BooleanValue autoSelected;
         private final ModConfigSpec.ConfigValue<String> synchronizer;
         private final ModConfigSpec.ConfigValue<String> resourceType;
         private final ModConfigSpec.EnumValue<GridSortingDirection> sortingDirection;
         private final ModConfigSpec.EnumValue<GridSortingTypes> sortingType;
+        private final ModConfigSpec.EnumValue<GridViewType> viewType;
 
         GridEntryImpl() {
             builder.translation(translationKey("grid")).push("grid");
@@ -377,9 +449,6 @@ public class ConfigImpl implements Config {
             energyUsage = builder
                 .translation(translationKey("grid." + ENERGY_USAGE))
                 .defineInRange(ENERGY_USAGE, DefaultEnergyUsage.GRID, 0, Long.MAX_VALUE);
-            autoSelected = builder
-                .translation(translationKey("grid.autoSelected"))
-                .define("autoSelected", false);
             synchronizer = builder
                 .translation(translationKey("grid.synchronizer"))
                 .define("synchronizer", "");
@@ -392,6 +461,9 @@ public class ConfigImpl implements Config {
             sortingType = builder
                 .translation(translationKey("grid.sortingType"))
                 .defineEnum("sortingType", GridSortingTypes.QUANTITY);
+            viewType = builder
+                .translation(translationKey("grid.viewType"))
+                .defineEnum("viewType", GridViewType.ALL);
             builder.pop();
         }
 
@@ -421,16 +493,6 @@ public class ConfigImpl implements Config {
         }
 
         @Override
-        public boolean isAutoSelected() {
-            return autoSelected.get();
-        }
-
-        @Override
-        public void setAutoSelected(final boolean autoSelected) {
-            this.autoSelected.set(autoSelected);
-        }
-
-        @Override
         public Optional<ResourceLocation> getSynchronizer() {
             if (synchronizer.get().trim().isBlank()) {
                 return Optional.empty();
@@ -440,12 +502,18 @@ public class ConfigImpl implements Config {
 
         @Override
         public void setSynchronizer(final ResourceLocation synchronizerId) {
-            this.synchronizer.set(synchronizerId.toString());
+            if (!synchronizerId.toString().equals(this.synchronizer.get())) {
+                this.synchronizer.set(synchronizerId.toString());
+                ConfigImpl.this.spec.save();
+            }
         }
 
         @Override
         public void clearSynchronizer() {
-            this.synchronizer.set("");
+            if (!synchronizer.get().isEmpty()) {
+                this.synchronizer.set("");
+                ConfigImpl.this.spec.save();
+            }
         }
 
         @Override
@@ -455,7 +523,10 @@ public class ConfigImpl implements Config {
 
         @Override
         public void setSortingDirection(final GridSortingDirection sortingDirection) {
-            this.sortingDirection.set(sortingDirection);
+            if (sortingDirection != this.sortingDirection.get()) {
+                this.sortingDirection.set(sortingDirection);
+                ConfigImpl.this.spec.save();
+            }
         }
 
         @Override
@@ -465,7 +536,23 @@ public class ConfigImpl implements Config {
 
         @Override
         public void setSortingType(final GridSortingTypes sortingType) {
-            this.sortingType.set(sortingType);
+            if (sortingType != this.sortingType.get()) {
+                this.sortingType.set(sortingType);
+                ConfigImpl.this.spec.save();
+            }
+        }
+
+        @Override
+        public GridViewType getViewType() {
+            return viewType.get();
+        }
+
+        @Override
+        public void setViewType(final GridViewType viewType) {
+            if (viewType != this.viewType.get()) {
+                this.viewType.set(viewType);
+                ConfigImpl.this.spec.save();
+            }
         }
 
         @Override
@@ -478,12 +565,18 @@ public class ConfigImpl implements Config {
 
         @Override
         public void setResourceType(final ResourceLocation resourceTypeId) {
-            this.resourceType.set(resourceTypeId.toString());
+            if (!resourceTypeId.toString().equals(this.resourceType.get())) {
+                this.resourceType.set(resourceTypeId.toString());
+                ConfigImpl.this.spec.save();
+            }
         }
 
         @Override
         public void clearResourceType() {
-            this.resourceType.set("");
+            if (!resourceType.get().isEmpty()) {
+                this.resourceType.set("");
+                ConfigImpl.this.spec.save();
+            }
         }
     }
 
@@ -760,7 +853,7 @@ public class ConfigImpl implements Config {
                 .defineInRange(ENERGY_CAPACITY, DefaultEnergyUsage.WIRELESS_GRID_CAPACITY, 0, Long.MAX_VALUE);
             openEnergyUsage = builder
                 .translation(translationKey("wirelessGrid.openEnergyUsage"))
-                .defineInRange("openEnergyUsage", DefaultEnergyUsage.WIRELESS_GRID_OPEN, 0, Long.MAX_VALUE);
+                .defineInRange(OPEN_ENERGY_USAGE, DefaultEnergyUsage.WIRELESS_GRID_OPEN, 0, Long.MAX_VALUE);
             extractEnergyUsage = builder
                 .translation(translationKey("wirelessGrid.extractEnergyUsage"))
                 .defineInRange("extractEnergyUsage", DefaultEnergyUsage.WIRELESS_GRID_EXTRACT, 0, Long.MAX_VALUE);
@@ -770,18 +863,22 @@ public class ConfigImpl implements Config {
             builder.pop();
         }
 
+        @Override
         public long getEnergyCapacity() {
             return energyCapacity.get();
         }
 
+        @Override
         public long getOpenEnergyUsage() {
             return openEnergyUsage.get();
         }
 
+        @Override
         public long getExtractEnergyUsage() {
             return extractEnergyUsage.get();
         }
 
+        @Override
         public long getInsertEnergyUsage() {
             return insertEnergyUsage.get();
         }
@@ -802,10 +899,12 @@ public class ConfigImpl implements Config {
             builder.pop();
         }
 
+        @Override
         public long getEnergyUsage() {
             return energyUsage.get();
         }
 
+        @Override
         public int getBaseRange() {
             return baseRange.get();
         }
@@ -824,7 +923,7 @@ public class ConfigImpl implements Config {
                 .defineInRange(ENERGY_CAPACITY, DefaultEnergyUsage.PORTABLE_GRID_CAPACITY, 0, Long.MAX_VALUE);
             openEnergyUsage = builder
                 .translation(translationKey("portableGrid.openEnergyUsage"))
-                .defineInRange("openEnergyUsage", DefaultEnergyUsage.PORTABLE_GRID_OPEN, 0, Long.MAX_VALUE);
+                .defineInRange(OPEN_ENERGY_USAGE, DefaultEnergyUsage.PORTABLE_GRID_OPEN, 0, Long.MAX_VALUE);
             extractEnergyUsage = builder
                 .translation(translationKey("portableGrid.extractEnergyUsage"))
                 .defineInRange("extractEnergyUsage", DefaultEnergyUsage.PORTABLE_GRID_EXTRACT, 0, Long.MAX_VALUE);
@@ -834,18 +933,22 @@ public class ConfigImpl implements Config {
             builder.pop();
         }
 
+        @Override
         public long getEnergyCapacity() {
             return energyCapacity.get();
         }
 
+        @Override
         public long getOpenEnergyUsage() {
             return openEnergyUsage.get();
         }
 
+        @Override
         public long getExtractEnergyUsage() {
             return extractEnergyUsage.get();
         }
 
+        @Override
         public long getInsertEnergyUsage() {
             return insertEnergyUsage.get();
         }
@@ -874,6 +977,131 @@ public class ConfigImpl implements Config {
         @Override
         public long getOutputNetworkEnergyUsage() {
             return outputNetworkEnergyUsage.get();
+        }
+    }
+
+    private class AutocrafterEntryImpl implements AutocrafterEntry {
+        private final ModConfigSpec.LongValue energyUsage;
+        private final ModConfigSpec.LongValue energyUsagePerPattern;
+
+        AutocrafterEntryImpl() {
+            builder.translation(translationKey("autocrafter")).push("autocrafter");
+            energyUsage = builder
+                .translation(translationKey("autocrafter." + ENERGY_USAGE))
+                .defineInRange(ENERGY_USAGE, DefaultEnergyUsage.AUTOCRAFTER, 0, Long.MAX_VALUE);
+            energyUsagePerPattern = builder
+                .translation(translationKey("autocrafter.energyUsagePerPattern"))
+                .defineInRange("energyUsagePerPattern", DefaultEnergyUsage.AUTOCRAFTER_PER_PATTERN, 0, Long.MAX_VALUE);
+            builder.pop();
+        }
+
+        @Override
+        public long getEnergyUsagePerPattern() {
+            return energyUsagePerPattern.get();
+        }
+
+        @Override
+        public long getEnergyUsage() {
+            return energyUsage.get();
+        }
+    }
+
+    private class AutocrafterManagerEntryImpl implements AutocrafterManagerEntry {
+        private final ModConfigSpec.LongValue energyUsage;
+        private final ModConfigSpec.EnumValue<AutocrafterManagerSearchMode> searchMode;
+        private final ModConfigSpec.EnumValue<AutocrafterManagerViewType> viewType;
+
+        AutocrafterManagerEntryImpl() {
+            builder.translation(translationKey("autocrafterManager")).push("autocrafterManager");
+            energyUsage = builder
+                .translation(translationKey("autocrafterManager." + ENERGY_USAGE))
+                .defineInRange(ENERGY_USAGE, DefaultEnergyUsage.AUTOCRAFTER_MANAGER, 0, Long.MAX_VALUE);
+            searchMode = builder
+                .translation(translationKey("autocrafterManager.searchMode"))
+                .defineEnum("searchMode", AutocrafterManagerSearchMode.ALL);
+            viewType = builder
+                .translation(translationKey("autocrafterManager.viewType"))
+                .defineEnum("viewType", AutocrafterManagerViewType.VISIBLE);
+            builder.pop();
+        }
+
+        @Override
+        public void setSearchMode(final AutocrafterManagerSearchMode searchMode) {
+            if (searchMode != this.searchMode.get()) {
+                this.searchMode.set(searchMode);
+                ConfigImpl.this.spec.save();
+            }
+        }
+
+        @Override
+        public AutocrafterManagerSearchMode getSearchMode() {
+            return searchMode.get();
+        }
+
+        @Override
+        public void setViewType(final AutocrafterManagerViewType viewType) {
+            if (viewType != this.viewType.get()) {
+                this.viewType.set(viewType);
+                ConfigImpl.this.spec.save();
+            }
+        }
+
+        @Override
+        public AutocrafterManagerViewType getViewType() {
+            return viewType.get();
+        }
+
+        @Override
+        public long getEnergyUsage() {
+            return energyUsage.get();
+        }
+    }
+
+    private class WirelessAutocraftingMonitorEntryImpl implements WirelessAutocraftingMonitorEntry {
+        private final ModConfigSpec.LongValue energyCapacity;
+        private final ModConfigSpec.LongValue openEnergyUsage;
+        private final ModConfigSpec.LongValue cancelEnergyUsage;
+        private final ModConfigSpec.LongValue cancelAllEnergyUsage;
+
+        WirelessAutocraftingMonitorEntryImpl() {
+            builder.translation(translationKey("wirelessAutocraftingMonitor")).push("wirelessAutocraftingMonitor");
+            energyCapacity = builder
+                .translation(translationKey("wirelessAutocraftingMonitor." + ENERGY_CAPACITY))
+                .defineInRange(ENERGY_CAPACITY, DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_CAPACITY, 0,
+                    Long.MAX_VALUE);
+            openEnergyUsage = builder
+                .translation(translationKey("wirelessAutocraftingMonitor.openEnergyUsage"))
+                .defineInRange(OPEN_ENERGY_USAGE, DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_OPEN, 0,
+                    Long.MAX_VALUE);
+            cancelEnergyUsage = builder
+                .translation(translationKey("wirelessAutocraftingMonitor.cancelEnergyUsage"))
+                .defineInRange("cancelEnergyUsage", DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_CANCEL, 0,
+                    Long.MAX_VALUE);
+            cancelAllEnergyUsage = builder
+                .translation(translationKey("wirelessAutocraftingMonitor.cancelAllEnergyUsage"))
+                .defineInRange("cancelAllEnergyUsage", DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_CANCEL_ALL, 0,
+                    Long.MAX_VALUE);
+            builder.pop();
+        }
+
+        @Override
+        public long getEnergyCapacity() {
+            return energyCapacity.get();
+        }
+
+        @Override
+        public long getOpenEnergyUsage() {
+            return openEnergyUsage.get();
+        }
+
+        @Override
+        public long getCancelEnergyUsage() {
+            return cancelEnergyUsage.get();
+        }
+
+        @Override
+        public long getCancelAllEnergyUsage() {
+            return cancelAllEnergyUsage.get();
         }
     }
 }

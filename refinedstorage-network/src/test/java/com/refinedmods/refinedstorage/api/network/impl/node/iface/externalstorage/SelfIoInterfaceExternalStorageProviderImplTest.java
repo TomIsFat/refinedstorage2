@@ -14,7 +14,7 @@ import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @NetworkTest

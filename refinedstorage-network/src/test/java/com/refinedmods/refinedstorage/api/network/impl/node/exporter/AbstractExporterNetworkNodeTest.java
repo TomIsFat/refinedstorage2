@@ -2,16 +2,15 @@ package com.refinedmods.refinedstorage.api.network.impl.node.exporter;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
+import com.refinedmods.refinedstorage.api.network.node.SchedulingMode;
 import com.refinedmods.refinedstorage.api.network.node.exporter.ExporterTransferStrategy;
-import com.refinedmods.refinedstorage.api.network.node.task.TaskExecutor;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.InsertableStorage;
 import com.refinedmods.refinedstorage.api.storage.Storage;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkEnergyComponent;
@@ -24,9 +23,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.B;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.C;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.C;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -39,12 +38,12 @@ abstract class AbstractExporterNetworkNodeTest {
     @AddNetworkNode(networkId = "nonexistent")
     ExporterNetworkNode sutWithoutNetwork;
 
-    protected abstract TaskExecutor<ExporterNetworkNode.TaskContext> createTaskExecutor();
+    protected abstract SchedulingMode createSchedulingMode();
 
     @BeforeEach
     void setUp() {
         sut.setEnergyUsage(5);
-        sut.setTaskExecutor(createTaskExecutor());
+        sut.setSchedulingMode(createSchedulingMode());
     }
 
     @Test
@@ -58,9 +57,9 @@ abstract class AbstractExporterNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage failingDestination = new LimitedStorageImpl(0);
         final Storage destination = new LimitedStorageImpl(100);
@@ -90,9 +89,9 @@ abstract class AbstractExporterNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new LimitedStorageImpl(100) {
             @Override
@@ -141,19 +140,17 @@ abstract class AbstractExporterNetworkNodeTest {
     }
 
     @Test
-    void shouldNotTransferWithoutTaskExecutor(
-        @InjectNetworkStorageComponent final StorageNetworkComponent storage
-    ) {
+    void shouldNotTransferWithoutSchedulingMode(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
 
         sut.setFilters(List.of(A, B));
         sut.setTransferStrategy(createTransferStrategy(destination, 1));
-        sut.setTaskExecutor(null);
+        sut.setSchedulingMode(null);
 
         // Act
         sut.doWork();
@@ -169,11 +166,11 @@ abstract class AbstractExporterNetworkNodeTest {
     @Test
     void shouldNotTransferWithoutStrategy(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
 
         sut.setFilters(List.of(A, B));
 
@@ -191,11 +188,11 @@ abstract class AbstractExporterNetworkNodeTest {
     @Test
     void shouldNotTransferIfInactive(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 1);
 
         sut.setTransferStrategy(strategy);
@@ -216,11 +213,11 @@ abstract class AbstractExporterNetworkNodeTest {
     @Test
     void shouldNotTransferWithoutFilters(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 1);
 
         sut.setTransferStrategy(strategy);
@@ -242,7 +239,7 @@ abstract class AbstractExporterNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);
 
         sut.setTransferStrategy(strategy);
@@ -263,13 +260,13 @@ abstract class AbstractExporterNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(C, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(C, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new LimitedStorageImpl(5);
-        destination.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        destination.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);
 
@@ -308,12 +305,12 @@ abstract class AbstractExporterNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
         final Storage destination = new LimitedStorageImpl(1);
-        destination.insert(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        destination.insert(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 5);
 
@@ -338,11 +335,11 @@ abstract class AbstractExporterNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 6, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 7, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 6, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 7, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);
 
         sut.setTransferStrategy(strategy);

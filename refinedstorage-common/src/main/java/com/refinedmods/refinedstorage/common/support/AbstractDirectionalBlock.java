@@ -46,7 +46,6 @@ public abstract class AbstractDirectionalBlock<T extends Enum<T> & StringReprese
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public BlockState rotate(final BlockState state, final Rotation rotation) {
         final EnumProperty<T> directionProperty = getDirectionType().getProperty();
         final T currentDirection = state.getValue(directionProperty);
@@ -74,8 +73,7 @@ public abstract class AbstractDirectionalBlock<T extends Enum<T> & StringReprese
         return defaultBlockState().setValue(getDirectionType().getProperty(), direction);
     }
 
-    public static boolean doesBlockStateChangeWarrantNetworkNodeUpdate(final BlockState oldBlockState,
-                                                                       final BlockState newBlockState) {
+    public static boolean didDirectionChange(final BlockState oldBlockState, final BlockState newBlockState) {
         if (!(newBlockState.getBlock() instanceof AbstractDirectionalBlock<?> newDirectionalBlock)) {
             return true;
         }

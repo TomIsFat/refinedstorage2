@@ -1,8 +1,11 @@
 package com.refinedmods.refinedstorage.common;
 
 import com.refinedmods.refinedstorage.api.grid.view.GridSortingDirection;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerSearchMode;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerViewType;
 import com.refinedmods.refinedstorage.common.grid.CraftingGridMatrixCloseBehavior;
 import com.refinedmods.refinedstorage.common.grid.GridSortingTypes;
+import com.refinedmods.refinedstorage.common.grid.GridViewType;
 import com.refinedmods.refinedstorage.common.support.stretching.ScreenSize;
 
 import java.util.Optional;
@@ -16,7 +19,15 @@ public interface Config {
 
     boolean isSmoothScrolling();
 
+    boolean isSearchBoxAutoSelected();
+
+    void setSearchBoxAutoSelected(boolean searchBoxAutoSelected);
+
     int getMaxRowsStretch();
+
+    boolean isAutocraftingNotification();
+
+    void setAutocraftingNotification(boolean autocraftingNotification);
 
     GridEntry getGrid();
 
@@ -72,6 +83,14 @@ public interface Config {
 
     RelayEntry getRelay();
 
+    AutocrafterEntry getAutocrafter();
+
+    AutocrafterManagerEntry getAutocrafterManager();
+
+    SimpleEnergyUsageEntry getAutocraftingMonitor();
+
+    WirelessAutocraftingMonitorEntry getWirelessAutocraftingMonitor();
+
     interface SimpleEnergyUsageEntry {
         long getEnergyUsage();
     }
@@ -84,10 +103,6 @@ public interface Config {
         boolean isDetailedTooltip();
 
         boolean isRememberSearchQuery();
-
-        boolean isAutoSelected();
-
-        void setAutoSelected(boolean autoSelected);
 
         Optional<ResourceLocation> getSynchronizer();
 
@@ -102,6 +117,10 @@ public interface Config {
         GridSortingTypes getSortingType();
 
         void setSortingType(GridSortingTypes sortingType);
+
+        GridViewType getViewType();
+
+        void setViewType(GridViewType viewType);
 
         Optional<ResourceLocation> getResourceType();
 
@@ -200,5 +219,29 @@ public interface Config {
         long getInputNetworkEnergyUsage();
 
         long getOutputNetworkEnergyUsage();
+    }
+
+    interface AutocrafterEntry extends SimpleEnergyUsageEntry {
+        long getEnergyUsagePerPattern();
+    }
+
+    interface AutocrafterManagerEntry extends SimpleEnergyUsageEntry {
+        void setSearchMode(AutocrafterManagerSearchMode searchMode);
+
+        AutocrafterManagerSearchMode getSearchMode();
+
+        void setViewType(AutocrafterManagerViewType viewType);
+
+        AutocrafterManagerViewType getViewType();
+    }
+
+    interface WirelessAutocraftingMonitorEntry {
+        long getEnergyCapacity();
+
+        long getOpenEnergyUsage();
+
+        long getCancelEnergyUsage();
+
+        long getCancelAllEnergyUsage();
     }
 }

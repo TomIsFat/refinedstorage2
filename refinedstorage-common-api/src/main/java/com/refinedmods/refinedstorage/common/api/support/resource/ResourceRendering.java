@@ -13,7 +13,11 @@ import org.apiguardian.api.API;
 
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.2.13")
 public interface ResourceRendering {
-    String getDisplayedAmount(long amount, boolean withUnits);
+    default String formatAmount(long amount) {
+        return formatAmount(amount, false);
+    }
+
+    String formatAmount(long amount, boolean withUnits);
 
     Component getDisplayName(ResourceKey resource);
 

@@ -4,7 +4,6 @@ plugins {
 
 refinedarchitect {
     common()
-    testing()
     javadoc()
     publishing {
         maven = true
@@ -22,9 +21,5 @@ dependencies {
     api(project(":refinedstorage-resource-api"))
     api(project(":refinedstorage-network-api"))
     api(project(":refinedstorage-grid-api"))
-    testImplementation(libs.junit.api)
-    testImplementation(libs.junit.params)
-    testImplementation(libs.assertj)
-    testImplementation(libs.equalsverifier)
-    testRuntimeOnly(libs.junit.engine)
+    api(project(":refinedstorage-autocrafting-api"))
 }

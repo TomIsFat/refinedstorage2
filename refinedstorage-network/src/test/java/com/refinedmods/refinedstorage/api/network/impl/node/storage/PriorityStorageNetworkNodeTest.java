@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.storage;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.impl.node.ProviderImpl;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @NetworkTest
@@ -54,15 +54,15 @@ class PriorityStorageNetworkNodeTest {
         b.setActive(true);
 
         if (storageAHasPriority) {
-            a.getStorageConfiguration().setPriority(5);
-            b.getStorageConfiguration().setPriority(2);
+            a.getStorageConfiguration().setInsertPriority(5);
+            b.getStorageConfiguration().setInsertPriority(2);
         } else {
-            a.getStorageConfiguration().setPriority(2);
-            b.getStorageConfiguration().setPriority(5);
+            a.getStorageConfiguration().setInsertPriority(2);
+            b.getStorageConfiguration().setInsertPriority(5);
         }
 
         // Act
-        networkStorage.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         if (storageAHasPriority) {

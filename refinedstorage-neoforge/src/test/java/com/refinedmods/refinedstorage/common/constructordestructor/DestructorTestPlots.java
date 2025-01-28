@@ -19,7 +19,7 @@ final class DestructorTestPlots {
 
     static void preparePlot(final GameTestHelper helper,
                             final Direction direction,
-                            final TriConsumer<DestructorBlockEntity, BlockPos, GameTestSequence> consumer) {
+                            final TriConsumer<AbstractDestructorBlockEntity, BlockPos, GameTestSequence> consumer) {
         helper.setBlock(ZERO.above(), RSBLOCKS.getCreativeController().getDefault());
         helper.setBlock(ZERO.above().above(), RSBLOCKS.getItemStorageBlock(ItemStorageVariant.ONE_K));
         helper.setBlock(
@@ -29,7 +29,7 @@ final class DestructorTestPlots {
         final BlockPos destructorPos = ZERO.above().above().above();
         helper.setBlock(destructorPos, RSBLOCKS.getDestructor().getDefault().rotated(direction));
         consumer.accept(
-            requireBlockEntity(helper, destructorPos, DestructorBlockEntity.class),
+            requireBlockEntity(helper, destructorPos, AbstractDestructorBlockEntity.class),
             destructorPos,
             helper.startSequence()
         );

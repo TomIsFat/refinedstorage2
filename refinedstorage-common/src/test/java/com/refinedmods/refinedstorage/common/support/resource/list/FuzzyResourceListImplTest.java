@@ -1,9 +1,8 @@
 package com.refinedmods.refinedstorage.common.support.resource.list;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.common.SetupMinecraft;
-import com.refinedmods.refinedstorage.common.api.support.resource.list.FuzzyResourceList;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
 import java.util.Collection;
@@ -28,11 +27,11 @@ class FuzzyResourceListImplTest {
     private static final ItemResource DUMMY_D = new ItemResource(Items.GLASS, DataComponentPatch.EMPTY);
     private static final ItemResource DUMMY_E = new ItemResource(Items.DARK_OAK_DOOR, DataComponentPatch.EMPTY);
 
-    FuzzyResourceList sut;
+    FuzzyResourceListImpl sut;
 
     @BeforeEach
     void setUp() {
-        sut = new FuzzyResourceListImpl(ResourceListImpl.create());
+        sut = new FuzzyResourceListImpl(MutableResourceListImpl.create());
     }
 
     @Test

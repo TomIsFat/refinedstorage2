@@ -11,15 +11,16 @@ import org.lwjgl.glfw.GLFW;
 public class SearchFieldWidget extends EditBox {
     private final History history;
 
-    public SearchFieldWidget(final Font textRenderer,
+    public SearchFieldWidget(final Font font,
                              final int x,
                              final int y,
                              final int width,
                              final History history) {
-        super(textRenderer, x, y, width, textRenderer.lineHeight, Component.empty());
+        super(font, x, y, width, font.lineHeight, Component.empty());
         this.history = history;
-        this.setBordered(false);
-        this.setMaxLength(256);
+        setBordered(false);
+        setMaxLength(256);
+        setAutoSelected(Platform.INSTANCE.getConfig().isSearchBoxAutoSelected());
     }
 
     @Override
@@ -36,6 +37,8 @@ public class SearchFieldWidget extends EditBox {
             setFocused(true);
         } else if (wasFocused != isFocused()) {
             saveHistory();
+        } else if (!clickedWidget) {
+            setFocused(false);
         }
 
         return result;
@@ -81,6 +84,11 @@ public class SearchFieldWidget extends EditBox {
     private void toggleFocus() {
         setFocused(!isFocused());
         saveHistory();
+    }
+
+    public void setAutoSelected(final boolean autoSelected) {
+        setFocused(autoSelected);
+        setCanLoseFocus(!autoSelected);
     }
 
     private void saveHistory() {

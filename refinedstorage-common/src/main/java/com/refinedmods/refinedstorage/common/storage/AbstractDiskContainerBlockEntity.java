@@ -2,16 +2,18 @@ package com.refinedmods.refinedstorage.common.storage;
 
 import com.refinedmods.refinedstorage.api.network.impl.node.AbstractStorageContainerNetworkNode;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
 import com.refinedmods.refinedstorage.common.support.BlockEntityWithDrops;
 import com.refinedmods.refinedstorage.common.support.FilterWithFuzzyMode;
 import com.refinedmods.refinedstorage.common.support.FilteredContainer;
 import com.refinedmods.refinedstorage.common.support.containermenu.NetworkNodeExtendedMenuProvider;
-import com.refinedmods.refinedstorage.common.support.network.AbstractRedstoneModeNetworkNodeContainerBlockEntity;
+import com.refinedmods.refinedstorage.common.support.network.AbstractBaseNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerData;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerImpl;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
+import com.refinedmods.refinedstorage.common.util.PlatformUtil;
 
 import java.util.Set;
 import java.util.function.UnaryOperator;
@@ -34,7 +36,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class AbstractDiskContainerBlockEntity<T extends AbstractStorageContainerNetworkNode>
-    extends AbstractRedstoneModeNetworkNodeContainerBlockEntity<T>
+    extends AbstractBaseNetworkNodeContainerBlockEntity<T>
     implements BlockEntityWithDrops, NetworkNodeExtendedMenuProvider<ResourceContainerData> {
     private static final String TAG_DISK_INVENTORY = "inv";
     private static final String TAG_DISKS = "disks";
@@ -66,7 +68,7 @@ public abstract class AbstractDiskContainerBlockEntity<T extends AbstractStorage
         super.containerInitialized();
         // It's important to sync here as the initial update packet might have failed as the network
         // could possibly be not initialized yet.
-        diskStateListener.immediateUpdate();
+        PlatformUtil.sendBlockUpdateToClient(level, worldPosition);
     }
 
     protected abstract void setFilters(Set<ResourceKey> filters);
@@ -125,7 +127,7 @@ public abstract class AbstractDiskContainerBlockEntity<T extends AbstractStorage
     @Override
     public void activenessChanged(final boolean newActive) {
         super.activenessChanged(newActive);
-        diskStateListener.immediateUpdate();
+        PlatformUtil.sendBlockUpdateToClient(level, worldPosition);
     }
 
     @Override
@@ -168,7 +170,7 @@ public abstract class AbstractDiskContainerBlockEntity<T extends AbstractStorage
             return;
         }
         mainNetworkNode.onStorageChanged(slot);
-        diskStateListener.immediateUpdate();
+        PlatformUtil.sendBlockUpdateToClient(level, worldPosition);
         setChanged();
     }
 
@@ -181,7 +183,10 @@ public abstract class AbstractDiskContainerBlockEntity<T extends AbstractStorage
     }
 
     protected void onClientDriveStateUpdated() {
-        diskStateListener.immediateUpdate();
+        if (level == null) {
+            return;
+        }
+        Platform.INSTANCE.requestModelDataUpdateOnClient(level, worldPosition, true);
     }
 
     @Override
@@ -222,6 +227,6 @@ public abstract class AbstractDiskContainerBlockEntity<T extends AbstractStorage
     @Override
     protected boolean doesBlockStateChangeWarrantNetworkNodeUpdate(final BlockState oldBlockState,
                                                                    final BlockState newBlockState) {
-        return AbstractDirectionalBlock.doesBlockStateChangeWarrantNetworkNodeUpdate(oldBlockState, newBlockState);
+        return AbstractDirectionalBlock.didDirectionChange(oldBlockState, newBlockState);
     }
 }

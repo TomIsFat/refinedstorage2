@@ -10,6 +10,7 @@ import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotRefer
 import java.util.Optional;
 import java.util.Set;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
@@ -33,7 +34,12 @@ public class FallbackSecurityCardItem extends AbstractSecurityCardItem<SecurityC
         final Set<PlatformPermission> dirtyPermissions,
         final ItemStack stack
     ) {
-        return new FallbackSecurityCardExtendedMenuProvider(slotReference, policy, dirtyPermissions);
+        return new FallbackSecurityCardExtendedMenuProvider(
+            stack.get(DataComponents.CUSTOM_NAME),
+            slotReference,
+            policy,
+            dirtyPermissions
+        );
     }
 
     @Override

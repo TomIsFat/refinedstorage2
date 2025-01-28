@@ -3,8 +3,10 @@ package com.refinedmods.refinedstorage.common.grid.view;
 import com.refinedmods.refinedstorage.api.grid.view.GridResource;
 import com.refinedmods.refinedstorage.api.grid.view.GridResourceFactory;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.common.api.grid.GridResourceAttributeKeys;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,10 +17,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractItemGridResourceFactory implements GridResourceFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractItemGridResourceFactory.class);
+
     @Override
-    public Optional<GridResource> apply(final ResourceKey resource) {
+    public Optional<GridResource> apply(final ResourceKey resource, final boolean autocraftable) {
         if (!(resource instanceof ItemResource itemResource)) {
             return Optional.empty();
         }
@@ -33,19 +39,27 @@ public abstract class AbstractItemGridResourceFactory implements GridResourceFac
             itemResource,
             itemStack,
             name,
-            modId,
-            modName,
-            tags,
-            tooltip
+            Map.of(
+                GridResourceAttributeKeys.MOD_ID, Set.of(modId),
+                GridResourceAttributeKeys.MOD_NAME, Set.of(modName),
+                GridResourceAttributeKeys.TAGS, tags,
+                GridResourceAttributeKeys.TOOLTIP, Set.of(tooltip)
+            ),
+            autocraftable
         ));
     }
 
     private String getTooltip(final ItemStack itemStack) {
-        return itemStack
-            .getTooltipLines(Item.TooltipContext.EMPTY, null, TooltipFlag.ADVANCED)
-            .stream()
-            .map(Component::getString)
-            .collect(Collectors.joining("\n"));
+        try {
+            return itemStack
+                .getTooltipLines(Item.TooltipContext.EMPTY, null, TooltipFlag.ADVANCED)
+                .stream()
+                .map(Component::getString)
+                .collect(Collectors.joining("\n"));
+        } catch (final Throwable t) {
+            LOGGER.warn("Failed to get tooltip for item {}", itemStack, t);
+            return "";
+        }
     }
 
     private Set<String> getTags(final Item item) {

@@ -18,14 +18,16 @@ public abstract class AbstractPlatformGridResource<T extends PlatformResourceKey
     protected final T resource;
     private final String name;
     private final Map<GridResourceAttributeKey, Set<String>> attributes;
-    private boolean zeroed;
+    private final boolean autocraftable;
 
     protected AbstractPlatformGridResource(final T resource,
                                            final String name,
-                                           final Map<GridResourceAttributeKey, Set<String>> attributes) {
+                                           final Map<GridResourceAttributeKey, Set<String>> attributes,
+                                           final boolean autocraftable) {
         this.resource = resource;
         this.name = name;
         this.attributes = attributes;
+        this.autocraftable = autocraftable;
     }
 
     @Override
@@ -49,13 +51,8 @@ public abstract class AbstractPlatformGridResource<T extends PlatformResourceKey
     }
 
     @Override
-    public boolean isZeroed() {
-        return zeroed;
-    }
-
-    @Override
-    public void setZeroed(final boolean zeroed) {
-        this.zeroed = zeroed;
+    public boolean isAutocraftable() {
+        return autocraftable;
     }
 
     @Nullable
@@ -70,7 +67,7 @@ public abstract class AbstractPlatformGridResource<T extends PlatformResourceKey
             + "resource=" + resource
             + ", name='" + name + '\''
             + ", attributes=" + attributes
-            + ", zeroed=" + zeroed
+            + ", autocraftable=" + autocraftable
             + '}';
     }
 }

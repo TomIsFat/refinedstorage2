@@ -3,7 +3,6 @@ package com.refinedmods.refinedstorage.common.storage.portablegrid;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyStorage;
 import com.refinedmods.refinedstorage.common.api.grid.Grid;
 import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotReference;
-import com.refinedmods.refinedstorage.common.content.ContentNames;
 import com.refinedmods.refinedstorage.common.grid.GridData;
 import com.refinedmods.refinedstorage.common.grid.PortableGridData;
 import com.refinedmods.refinedstorage.common.storage.DiskInventory;
@@ -20,15 +19,20 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 class PortableGridItemExtendedMenuProvider implements ExtendedMenuProvider<PortableGridData> {
+    private final Component name;
     private final Grid grid;
     private final EnergyStorage energyStorage;
     private final DiskInventory diskInventory;
     private final SlotReference slotReference;
 
-    PortableGridItemExtendedMenuProvider(final Grid grid,
-                                         final EnergyStorage energyStorage,
-                                         final DiskInventory diskInventory,
-                                         final SlotReference slotReference) {
+    PortableGridItemExtendedMenuProvider(
+        final Component name,
+        final Grid grid,
+        final EnergyStorage energyStorage,
+        final DiskInventory diskInventory,
+        final SlotReference slotReference
+    ) {
+        this.name = name;
         this.grid = grid;
         this.energyStorage = energyStorage;
         this.diskInventory = diskInventory;
@@ -52,7 +56,7 @@ class PortableGridItemExtendedMenuProvider implements ExtendedMenuProvider<Porta
 
     @Override
     public Component getDisplayName() {
-        return ContentNames.PORTABLE_GRID;
+        return name;
     }
 
     @Nullable

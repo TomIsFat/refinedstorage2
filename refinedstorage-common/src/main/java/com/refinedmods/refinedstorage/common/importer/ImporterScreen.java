@@ -11,8 +11,8 @@ import net.minecraft.world.entity.player.Inventory;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public class ImporterScreen extends AbstractFilterScreen<ImporterContainerMenu> {
-    public ImporterScreen(final ImporterContainerMenu menu, final Inventory playerInventory, final Component text) {
-        super(menu, playerInventory, text);
+    public ImporterScreen(final ImporterContainerMenu menu, final Inventory playerInventory, final Component title) {
+        super(menu, playerInventory, title);
     }
 
     @Override

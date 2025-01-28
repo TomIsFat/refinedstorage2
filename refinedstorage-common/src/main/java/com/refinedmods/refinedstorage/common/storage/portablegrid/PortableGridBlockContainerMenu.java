@@ -15,7 +15,7 @@ public class PortableGridBlockContainerMenu extends AbstractPortableGridContaine
                                           final PortableGridData portableGridData) {
         super(Menus.INSTANCE.getPortableGridBlock(), syncId, playerInventory, portableGridData);
         registerProperty(new ClientProperty<>(PropertyTypes.REDSTONE_MODE, RedstoneMode.IGNORE));
-        this.onScreenReady(0);
+        resized(0, 0, 0);
     }
 
     PortableGridBlockContainerMenu(final int syncId,
@@ -34,6 +34,6 @@ public class PortableGridBlockContainerMenu extends AbstractPortableGridContaine
             portableGrid::getRedstoneMode,
             portableGrid::setRedstoneMode
         ));
-        this.onScreenReady(0);
+        resized(0, 0, 0);
     }
 }

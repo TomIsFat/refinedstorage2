@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.common.support.packet.c2s;
 
-import com.refinedmods.refinedstorage.common.grid.CraftingGridContainerMenu;
+import com.refinedmods.refinedstorage.common.grid.AbstractCraftingGridContainerMenu;
 import com.refinedmods.refinedstorage.common.support.packet.PacketContext;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceCodecs;
@@ -28,7 +28,7 @@ public record CraftingGridRecipeTransferPacket(List<List<ItemResource>> recipe) 
         );
 
     public static void handle(final CraftingGridRecipeTransferPacket packet, final PacketContext ctx) {
-        if (ctx.getPlayer().containerMenu instanceof CraftingGridContainerMenu craftingGridContainerMenu) {
+        if (ctx.getPlayer().containerMenu instanceof AbstractCraftingGridContainerMenu craftingGridContainerMenu) {
             craftingGridContainerMenu.transferRecipe(packet.recipe());
         }
     }

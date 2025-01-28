@@ -6,14 +6,14 @@ import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.Filter;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
-import com.refinedmods.refinedstorage.api.resource.list.listenable.ResourceListListener;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.storage.AccessMode;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.composite.CompositeAwareChild;
 import com.refinedmods.refinedstorage.api.storage.composite.ParentComposite;
 import com.refinedmods.refinedstorage.api.storage.composite.PriorityProvider;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorageListener;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -22,14 +22,15 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nullable;
 
-class RelayOutputStorage implements CompositeAwareChild, ResourceListListener, PriorityProvider {
+class RelayOutputStorage implements CompositeAwareChild, RootStorageListener, PriorityProvider {
     private final Set<ParentComposite> parentComposites = new HashSet<>();
     private final Filter filter = new Filter();
 
     @Nullable
     private StorageNetworkComponent delegate;
     private AccessMode accessMode = AccessMode.INSERT_EXTRACT;
-    private int priority;
+    private int insertPriority;
+    private int extractPriority;
 
     boolean hasDelegate() {
         return delegate != null;
@@ -39,8 +40,12 @@ class RelayOutputStorage implements CompositeAwareChild, ResourceListListener, P
         this.accessMode = accessMode;
     }
 
-    void setPriority(final int priority) {
-        this.priority = priority;
+    void setInsertPriority(final int insertPriority) {
+        this.insertPriority = insertPriority;
+    }
+
+    void setExtractPriority(final int extractPriority) {
+        this.extractPriority = extractPriority;
     }
 
     void setFilters(final Set<ResourceKey> filters) {
@@ -159,7 +164,7 @@ class RelayOutputStorage implements CompositeAwareChild, ResourceListListener, P
     }
 
     @Override
-    public void onChanged(final ResourceList.OperationResult change) {
+    public void changed(final MutableResourceList.OperationResult change) {
         if (delegate != null && delegate.contains(delegate)) {
             return;
         }
@@ -175,7 +180,17 @@ class RelayOutputStorage implements CompositeAwareChild, ResourceListListener, P
     }
 
     @Override
-    public int getPriority() {
-        return priority;
+    public int getInsertPriority() {
+        return insertPriority;
+    }
+
+    @Override
+    public int getExtractPriority() {
+        return extractPriority;
+    }
+
+    @Override
+    public InterceptResult beforeInsert(final ResourceKey resource, final long amount, final Actor actor) {
+        return InterceptResult.EMPTY;
     }
 }

@@ -18,6 +18,9 @@ final class RelayPropertyTypes {
     static final PropertyType<Boolean> PASS_SECURITY = PropertyTypes.createBooleanProperty(
         createIdentifier("pass_security")
     );
+    static final PropertyType<Boolean> PASS_AUTOCRAFTING = PropertyTypes.createBooleanProperty(
+        createIdentifier("pass_autocrafting")
+    );
 
     private RelayPropertyTypes() {
     }

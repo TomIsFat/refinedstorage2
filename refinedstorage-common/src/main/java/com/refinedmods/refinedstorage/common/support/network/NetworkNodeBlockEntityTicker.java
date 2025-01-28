@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 public class NetworkNodeBlockEntityTicker<
     N extends AbstractNetworkNode,
-    T extends BaseNetworkNodeContainerBlockEntity<N>
+    T extends AbstractBaseNetworkNodeContainerBlockEntity<N>
     > extends AbstractBlockEntityTicker<T> {
     @Nullable
     private final BooleanProperty activenessProperty;

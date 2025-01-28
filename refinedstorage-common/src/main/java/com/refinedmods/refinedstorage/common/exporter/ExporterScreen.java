@@ -9,8 +9,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 public class ExporterScreen extends AbstractFilterScreen<ExporterContainerMenu> {
-    public ExporterScreen(final ExporterContainerMenu menu, final Inventory playerInventory, final Component text) {
-        super(menu, playerInventory, text);
+    public ExporterScreen(final ExporterContainerMenu menu, final Inventory playerInventory, final Component title) {
+        super(menu, playerInventory, title);
     }
 
     @Override

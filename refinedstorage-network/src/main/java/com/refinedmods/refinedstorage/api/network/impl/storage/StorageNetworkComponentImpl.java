@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.api.network.impl.storage;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageProvider;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.TrackedResourceAmount;
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 public class StorageNetworkComponentImpl extends RootStorageImpl implements StorageNetworkComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(StorageNetworkComponentImpl.class);
 
-    public StorageNetworkComponentImpl(final ResourceList list) {
+    public StorageNetworkComponentImpl(final MutableResourceList list) {
         super(list);
     }
 

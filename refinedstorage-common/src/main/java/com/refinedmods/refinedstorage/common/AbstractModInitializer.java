@@ -1,9 +1,9 @@
 package com.refinedmods.refinedstorage.common;
 
+import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.energy.EnergyNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.impl.node.GraphNetworkComponentImpl;
-import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.impl.security.SecurityNetworkComponentImpl;
 import com.refinedmods.refinedstorage.api.network.node.GraphNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.security.SecurityNetworkComponent;
@@ -13,18 +13,29 @@ import com.refinedmods.refinedstorage.common.api.RefinedStorageApiProxy;
 import com.refinedmods.refinedstorage.common.api.security.PlatformSecurityNetworkComponent;
 import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
 import com.refinedmods.refinedstorage.common.autocrafting.CraftingPatternState;
-import com.refinedmods.refinedstorage.common.autocrafting.PatternGridBlockEntity;
-import com.refinedmods.refinedstorage.common.autocrafting.PatternGridContainerMenu;
-import com.refinedmods.refinedstorage.common.autocrafting.PatternGridData;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternItem;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.PlatformAutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.common.autocrafting.ProcessingPatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.SmithingTablePatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.StonecutterPatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterBlockEntity;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterData;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerBlockEntity;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerData;
+import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorBlockEntity;
+import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorData;
+import com.refinedmods.refinedstorage.common.autocrafting.monitor.WirelessAutocraftingMonitorContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridBlockEntity;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridData;
 import com.refinedmods.refinedstorage.common.configurationcard.ConfigurationCardItem;
 import com.refinedmods.refinedstorage.common.configurationcard.ConfigurationCardState;
 import com.refinedmods.refinedstorage.common.constructordestructor.BlockBreakDestructorStrategyFactory;
-import com.refinedmods.refinedstorage.common.constructordestructor.ConstructorBlockEntity;
 import com.refinedmods.refinedstorage.common.constructordestructor.ConstructorContainerMenu;
-import com.refinedmods.refinedstorage.common.constructordestructor.DestructorBlockEntity;
 import com.refinedmods.refinedstorage.common.constructordestructor.DestructorContainerMenu;
 import com.refinedmods.refinedstorage.common.constructordestructor.FluidBreakDestructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.constructordestructor.ItemDropConstructorStrategyFactory;
@@ -32,7 +43,9 @@ import com.refinedmods.refinedstorage.common.constructordestructor.ItemPickupDes
 import com.refinedmods.refinedstorage.common.constructordestructor.PlaceBlockConstructorStrategy;
 import com.refinedmods.refinedstorage.common.constructordestructor.PlaceFireworksConstructorStrategy;
 import com.refinedmods.refinedstorage.common.constructordestructor.PlaceFluidConstructorStrategy;
+import com.refinedmods.refinedstorage.common.content.BlockConstants;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.BlockEntityProviders;
 import com.refinedmods.refinedstorage.common.content.BlockEntityTypeFactory;
 import com.refinedmods.refinedstorage.common.content.Blocks;
 import com.refinedmods.refinedstorage.common.content.ContentIds;
@@ -50,7 +63,6 @@ import com.refinedmods.refinedstorage.common.controller.ControllerData;
 import com.refinedmods.refinedstorage.common.controller.ControllerType;
 import com.refinedmods.refinedstorage.common.detector.DetectorBlockEntity;
 import com.refinedmods.refinedstorage.common.detector.DetectorContainerMenu;
-import com.refinedmods.refinedstorage.common.exporter.ExporterBlockEntity;
 import com.refinedmods.refinedstorage.common.exporter.ExporterContainerMenu;
 import com.refinedmods.refinedstorage.common.grid.CraftingGridBlockEntity;
 import com.refinedmods.refinedstorage.common.grid.CraftingGridContainerMenu;
@@ -64,17 +76,22 @@ import com.refinedmods.refinedstorage.common.iface.InterfaceBlock;
 import com.refinedmods.refinedstorage.common.iface.InterfaceBlockEntity;
 import com.refinedmods.refinedstorage.common.iface.InterfaceContainerMenu;
 import com.refinedmods.refinedstorage.common.iface.InterfaceData;
-import com.refinedmods.refinedstorage.common.importer.ImporterBlockEntity;
 import com.refinedmods.refinedstorage.common.importer.ImporterContainerMenu;
 import com.refinedmods.refinedstorage.common.misc.ProcessorItem;
 import com.refinedmods.refinedstorage.common.misc.WrenchItem;
+import com.refinedmods.refinedstorage.common.networking.BaseWirelessTransmitterRangeModifier;
+import com.refinedmods.refinedstorage.common.networking.CreativeRangeUpgradeWirelessTransmitterRangeModifier;
 import com.refinedmods.refinedstorage.common.networking.NetworkCardItem;
 import com.refinedmods.refinedstorage.common.networking.NetworkReceiverBlockEntity;
 import com.refinedmods.refinedstorage.common.networking.NetworkTransmitterBlockEntity;
 import com.refinedmods.refinedstorage.common.networking.NetworkTransmitterContainerMenu;
 import com.refinedmods.refinedstorage.common.networking.NetworkTransmitterData;
+import com.refinedmods.refinedstorage.common.networking.RangeUpgradeWirelessTransmitterRangeModifier;
 import com.refinedmods.refinedstorage.common.networking.RelayBlockEntity;
 import com.refinedmods.refinedstorage.common.networking.RelayContainerMenu;
+import com.refinedmods.refinedstorage.common.networking.WirelessTransmitterBlockEntity;
+import com.refinedmods.refinedstorage.common.networking.WirelessTransmitterContainerMenu;
+import com.refinedmods.refinedstorage.common.networking.WirelessTransmitterData;
 import com.refinedmods.refinedstorage.common.security.BuiltinPermission;
 import com.refinedmods.refinedstorage.common.security.FallbackSecurityCardContainerMenu;
 import com.refinedmods.refinedstorage.common.security.PlatformSecurityNetworkComponentImpl;
@@ -87,32 +104,26 @@ import com.refinedmods.refinedstorage.common.security.SecurityManagerBlockEntity
 import com.refinedmods.refinedstorage.common.security.SecurityManagerContainerMenu;
 import com.refinedmods.refinedstorage.common.storage.FluidStorageVariant;
 import com.refinedmods.refinedstorage.common.storage.ItemStorageVariant;
+import com.refinedmods.refinedstorage.common.storage.StorageContainerUpgradeRecipe;
+import com.refinedmods.refinedstorage.common.storage.StorageContainerUpgradeRecipeSerializer;
 import com.refinedmods.refinedstorage.common.storage.StorageTypes;
-import com.refinedmods.refinedstorage.common.storage.diskdrive.AbstractDiskDriveBlockEntity;
 import com.refinedmods.refinedstorage.common.storage.diskdrive.DiskDriveBlock;
 import com.refinedmods.refinedstorage.common.storage.diskdrive.DiskDriveContainerMenu;
-import com.refinedmods.refinedstorage.common.storage.diskinterface.AbstractDiskInterfaceBlockEntity;
 import com.refinedmods.refinedstorage.common.storage.diskinterface.DiskInterfaceContainerMenu;
-import com.refinedmods.refinedstorage.common.storage.externalstorage.ExternalStorageBlockEntity;
 import com.refinedmods.refinedstorage.common.storage.externalstorage.ExternalStorageContainerMenu;
-import com.refinedmods.refinedstorage.common.storage.portablegrid.AbstractPortableGridBlockEntity;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridBlock;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridBlockContainerMenu;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridItemContainerMenu;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridLootItemFunction;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridType;
-import com.refinedmods.refinedstorage.common.storage.storageblock.FluidStorageBlock;
-import com.refinedmods.refinedstorage.common.storage.storageblock.FluidStorageBlockBlockEntity;
 import com.refinedmods.refinedstorage.common.storage.storageblock.FluidStorageBlockBlockItem;
-import com.refinedmods.refinedstorage.common.storage.storageblock.FluidStorageBlockContainerMenu;
-import com.refinedmods.refinedstorage.common.storage.storageblock.ItemStorageBlock;
-import com.refinedmods.refinedstorage.common.storage.storageblock.ItemStorageBlockBlockEntity;
+import com.refinedmods.refinedstorage.common.storage.storageblock.FluidStorageBlockProvider;
 import com.refinedmods.refinedstorage.common.storage.storageblock.ItemStorageBlockBlockItem;
-import com.refinedmods.refinedstorage.common.storage.storageblock.ItemStorageBlockContainerMenu;
-import com.refinedmods.refinedstorage.common.storage.storageblock.StorageBlockData;
+import com.refinedmods.refinedstorage.common.storage.storageblock.ItemStorageBlockProvider;
 import com.refinedmods.refinedstorage.common.storage.storageblock.StorageBlockLootItemFunction;
 import com.refinedmods.refinedstorage.common.storage.storagedisk.FluidStorageDiskItem;
 import com.refinedmods.refinedstorage.common.storage.storagedisk.ItemStorageDiskItem;
+import com.refinedmods.refinedstorage.common.storagemonitor.AutocraftingStorageMonitorContainerMenu;
 import com.refinedmods.refinedstorage.common.storagemonitor.FluidStorageMonitorExtractionStrategy;
 import com.refinedmods.refinedstorage.common.storagemonitor.FluidStorageMonitorInsertionStrategy;
 import com.refinedmods.refinedstorage.common.storagemonitor.ItemStorageMonitorExtractionStrategy;
@@ -125,10 +136,10 @@ import com.refinedmods.refinedstorage.common.support.SimpleBlock;
 import com.refinedmods.refinedstorage.common.support.SimpleItem;
 import com.refinedmods.refinedstorage.common.support.containermenu.SingleAmountData;
 import com.refinedmods.refinedstorage.common.support.energy.EnergyLootItemFunction;
-import com.refinedmods.refinedstorage.common.support.network.BaseNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.support.network.component.PlatformStorageNetworkComponent;
 import com.refinedmods.refinedstorage.common.support.resource.FluidResourceContainerInsertStrategy;
 import com.refinedmods.refinedstorage.common.support.resource.FluidResourceFactory;
+import com.refinedmods.refinedstorage.common.support.resource.ResourceCodecs;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerData;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceTypes;
 import com.refinedmods.refinedstorage.common.support.slotreference.InventorySlotReferenceFactory;
@@ -139,21 +150,14 @@ import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeState;
 import com.refinedmods.refinedstorage.common.upgrade.SimpleUpgradeItem;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeDestinations;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeWithEnchantedBookRecipeSerializer;
-import com.refinedmods.refinedstorage.common.wirelesstransmitter.BaseWirelessTransmitterRangeModifier;
-import com.refinedmods.refinedstorage.common.wirelesstransmitter.CreativeRangeUpgradeWirelessTransmitterRangeModifier;
-import com.refinedmods.refinedstorage.common.wirelesstransmitter.RangeUpgradeWirelessTransmitterRangeModifier;
-import com.refinedmods.refinedstorage.common.wirelesstransmitter.WirelessTransmitterBlockEntity;
-import com.refinedmods.refinedstorage.common.wirelesstransmitter.WirelessTransmitterContainerMenu;
-import com.refinedmods.refinedstorage.common.wirelesstransmitter.WirelessTransmitterData;
+import com.refinedmods.refinedstorage.common.util.ServerListener;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
@@ -165,7 +169,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
@@ -269,6 +272,13 @@ public abstract class AbstractModInitializer {
             SecurityNetworkComponent.class,
             network -> new SecurityNetworkComponentImpl(RefinedStorageApi.INSTANCE.createDefaultSecurityPolicy())
         );
+        RefinedStorageApi.INSTANCE.getNetworkComponentMapFactory().addFactory(
+            AutocraftingNetworkComponent.class,
+            network -> new PlatformAutocraftingNetworkComponent(
+                () -> network.getComponent(StorageNetworkComponent.class),
+                ServerListener.getAutocraftingPool()
+            )
+        );
     }
 
     private void registerWirelessTransmitterRangeModifiers() {
@@ -287,45 +297,43 @@ public abstract class AbstractModInitializer {
         }
     }
 
-    protected final void registerBlocks(
-        final RegistryCallback<Block> callback,
-        final BiFunction<BlockPos, BlockState, AbstractDiskDriveBlockEntity> diskDriveBlockEntityFactory,
-        final BiFunction<BlockPos, BlockState, AbstractPortableGridBlockEntity> portableGridBlockEntityFactory,
-        final BiFunction<BlockPos, BlockState, AbstractPortableGridBlockEntity> creativePortableGridBlockEntityFactory,
-        final BiFunction<BlockPos, BlockState, AbstractDiskInterfaceBlockEntity> diskInterfaceBlockEntityFactory
-    ) {
-        Blocks.INSTANCE.setQuartzEnrichedIronBlock(callback.register(
-            ContentIds.QUARTZ_ENRICHED_IRON_BLOCK, SimpleBlock::new));
-        Blocks.INSTANCE.setQuartzEnrichedCopperBlock(
-            callback.register(ContentIds.QUARTZ_ENRICHED_COPPER_BLOCK, SimpleBlock::new));
-        Blocks.INSTANCE.setDiskDrive(
-            callback.register(ContentIds.DISK_DRIVE, () -> new DiskDriveBlock(diskDriveBlockEntityFactory))
-        );
+    protected final void registerBlocks(final RegistryCallback<Block> callback,
+                                        final BlockEntityProviders blockEntityProviders) {
+        Blocks.INSTANCE.setDiskDrive(callback.register(
+            ContentIds.DISK_DRIVE,
+            () -> new DiskDriveBlock(blockEntityProviders.diskDrive())
+        ));
         Blocks.INSTANCE.setMachineCasing(callback.register(ContentIds.MACHINE_CASING, SimpleBlock::new));
         for (final ItemStorageVariant variant : ItemStorageVariant.values()) {
             Blocks.INSTANCE.setItemStorageBlock(variant, callback.register(
                 ContentIds.forItemStorageBlock(variant),
-                () -> new ItemStorageBlock(variant)
+                () -> RefinedStorageApi.INSTANCE.createStorageBlock(
+                    BlockConstants.PROPERTIES,
+                    new ItemStorageBlockProvider(variant)
+                )
             ));
         }
         for (final FluidStorageVariant variant : FluidStorageVariant.values()) {
             Blocks.INSTANCE.setFluidStorageBlock(variant, callback.register(
                 ContentIds.forFluidStorageBlock(variant),
-                () -> new FluidStorageBlock(variant)
+                () -> RefinedStorageApi.INSTANCE.createStorageBlock(
+                    BlockConstants.PROPERTIES,
+                    new FluidStorageBlockProvider(variant)
+                )
             ));
         }
         Blocks.INSTANCE.getController().registerBlocks(callback);
         Blocks.INSTANCE.getCreativeController().registerBlocks(callback);
-        Blocks.INSTANCE.getCable().registerBlocks(callback);
+        Blocks.INSTANCE.setCable(blockEntityProviders.cable()).registerBlocks(callback);
         Blocks.INSTANCE.getGrid().registerBlocks(callback);
         Blocks.INSTANCE.getCraftingGrid().registerBlocks(callback);
         Blocks.INSTANCE.getPatternGrid().registerBlocks(callback);
         Blocks.INSTANCE.getDetector().registerBlocks(callback);
-        Blocks.INSTANCE.getImporter().registerBlocks(callback);
-        Blocks.INSTANCE.getExporter().registerBlocks(callback);
-        Blocks.INSTANCE.getExternalStorage().registerBlocks(callback);
-        Blocks.INSTANCE.getConstructor().registerBlocks(callback);
-        Blocks.INSTANCE.getDestructor().registerBlocks(callback);
+        Blocks.INSTANCE.setImporter(blockEntityProviders.importer()).registerBlocks(callback);
+        Blocks.INSTANCE.setExporter(blockEntityProviders.exporter()).registerBlocks(callback);
+        Blocks.INSTANCE.setExternalStorage(blockEntityProviders.externalStorage()).registerBlocks(callback);
+        Blocks.INSTANCE.setConstructor(blockEntityProviders.constructor()).registerBlocks(callback);
+        Blocks.INSTANCE.setDestructor(blockEntityProviders.destructor()).registerBlocks(callback);
         Blocks.INSTANCE.setInterface(callback.register(ContentIds.INTERFACE, InterfaceBlock::new));
         Blocks.INSTANCE.getWirelessTransmitter().registerBlocks(callback);
         Blocks.INSTANCE.setStorageMonitor(callback.register(ContentIds.STORAGE_MONITOR, StorageMonitorBlock::new));
@@ -333,16 +341,19 @@ public abstract class AbstractModInitializer {
         Blocks.INSTANCE.getNetworkTransmitter().registerBlocks(callback);
         Blocks.INSTANCE.setPortableGrid(callback.register(ContentIds.PORTABLE_GRID, () -> new PortableGridBlock(
             PortableGridType.NORMAL,
-            portableGridBlockEntityFactory
+            blockEntityProviders.portableGrid()
         )));
         Blocks.INSTANCE.setCreativePortableGrid(
             callback.register(ContentIds.CREATIVE_PORTABLE_GRID, () -> new PortableGridBlock(
                 PortableGridType.CREATIVE,
-                creativePortableGridBlockEntityFactory
+                blockEntityProviders.creativePortableGrid()
             )));
         Blocks.INSTANCE.getSecurityManager().registerBlocks(callback);
         Blocks.INSTANCE.getRelay().registerBlocks(callback);
-        Blocks.INSTANCE.setDiskInterface(diskInterfaceBlockEntityFactory).registerBlocks(callback);
+        Blocks.INSTANCE.setDiskInterface(blockEntityProviders.diskInterface()).registerBlocks(callback);
+        Blocks.INSTANCE.getAutocrafter().registerBlocks(callback);
+        Blocks.INSTANCE.getAutocrafterManager().registerBlocks(callback);
+        Blocks.INSTANCE.getAutocraftingMonitor().registerBlocks(callback);
     }
 
     protected final void registerItems(final RegistryCallback<Item> callback) {
@@ -365,6 +376,9 @@ public abstract class AbstractModInitializer {
         Blocks.INSTANCE.getSecurityManager().registerItems(callback, Items.INSTANCE::addSecurityManager);
         Blocks.INSTANCE.getRelay().registerItems(callback, Items.INSTANCE::addRelay);
         Blocks.INSTANCE.getDiskInterface().registerItems(callback, Items.INSTANCE::addDiskInterface);
+        Blocks.INSTANCE.getAutocrafter().registerItems(callback, Items.INSTANCE::addAutocrafter);
+        Blocks.INSTANCE.getAutocrafterManager().registerItems(callback, Items.INSTANCE::addAutocrafterManager);
+        Blocks.INSTANCE.getAutocraftingMonitor().registerItems(callback, Items.INSTANCE::addAutocraftingMonitor);
         registerStorageItems(callback);
         registerUpgrades(callback);
     }
@@ -372,14 +386,6 @@ public abstract class AbstractModInitializer {
     private void registerSimpleItems(final RegistryCallback<Item> callback) {
         Items.INSTANCE.setQuartzEnrichedIron(callback.register(ContentIds.QUARTZ_ENRICHED_IRON, SimpleItem::new));
         Items.INSTANCE.setQuartzEnrichedCopper(callback.register(ContentIds.QUARTZ_ENRICHED_COPPER, SimpleItem::new));
-        callback.register(
-            ContentIds.QUARTZ_ENRICHED_IRON_BLOCK,
-            () -> new BaseBlockItem(Blocks.INSTANCE.getQuartzEnrichedIronBlock())
-        );
-        callback.register(
-            ContentIds.QUARTZ_ENRICHED_COPPER_BLOCK,
-            () -> new BaseBlockItem(Blocks.INSTANCE.getQuartzEnrichedCopperBlock())
-        );
         Items.INSTANCE.setSilicon(callback.register(ContentIds.SILICON, SimpleItem::new));
         Items.INSTANCE.setProcessorBinding(callback.register(ContentIds.PROCESSOR_BINDING, SimpleItem::new));
         callback.register(ContentIds.DISK_DRIVE, () -> Blocks.INSTANCE.getDiskDrive().createBlockItem());
@@ -419,8 +425,8 @@ public abstract class AbstractModInitializer {
         if (variant != ItemStorageVariant.CREATIVE) {
             Items.INSTANCE.setItemStoragePart(variant, callback.register(
                 ContentIds.forItemStoragePart(variant),
-                SimpleItem::new)
-            );
+                SimpleItem::new
+            ));
         }
         Items.INSTANCE.setItemStorageDisk(variant, callback.register(
             ContentIds.forStorageDisk(variant),
@@ -524,27 +530,19 @@ public abstract class AbstractModInitializer {
         RefinedStorageApi.INSTANCE.getUpgradeRegistry().forDestination(UpgradeDestinations.DISK_INTERFACE)
             .add(Items.INSTANCE.getSpeedUpgrade(), 4)
             .add(Items.INSTANCE.getStackUpgrade());
+
+        RefinedStorageApi.INSTANCE.getUpgradeRegistry().forDestination(UpgradeDestinations.AUTOCRAFTER)
+            .add(Items.INSTANCE.getSpeedUpgrade(), 4);
     }
 
     protected final void registerBlockEntities(
         final RegistryCallback<BlockEntityType<?>> callback,
         final BlockEntityTypeFactory typeFactory,
-        final BlockEntityTypeFactory.BlockEntitySupplier<AbstractDiskDriveBlockEntity> diskDriveBlockEntitySupplier,
-        final BlockEntityTypeFactory.BlockEntitySupplier<? extends AbstractPortableGridBlockEntity>
-            portableGridBlockEntitySupplier,
-        final BlockEntityTypeFactory.BlockEntitySupplier<? extends AbstractPortableGridBlockEntity>
-            creativePortableGridBlockEntitySupplier,
-        final BlockEntityTypeFactory.BlockEntitySupplier<AbstractDiskInterfaceBlockEntity>
-            diskInterfaceBlockEntitySupplier
+        final BlockEntityProviders providers
     ) {
         BlockEntities.INSTANCE.setCable(callback.register(
             ContentIds.CABLE,
-            () -> typeFactory.create((pos, state) -> new BaseNetworkNodeContainerBlockEntity<>(
-                BlockEntities.INSTANCE.getCable(),
-                pos,
-                state,
-                new SimpleNetworkNode(Platform.INSTANCE.getConfig().getCable().getEnergyUsage())
-            ), Blocks.INSTANCE.getCable().toArray())
+            () -> typeFactory.create(providers.cable(), Blocks.INSTANCE.getCable().toArray())
         ));
         BlockEntities.INSTANCE.setController(callback.register(
             ContentIds.CONTROLLER,
@@ -562,7 +560,7 @@ public abstract class AbstractModInitializer {
         ));
         BlockEntities.INSTANCE.setDiskDrive(callback.register(
             ContentIds.DISK_DRIVE,
-            () -> typeFactory.create(diskDriveBlockEntitySupplier, Blocks.INSTANCE.getDiskDrive())
+            () -> typeFactory.create(providers.diskDrive(), Blocks.INSTANCE.getDiskDrive())
         ));
         BlockEntities.INSTANCE.setGrid(callback.register(
             ContentIds.GRID,
@@ -580,7 +578,9 @@ public abstract class AbstractModInitializer {
             BlockEntities.INSTANCE.setItemStorageBlock(variant, callback.register(
                 ContentIds.forItemStorageBlock(variant),
                 () -> typeFactory.create(
-                    (pos, state) -> new ItemStorageBlockBlockEntity(pos, state, variant),
+                    (pos, state) -> RefinedStorageApi.INSTANCE.createStorageBlockEntity(
+                        pos, state, new ItemStorageBlockProvider(variant)
+                    ),
                     Blocks.INSTANCE.getItemStorageBlock(variant)
                 )
             ));
@@ -589,19 +589,20 @@ public abstract class AbstractModInitializer {
             BlockEntities.INSTANCE.setFluidStorageBlock(variant, callback.register(
                 ContentIds.forFluidStorageBlock(variant),
                 () -> typeFactory.create(
-                    (pos, state) -> new FluidStorageBlockBlockEntity(pos, state, variant),
+                    (pos, state) -> RefinedStorageApi.INSTANCE.createStorageBlockEntity(
+                        pos, state, new FluidStorageBlockProvider(variant)
+                    ),
                     Blocks.INSTANCE.getFluidStorageBlock(variant)
                 )
             ));
         }
         BlockEntities.INSTANCE.setImporter(callback.register(
             ContentIds.IMPORTER,
-            () -> typeFactory.create(ImporterBlockEntity::new, Blocks.INSTANCE.getImporter().toArray())
-
+            () -> typeFactory.create(providers.importer(), Blocks.INSTANCE.getImporter().toArray())
         ));
         BlockEntities.INSTANCE.setExporter(callback.register(
             ContentIds.EXPORTER,
-            () -> typeFactory.create(ExporterBlockEntity::new, Blocks.INSTANCE.getExporter().toArray())
+            () -> typeFactory.create(providers.exporter(), Blocks.INSTANCE.getExporter().toArray())
 
         ));
         BlockEntities.INSTANCE.setInterface(callback.register(
@@ -610,7 +611,7 @@ public abstract class AbstractModInitializer {
         ));
         BlockEntities.INSTANCE.setExternalStorage(callback.register(
             ContentIds.EXTERNAL_STORAGE,
-            () -> typeFactory.create(ExternalStorageBlockEntity::new, Blocks.INSTANCE.getExternalStorage().toArray())
+            () -> typeFactory.create(providers.externalStorage(), Blocks.INSTANCE.getExternalStorage().toArray())
         ));
         BlockEntities.INSTANCE.setDetector(callback.register(
             ContentIds.DETECTOR,
@@ -618,11 +619,11 @@ public abstract class AbstractModInitializer {
         ));
         BlockEntities.INSTANCE.setConstructor(callback.register(
             ContentIds.CONSTRUCTOR,
-            () -> typeFactory.create(ConstructorBlockEntity::new, Blocks.INSTANCE.getConstructor().toArray())
+            () -> typeFactory.create(providers.constructor(), Blocks.INSTANCE.getConstructor().toArray())
         ));
         BlockEntities.INSTANCE.setDestructor(callback.register(
             ContentIds.DESTRUCTOR,
-            () -> typeFactory.create(DestructorBlockEntity::new, Blocks.INSTANCE.getDestructor().toArray())
+            () -> typeFactory.create(providers.destructor(), Blocks.INSTANCE.getDestructor().toArray())
         ));
         BlockEntities.INSTANCE.setWirelessTransmitter(callback.register(
             ContentIds.WIRELESS_TRANSMITTER,
@@ -648,12 +649,12 @@ public abstract class AbstractModInitializer {
         ));
         BlockEntities.INSTANCE.setPortableGrid(callback.register(
             ContentIds.PORTABLE_GRID,
-            () -> typeFactory.create(portableGridBlockEntitySupplier::create, Blocks.INSTANCE.getPortableGrid())
+            () -> typeFactory.create(providers.portableGrid(), Blocks.INSTANCE.getPortableGrid())
         ));
         BlockEntities.INSTANCE.setCreativePortableGrid(callback.register(
             ContentIds.CREATIVE_PORTABLE_GRID,
             () -> typeFactory.create(
-                creativePortableGridBlockEntitySupplier::create,
+                providers.creativePortableGrid(),
                 Blocks.INSTANCE.getCreativePortableGrid()
             )
         ));
@@ -670,7 +671,21 @@ public abstract class AbstractModInitializer {
         ));
         BlockEntities.INSTANCE.setDiskInterface(callback.register(
             ContentIds.DISK_INTERFACE,
-            () -> typeFactory.create(diskInterfaceBlockEntitySupplier, Blocks.INSTANCE.getDiskInterface().toArray())
+            () -> typeFactory.create(providers.diskInterface(), Blocks.INSTANCE.getDiskInterface().toArray())
+        ));
+        BlockEntities.INSTANCE.setAutocrafter(callback.register(
+            ContentIds.AUTOCRAFTER,
+            () -> typeFactory.create(AutocrafterBlockEntity::new, Blocks.INSTANCE.getAutocrafter().toArray())
+        ));
+        BlockEntities.INSTANCE.setAutocrafterManager(callback.register(
+            ContentIds.AUTOCRAFTER_MANAGER,
+            () -> typeFactory.create(AutocrafterManagerBlockEntity::new,
+                Blocks.INSTANCE.getAutocrafterManager().toArray())
+        ));
+        BlockEntities.INSTANCE.setAutocraftingMonitor(callback.register(
+            ContentIds.AUTOCRAFTING_MONITOR,
+            () -> typeFactory.create(AutocraftingMonitorBlockEntity::new,
+                Blocks.INSTANCE.getAutocraftingMonitor().toArray())
         ));
     }
 
@@ -703,12 +718,22 @@ public abstract class AbstractModInitializer {
         ));
         Menus.INSTANCE.setItemStorage(callback.register(
             ContentIds.ITEM_STORAGE_BLOCK,
-            () -> extendedMenuTypeFactory.create(ItemStorageBlockContainerMenu::new, StorageBlockData.STREAM_CODEC)
-        ));
+            () -> extendedMenuTypeFactory.create((syncId, playerInventory, data) ->
+                RefinedStorageApi.INSTANCE.createStorageBlockContainerMenu(
+                    syncId,
+                    playerInventory.player,
+                    data,
+                    RefinedStorageApi.INSTANCE.getItemResourceFactory(),
+                    Menus.INSTANCE.getItemStorage()), RefinedStorageApi.INSTANCE.getStorageBlockDataStreamCodec())));
         Menus.INSTANCE.setFluidStorage(callback.register(
             ContentIds.FLUID_STORAGE_BLOCK,
-            () -> extendedMenuTypeFactory.create(FluidStorageBlockContainerMenu::new, StorageBlockData.STREAM_CODEC)
-        ));
+            () -> extendedMenuTypeFactory.create((syncId, playerInventory, data) ->
+                RefinedStorageApi.INSTANCE.createStorageBlockContainerMenu(
+                    syncId,
+                    playerInventory.player,
+                    data,
+                    RefinedStorageApi.INSTANCE.getFluidResourceFactory(),
+                    Menus.INSTANCE.getFluidStorage()), RefinedStorageApi.INSTANCE.getStorageBlockDataStreamCodec())));
         Menus.INSTANCE.setImporter(callback.register(
             ContentIds.IMPORTER,
             () -> extendedMenuTypeFactory.create(ImporterContainerMenu::new, ResourceContainerData.STREAM_CODEC)
@@ -750,6 +775,13 @@ public abstract class AbstractModInitializer {
             ContentIds.STORAGE_MONITOR,
             () -> extendedMenuTypeFactory.create(StorageMonitorContainerMenu::new, ResourceContainerData.STREAM_CODEC)
         ));
+        Menus.INSTANCE.setAutocraftingStorageMonitor(callback.register(
+            createIdentifier("autocrafting_storage_monitor"),
+            () -> extendedMenuTypeFactory.create(
+                (syncId, playerInventory, data) -> new AutocraftingStorageMonitorContainerMenu(syncId, data),
+                ResourceCodecs.STREAM_CODEC
+            )
+        ));
         Menus.INSTANCE.setNetworkTransmitter(callback.register(
             ContentIds.NETWORK_TRANSMITTER,
             () -> extendedMenuTypeFactory.create(NetworkTransmitterContainerMenu::new,
@@ -784,6 +816,29 @@ public abstract class AbstractModInitializer {
             ContentIds.DISK_INTERFACE,
             () -> extendedMenuTypeFactory.create(DiskInterfaceContainerMenu::new, ResourceContainerData.STREAM_CODEC)
         ));
+        Menus.INSTANCE.setAutocrafter(callback.register(
+            ContentIds.AUTOCRAFTER,
+            () -> extendedMenuTypeFactory.create(AutocrafterContainerMenu::new, AutocrafterData.STREAM_CODEC)
+        ));
+        Menus.INSTANCE.setAutocrafterManager(callback.register(
+            ContentIds.AUTOCRAFTER_MANAGER,
+            () -> extendedMenuTypeFactory.create(
+                AutocrafterManagerContainerMenu::new,
+                AutocrafterManagerData.STREAM_CODEC
+            )
+        ));
+        Menus.INSTANCE.setAutocraftingMonitor(callback.register(
+            ContentIds.AUTOCRAFTING_MONITOR,
+            () -> extendedMenuTypeFactory.create(
+                AutocraftingMonitorContainerMenu::new,
+                AutocraftingMonitorData.STREAM_CODEC
+            )
+        ));
+        Menus.INSTANCE.setWirelessAutocraftingMonitor(callback.register(
+            ContentIds.WIRELESS_AUTOCRAFTING_MONITOR,
+            () -> extendedMenuTypeFactory.create(WirelessAutocraftingMonitorContainerMenu::new,
+                AutocraftingMonitorData.STREAM_CODEC)
+        ));
     }
 
     protected final void registerLootFunctions(final RegistryCallback<LootItemFunctionType<?>> callback) {
@@ -813,6 +868,42 @@ public abstract class AbstractModInitializer {
             createIdentifier("upgrade_with_enchanted_book"),
             UpgradeWithEnchantedBookRecipeSerializer::new
         );
+        callback.register(
+            createIdentifier("storage_disk_upgrade"),
+            () -> new StorageContainerUpgradeRecipeSerializer<>(
+                ItemStorageVariant.values(),
+                to -> new StorageContainerUpgradeRecipe<>(
+                    ItemStorageVariant.values(), to, Items.INSTANCE::getItemStorageDisk
+                )
+            )
+        );
+        callback.register(
+            createIdentifier("fluid_storage_disk_upgrade"),
+            () -> new StorageContainerUpgradeRecipeSerializer<>(
+                FluidStorageVariant.values(),
+                to -> new StorageContainerUpgradeRecipe<>(
+                    FluidStorageVariant.values(), to, Items.INSTANCE::getFluidStorageDisk
+                )
+            )
+        );
+        callback.register(
+            createIdentifier("storage_block_upgrade"),
+            () -> new StorageContainerUpgradeRecipeSerializer<>(
+                ItemStorageVariant.values(),
+                to -> new StorageContainerUpgradeRecipe<>(
+                    ItemStorageVariant.values(), to, Blocks.INSTANCE::getItemStorageBlock
+                )
+            )
+        );
+        callback.register(
+            createIdentifier("fluid_storage_block_upgrade"),
+            () -> new StorageContainerUpgradeRecipeSerializer<>(
+                FluidStorageVariant.values(),
+                to -> new StorageContainerUpgradeRecipe<>(
+                    FluidStorageVariant.values(), to, Blocks.INSTANCE::getFluidStorageBlock
+                )
+            )
+        );
     }
 
     protected final void registerDataComponents(final RegistryCallback<DataComponentType<?>> callback) {
@@ -831,6 +922,12 @@ public abstract class AbstractModInitializer {
                 .persistent(UUIDUtil.CODEC)
                 .networkSynchronized(UUIDUtil.STREAM_CODEC)
                 .build()));
+        DataComponents.INSTANCE.setStorageReferenceToBeTransferred(
+            callback.register(createIdentifier("storage_reference_to_be_transferred"),
+                () -> DataComponentType.<UUID>builder()
+                    .persistent(UUIDUtil.CODEC)
+                    .networkSynchronized(UUIDUtil.STREAM_CODEC)
+                    .build()));
         DataComponents.INSTANCE.setRegulatorUpgradeState(
             callback.register(createIdentifier("regulator_upgrade_state"),
                 () -> DataComponentType.<RegulatorUpgradeState>builder()
@@ -872,6 +969,18 @@ public abstract class AbstractModInitializer {
                 () -> DataComponentType.<ProcessingPatternState>builder()
                     .persistent(ProcessingPatternState.CODEC)
                     .networkSynchronized(ProcessingPatternState.STREAM_CODEC)
+                    .build()));
+        DataComponents.INSTANCE.setStonecutterPatternState(
+            callback.register(createIdentifier("stonecutter_pattern_state"),
+                () -> DataComponentType.<StonecutterPatternState>builder()
+                    .persistent(StonecutterPatternState.CODEC)
+                    .networkSynchronized(StonecutterPatternState.STREAM_CODEC)
+                    .build()));
+        DataComponents.INSTANCE.setSmithingTablePatternState(
+            callback.register(createIdentifier("smithing_table_pattern_state"),
+                () -> DataComponentType.<SmithingTablePatternState>builder()
+                    .persistent(SmithingTablePatternState.CODEC)
+                    .networkSynchronized(SmithingTablePatternState.STREAM_CODEC)
                     .build()));
     }
 

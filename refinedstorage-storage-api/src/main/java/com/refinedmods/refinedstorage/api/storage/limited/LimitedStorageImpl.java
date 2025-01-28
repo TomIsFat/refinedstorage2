@@ -5,9 +5,9 @@ import com.refinedmods.refinedstorage.api.core.CoreValidations;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.AbstractProxyStorage;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.InsertableStorage;
 import com.refinedmods.refinedstorage.api.storage.Storage;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 
 import org.apiguardian.api.API;
 
@@ -30,12 +30,12 @@ public class LimitedStorageImpl extends AbstractProxyStorage implements LimitedS
     }
 
     /**
-     * Constructs the limited storage with a {@link InMemoryStorageImpl} storage.
+     * Constructs the limited storage with a {@link StorageImpl} storage.
      *
      * @param capacity the capacity, must be 0 or larger than 0
      */
     public LimitedStorageImpl(final long capacity) {
-        this(new InMemoryStorageImpl(), capacity);
+        this(new StorageImpl(), capacity);
     }
 
     @Override

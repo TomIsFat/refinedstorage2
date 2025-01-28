@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.network.test;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.Network;
+import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyStorage;
 import com.refinedmods.refinedstorage.api.network.impl.NetworkImpl;
@@ -10,6 +11,7 @@ import com.refinedmods.refinedstorage.api.network.impl.node.controller.Controlle
 import com.refinedmods.refinedstorage.api.network.node.NetworkNode;
 import com.refinedmods.refinedstorage.api.network.security.SecurityNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
+import com.refinedmods.refinedstorage.network.test.fixtures.NetworkTestFixtures;
 import com.refinedmods.refinedstorage.network.test.nodefactory.NetworkNodeFactory;
 
 import java.lang.annotation.Annotation;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.junit.jupiter.api.extension.BeforeEachCallback;
@@ -29,6 +32,14 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 public class NetworkTestExtension implements BeforeEachCallback, ParameterResolver {
+    private static final Set<Class<? extends Annotation>> SUPPORTED_ANNOTATIONS = Set.of(
+        InjectNetworkStorageComponent.class,
+        InjectNetworkEnergyComponent.class,
+        InjectNetworkSecurityComponent.class,
+        InjectNetworkAutocraftingComponent.class,
+        InjectNetwork.class
+    );
+
     private final Map<String, Network> networkMap = new HashMap<>();
     private final Map<Class<? extends NetworkNode>, NetworkNodeFactory> networkNodeFactories = new HashMap<>();
 
@@ -149,9 +160,7 @@ public class NetworkTestExtension implements BeforeEachCallback, ParameterResolv
         if (annotation != null) {
             final Class<?> type = field.getType();
             final Map<String, Object> properties = getProperties(annotation.properties());
-            final NetworkNode resolvedNode = networkNodeFactories.get(type).create(
-                properties
-            );
+            final NetworkNode resolvedNode = networkNodeFactories.get(type).create(properties);
             final Network network = networkMap.get(annotation.networkId());
             registerNetworkNode(testInstance, field, resolvedNode, network);
         }
@@ -160,11 +169,19 @@ public class NetworkTestExtension implements BeforeEachCallback, ParameterResolv
     private Map<String, Object> getProperties(final AddNetworkNode.Property[] properties) {
         final Map<String, Object> result = new HashMap<>();
         for (final AddNetworkNode.Property property : properties) {
-            result.put(property.key(), property.longValue() == -1
-                ? property.boolValue()
-                : property.longValue());
+            result.put(property.key(), getPropertyValue(property));
         }
         return result;
+    }
+
+    private Object getPropertyValue(final AddNetworkNode.Property property) {
+        if (property.intValue() != -1) {
+            return property.intValue();
+        }
+        if (property.longValue() != -1) {
+            return property.longValue();
+        }
+        return property.boolValue();
     }
 
     private void registerNetworkNode(final Object testInstance,
@@ -190,10 +207,12 @@ public class NetworkTestExtension implements BeforeEachCallback, ParameterResolv
     @Override
     public boolean supportsParameter(final ParameterContext parameterContext,
                                      final ExtensionContext extensionContext) throws ParameterResolutionException {
-        return parameterContext.isAnnotated(InjectNetworkStorageComponent.class)
-            || parameterContext.isAnnotated(InjectNetworkEnergyComponent.class)
-            || parameterContext.isAnnotated(InjectNetworkSecurityComponent.class)
-            || parameterContext.isAnnotated(InjectNetwork.class);
+        for (final var supportedAnnotation : SUPPORTED_ANNOTATIONS) {
+            if (parameterContext.isAnnotated(supportedAnnotation)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -208,6 +227,9 @@ public class NetworkTestExtension implements BeforeEachCallback, ParameterResolv
             .or(() -> parameterContext
                 .findAnnotation(InjectNetworkSecurityComponent.class)
                 .map(annotation -> (Object) getNetworkSecurity(annotation.networkId())))
+            .or(() -> parameterContext
+                .findAnnotation(InjectNetworkAutocraftingComponent.class)
+                .map(annotation -> (Object) getNetworkAutocrafting(annotation.networkId())))
             .or(() -> parameterContext
                 .findAnnotation(InjectNetwork.class)
                 .map(annotation -> networkMap.get(annotation.value())))
@@ -224,5 +246,9 @@ public class NetworkTestExtension implements BeforeEachCallback, ParameterResolv
 
     private SecurityNetworkComponent getNetworkSecurity(final String networkId) {
         return networkMap.get(networkId).getComponent(SecurityNetworkComponent.class);
+    }
+
+    private AutocraftingNetworkComponent getNetworkAutocrafting(final String networkId) {
+        return networkMap.get(networkId).getComponent(AutocraftingNetworkComponent.class);
     }
 }

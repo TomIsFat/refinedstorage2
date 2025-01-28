@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.storage;
 import com.refinedmods.refinedstorage.api.network.impl.storage.AbstractImmutableConfiguredProxyStorage;
 import com.refinedmods.refinedstorage.api.network.impl.storage.StorageConfiguration;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.composite.CompositeStorage;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 class ExposedStorage extends AbstractImmutableConfiguredProxyStorage<CompositeStorageImpl> implements CompositeStorage {
     protected ExposedStorage(final StorageConfiguration config) {
-        super(config, new CompositeStorageImpl(ResourceListImpl.create()));
+        super(config, new CompositeStorageImpl(MutableResourceListImpl.create()));
     }
 
     long getCapacity() {

@@ -13,9 +13,10 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A_ALTERNATIVE;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A_ALTERNATIVE2;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A_ALTERNATIVE;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A_ALTERNATIVE2;
+import static java.util.Objects.requireNonNull;
 
 public class InterfaceExportStateImpl implements InterfaceExportState {
     private final Map<Integer, ResourceAmount> requested = new HashMap<>();
@@ -144,11 +145,10 @@ public class InterfaceExportStateImpl implements InterfaceExportState {
     @Override
     public void growExportedAmount(final int slotIndex, final long amount) {
         validateIndex(slotIndex);
-        final ResourceAmount resourceAmount = this.current.get(slotIndex);
-        this.current.put(
-            slotIndex,
-            new ResourceAmount(resourceAmount.resource(), resourceAmount.amount() + amount)
-        );
+        this.current.compute(slotIndex, (k, resourceAmount) -> new ResourceAmount(
+            requireNonNull(resourceAmount).resource(),
+            resourceAmount.amount() + amount
+        ));
     }
 
     @Override

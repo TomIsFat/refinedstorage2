@@ -3,8 +3,8 @@ package com.refinedmods.refinedstorage.api.network.impl.security;
 import com.refinedmods.refinedstorage.api.network.impl.node.security.SecurityDecisionProviderProxyNetworkNode;
 import com.refinedmods.refinedstorage.api.network.security.SecurityNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.security.SecurityPolicy;
-import com.refinedmods.refinedstorage.network.test.fake.FakePermissions;
-import com.refinedmods.refinedstorage.network.test.fake.FakeSecurityActors;
+import com.refinedmods.refinedstorage.network.test.fixtures.PermissionFixtures;
+import com.refinedmods.refinedstorage.network.test.fixtures.SecurityActorFixtures;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ class SecurityNetworkComponentImplTest {
 
     @BeforeEach
     void setUp() {
-        sut = new SecurityNetworkComponentImpl(SecurityPolicy.of(FakePermissions.ALLOW_BY_DEFAULT));
+        sut = new SecurityNetworkComponentImpl(SecurityPolicy.of(PermissionFixtures.ALLOW_BY_DEFAULT));
         securityDecisionProvider = new SecurityDecisionProviderImpl();
         node = activeSecurityDecisionProvider(securityDecisionProvider);
     }
@@ -27,13 +27,13 @@ class SecurityNetworkComponentImplTest {
     @Test
     void shouldUseDefaultPolicyIfNoSecurityDecisionProvidersArePresent() {
         // Act & assert
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.A)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.A)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.B)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.B)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.B)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.B)).isFalse();
     }
 
     @Test
@@ -42,138 +42,138 @@ class SecurityNetworkComponentImplTest {
         sut.onContainerAdded(() -> node);
 
         // Act & assert
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.A)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.B)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.B)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.B)).isFalse();
     }
 
     @Test
     void shouldUseDefaultPolicyIfAllSecurityDecisionProvidersAreInactive() {
         // Arrange
         sut.onContainerAdded(() -> new SecurityDecisionProviderProxyNetworkNode(0, new SecurityDecisionProviderImpl()
-            .setDefaultPolicy(SecurityPolicy.of(FakePermissions.OTHER))));
+            .setDefaultPolicy(SecurityPolicy.of(PermissionFixtures.OTHER))));
 
         // Act & assert
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.A)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.A)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.B)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.B)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.B)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.B)).isFalse();
     }
 
     @Test
     void shouldAllowOrDeny() {
         // Arrange
-        securityDecisionProvider.setPolicy(FakeSecurityActors.A, SecurityPolicy.of(FakePermissions.OTHER));
+        securityDecisionProvider.setPolicy(SecurityActorFixtures.A, SecurityPolicy.of(PermissionFixtures.OTHER));
         sut.onContainerAdded(() -> node);
 
         // Act & assert
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.A)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.A)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.B)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.B)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.B)).isFalse();
     }
 
     @Test
     void shouldOnlyAllowIfAllSecurityDecisionProvidersAllow() {
         // Arrange
         sut.onContainerAdded(() -> activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setPolicy(FakeSecurityActors.A, SecurityPolicy.of(FakePermissions.OTHER))
+            .setPolicy(SecurityActorFixtures.A, SecurityPolicy.of(PermissionFixtures.OTHER))
         ));
 
         sut.onContainerAdded(() -> activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setPolicy(FakeSecurityActors.A, SecurityPolicy.of(FakePermissions.OTHER2))
+            .setPolicy(SecurityActorFixtures.A, SecurityPolicy.of(PermissionFixtures.OTHER2))
         ));
 
         sut.onContainerAdded(() -> activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setPolicy(FakeSecurityActors.B, SecurityPolicy.of(FakePermissions.OTHER))
+            .setPolicy(SecurityActorFixtures.B, SecurityPolicy.of(PermissionFixtures.OTHER))
         ));
 
         sut.onContainerAdded(() -> new SecurityDecisionProviderProxyNetworkNode(0, new SecurityDecisionProviderImpl()
-            .setPolicy(FakeSecurityActors.A, SecurityPolicy.of(FakePermissions.ALLOW_BY_DEFAULT))
-            .setDefaultPolicy(SecurityPolicy.of(FakePermissions.OTHER, FakePermissions.OTHER2))));
+            .setPolicy(SecurityActorFixtures.A, SecurityPolicy.of(PermissionFixtures.ALLOW_BY_DEFAULT))
+            .setDefaultPolicy(SecurityPolicy.of(PermissionFixtures.OTHER, PermissionFixtures.OTHER2))));
 
         // Act & assert
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.A)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.B)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.B)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.B)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.C)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.C)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.C)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.C)).isFalse();
     }
 
     @Test
     void shouldUseDefaultPolicyOfSecurityDecisionProviderIfAllProvidersPassDecision() {
         // Arrange
         sut.onContainerAdded(() -> activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setPolicy(FakeSecurityActors.A, SecurityPolicy.of(FakePermissions.OTHER))
-            .setDefaultPolicy(SecurityPolicy.of(FakePermissions.ALLOW_BY_DEFAULT))
+            .setPolicy(SecurityActorFixtures.A, SecurityPolicy.of(PermissionFixtures.OTHER))
+            .setDefaultPolicy(SecurityPolicy.of(PermissionFixtures.ALLOW_BY_DEFAULT))
         ));
 
         sut.onContainerAdded(() -> activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setPolicy(FakeSecurityActors.A, SecurityPolicy.of(FakePermissions.OTHER))
-            .setDefaultPolicy(SecurityPolicy.of(FakePermissions.ALLOW_BY_DEFAULT, FakePermissions.OTHER2))
+            .setPolicy(SecurityActorFixtures.A, SecurityPolicy.of(PermissionFixtures.OTHER))
+            .setDefaultPolicy(SecurityPolicy.of(PermissionFixtures.ALLOW_BY_DEFAULT, PermissionFixtures.OTHER2))
         ));
 
         sut.onContainerAdded(() -> activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setPolicy(FakeSecurityActors.C, SecurityPolicy.of(FakePermissions.OTHER))
+            .setPolicy(SecurityActorFixtures.C, SecurityPolicy.of(PermissionFixtures.OTHER))
         ));
 
         // Act & assert
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.A)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.A)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.B)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.B)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.B)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.B)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.B)).isFalse();
 
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.C)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.C)).isTrue();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.C)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.C)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.C)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.C)).isFalse();
     }
 
     @Test
     void shouldRemoveContainer() {
         // Arrange
         sut.onContainerAdded(() -> activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setDefaultPolicy(SecurityPolicy.of(FakePermissions.ALLOW_BY_DEFAULT))
+            .setDefaultPolicy(SecurityPolicy.of(PermissionFixtures.ALLOW_BY_DEFAULT))
         ));
 
         final var removedNode = activeSecurityDecisionProvider(new SecurityDecisionProviderImpl()
-            .setDefaultPolicy(SecurityPolicy.of(FakePermissions.OTHER)));
+            .setDefaultPolicy(SecurityPolicy.of(PermissionFixtures.OTHER)));
         sut.onContainerAdded(() -> removedNode);
 
         // Act
         sut.onContainerRemoved(() -> removedNode);
 
         // Assert
-        assertThat(sut.isAllowed(FakePermissions.ALLOW_BY_DEFAULT, FakeSecurityActors.A)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.ALLOW_BY_DEFAULT, SecurityActorFixtures.A)).isTrue();
     }
 
     @Test
     void shouldClearPolicies() {
         // Arrange
         sut.onContainerAdded(() -> node);
-        securityDecisionProvider.setPolicy(FakeSecurityActors.A, SecurityPolicy.of(FakePermissions.OTHER));
-        securityDecisionProvider.setDefaultPolicy(SecurityPolicy.of(FakePermissions.OTHER2));
+        securityDecisionProvider.setPolicy(SecurityActorFixtures.A, SecurityPolicy.of(PermissionFixtures.OTHER));
+        securityDecisionProvider.setDefaultPolicy(SecurityPolicy.of(PermissionFixtures.OTHER2));
 
         // Act
         securityDecisionProvider.clearPolicies();
 
         // Assert
-        assertThat(sut.isAllowed(FakePermissions.OTHER, FakeSecurityActors.A)).isFalse();
-        assertThat(sut.isAllowed(FakePermissions.OTHER2, FakeSecurityActors.A)).isTrue();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER, SecurityActorFixtures.A)).isFalse();
+        assertThat(sut.isAllowed(PermissionFixtures.OTHER2, SecurityActorFixtures.A)).isTrue();
     }
 }

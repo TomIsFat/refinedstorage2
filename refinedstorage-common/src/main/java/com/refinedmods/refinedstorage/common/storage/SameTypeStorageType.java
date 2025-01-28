@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.common.storage;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.InMemoryTrackedStorageRepository;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedStorageImpl;
@@ -64,7 +64,7 @@ public class SameTypeStorageType<T extends ResourceKey> implements StorageType {
     private SerializableStorage createStorage(final StorageCodecs.StorageData<T> data, final Runnable listener) {
         final TrackedStorageRepository trackingRepository = new InMemoryTrackedStorageRepository();
         final TrackedStorageImpl tracked = new TrackedStorageImpl(
-            new InMemoryStorageImpl(),
+            new StorageImpl(),
             trackingRepository,
             System::currentTimeMillis
         );

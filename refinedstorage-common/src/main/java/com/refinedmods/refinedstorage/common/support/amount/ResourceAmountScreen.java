@@ -14,15 +14,16 @@ import org.joml.Vector3f;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
-public class ResourceAmountScreen extends AbstractAmountScreen<ResourceAmountScreen.DummyContainerMenu, Double> {
+public class ResourceAmountScreen
+    extends AbstractAmountScreen<ResourceAmountScreen.SingleResourceContainerMenu, Double> {
     private static final ResourceLocation TEXTURE = createIdentifier("textures/gui/resource_amount.png");
-    private static final MutableComponent TITLE = createTranslation("gui", "amount");
+    private static final MutableComponent TITLE = createTranslation("gui", "configure_amount");
 
     private final ResourceSlot slot;
 
     public ResourceAmountScreen(final Screen parent, final Inventory playerInventory, final ResourceSlot slot) {
         super(
-            new DummyContainerMenu(slot),
+            new SingleResourceContainerMenu(slot, 89, 48),
             parent,
             playerInventory,
             TITLE,
@@ -40,13 +41,14 @@ public class ResourceAmountScreen extends AbstractAmountScreen<ResourceAmountScr
             DoubleAmountOperations.INSTANCE
         );
         this.slot = slot;
-        this.imageWidth = 172;
+        this.imageWidth = 180;
         this.imageHeight = 99;
     }
 
     @Override
-    protected void accept(final Double amount) {
+    protected boolean confirm(final Double amount) {
         slot.changeAmountOnClient(amount);
+        return true;
     }
 
     @Override
@@ -54,10 +56,10 @@ public class ResourceAmountScreen extends AbstractAmountScreen<ResourceAmountScr
         return TEXTURE;
     }
 
-    public static class DummyContainerMenu extends AbstractResourceContainerMenu {
-        protected DummyContainerMenu(final ResourceSlot slot) {
+    public static class SingleResourceContainerMenu extends AbstractResourceContainerMenu {
+        public SingleResourceContainerMenu(final ResourceSlot slot, final int x, final int y) {
             super(null, 0);
-            addSlot(slot.forAmountScreen(89, 48));
+            addSlot(slot.forAmountScreen(x, y));
         }
 
         @Override

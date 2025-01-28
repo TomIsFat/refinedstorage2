@@ -7,24 +7,35 @@ import org.apiguardian.api.API;
 
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.3.6")
 public class PriorityStorage extends AbstractProxyStorage implements PriorityProvider {
-    private int priority;
+    private int insertPriority;
+    private int extractPriority;
 
-    private PriorityStorage(final int priority, final Storage delegate) {
+    private PriorityStorage(final int insertPriority, final int extractPriority, final Storage delegate) {
         super(delegate);
-        this.priority = priority;
+        this.insertPriority = insertPriority;
+        this.extractPriority = extractPriority;
     }
 
-    public static PriorityStorage of(final Storage delegate, final int priority) {
-        return new PriorityStorage(priority, delegate);
+    public static PriorityStorage of(final Storage delegate, final int insertPriority, final int extractPriority) {
+        return new PriorityStorage(insertPriority, extractPriority, delegate);
     }
 
-    public void setPriority(final int priority) {
-        this.priority = priority;
+    public void setInsertPriority(final int insertPriority) {
+        this.insertPriority = insertPriority;
+    }
+
+    public void setExtractPriority(final int extractPriority) {
+        this.extractPriority = extractPriority;
     }
 
     @Override
-    public int getPriority() {
-        return priority;
+    public int getInsertPriority() {
+        return insertPriority;
+    }
+
+    @Override
+    public int getExtractPriority() {
+        return extractPriority;
     }
 }
 

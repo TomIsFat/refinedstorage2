@@ -7,7 +7,7 @@ import com.refinedmods.refinedstorage.api.network.NetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
-import com.refinedmods.refinedstorage.network.test.NetworkTestFixtures;
+import com.refinedmods.refinedstorage.network.test.fixtures.NetworkTestFixtures;
 
 import java.util.ArrayList;
 import java.util.List;

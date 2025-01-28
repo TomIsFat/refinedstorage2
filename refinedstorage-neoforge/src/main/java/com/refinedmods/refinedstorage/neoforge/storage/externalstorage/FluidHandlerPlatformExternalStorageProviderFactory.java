@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.neoforge.storage.externalstorage;
 
 import com.refinedmods.refinedstorage.api.storage.external.ExternalStorageProvider;
 import com.refinedmods.refinedstorage.common.api.storage.externalstorage.PlatformExternalStorageProviderFactory;
+import com.refinedmods.refinedstorage.neoforge.storage.CapabilityCache;
 import com.refinedmods.refinedstorage.neoforge.storage.CapabilityCacheImpl;
 
 import java.util.Optional;
@@ -15,6 +16,13 @@ public class FluidHandlerPlatformExternalStorageProviderFactory implements Platf
     public Optional<ExternalStorageProvider> create(final ServerLevel level,
                                                     final BlockPos pos,
                                                     final Direction direction) {
-        return Optional.of(new FluidHandlerExternalStorageProvider(new CapabilityCacheImpl(level, pos, direction)));
+        final CapabilityCache capabilityCache = new CapabilityCacheImpl(level, pos, direction);
+        return capabilityCache.getFluidHandler()
+            .map(handler -> new FluidHandlerExternalStorageProvider(capabilityCache));
+    }
+
+    @Override
+    public int getPriority() {
+        return -1;
     }
 }

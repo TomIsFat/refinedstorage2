@@ -2,19 +2,55 @@ package com.refinedmods.refinedstorage.fabric.support.energy;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyStorage;
+import com.refinedmods.refinedstorage.common.support.energy.ItemBlockEnergyStorage;
+import com.refinedmods.refinedstorage.common.support.energy.ItemEnergyStorage;
 
+import javax.annotation.Nullable;
+
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import net.minecraft.world.item.ItemStack;
 
 public class EnergyStorageAdapter extends SnapshotParticipant<Long> implements team.reborn.energy.api.EnergyStorage {
     private final EnergyStorage energyStorage;
+    @Nullable
+    private final ContainerItemContext containerItemContext;
+
+    public EnergyStorageAdapter(final EnergyStorage energyStorage,
+                                @Nullable final ContainerItemContext containerItemContext) {
+        this.energyStorage = energyStorage;
+        this.containerItemContext = containerItemContext;
+    }
 
     public EnergyStorageAdapter(final EnergyStorage energyStorage) {
-        this.energyStorage = energyStorage;
+        this(energyStorage, null);
     }
 
     public EnergyStorage getEnergyStorage() {
         return energyStorage;
+    }
+
+    private void tryExchangeStack(final TransactionContext transaction) {
+        if (containerItemContext == null) {
+            return;
+        }
+        final ItemStack stack = extractStack();
+        if (stack == null) {
+            return;
+        }
+        containerItemContext.exchange(ItemVariant.of(stack), 1, transaction);
+    }
+
+    @Nullable
+    private ItemStack extractStack() {
+        if (energyStorage instanceof ItemBlockEnergyStorage itemBlockEnergyStorage) {
+            return itemBlockEnergyStorage.getStack();
+        } else if (energyStorage instanceof ItemEnergyStorage itemEnergyStorage) {
+            return itemEnergyStorage.getStack();
+        }
+        return null;
     }
 
     @Override
@@ -23,7 +59,9 @@ public class EnergyStorageAdapter extends SnapshotParticipant<Long> implements t
         if (insertedSimulated > 0) {
             updateSnapshots(transaction);
         }
-        return energyStorage.receive(maxAmount, Action.EXECUTE);
+        final long inserted = energyStorage.receive(maxAmount, Action.EXECUTE);
+        tryExchangeStack(transaction);
+        return inserted;
     }
 
     @Override
@@ -32,7 +70,9 @@ public class EnergyStorageAdapter extends SnapshotParticipant<Long> implements t
         if (extractedSimulated > 0) {
             updateSnapshots(transaction);
         }
-        return energyStorage.extract(maxAmount, Action.EXECUTE);
+        final long extracted = energyStorage.extract(maxAmount, Action.EXECUTE);
+        tryExchangeStack(transaction);
+        return extracted;
     }
 
     @Override

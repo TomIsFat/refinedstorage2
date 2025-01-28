@@ -10,8 +10,10 @@ import net.minecraft.world.entity.player.Inventory;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public class DestructorScreen extends AbstractFilterScreen<DestructorContainerMenu> {
-    public DestructorScreen(final DestructorContainerMenu menu, final Inventory playerInventory, final Component text) {
-        super(menu, playerInventory, text);
+    public DestructorScreen(final DestructorContainerMenu menu,
+                            final Inventory playerInventory,
+                            final Component title) {
+        super(menu, playerInventory, title);
     }
 
     @Override

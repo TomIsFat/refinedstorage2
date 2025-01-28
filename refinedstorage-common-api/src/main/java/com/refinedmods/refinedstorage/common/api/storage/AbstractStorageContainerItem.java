@@ -51,10 +51,8 @@ public abstract class AbstractStorageContainerItem extends Item implements Stora
                               final int slot,
                               final boolean selected) {
         super.inventoryTick(stack, level, entity, slot, selected);
-        if (!level.isClientSide() && !helper.hasStorage(stack) && entity instanceof Player) {
-            final StorageRepository storageRepository = RefinedStorageApi.INSTANCE.getStorageRepository(level);
-            helper.setStorage(storageRepository, stack, createStorage(storageRepository));
-        }
+        helper.transferStorageIfNecessary(stack, level, entity, this::createStorage);
+        helper.loadStorageIfNecessary(stack, level, entity, this::createStorage);
     }
 
     @Override
@@ -64,10 +62,11 @@ public abstract class AbstractStorageContainerItem extends Item implements Stora
                                 final TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         final StorageRepository storageRepository = RefinedStorageApi.INSTANCE.getClientStorageRepository();
-        helper.appendToTooltip(stack, storageRepository, tooltip, flag, this::formatAmount, hasCapacity());
+        helper.appendToTooltip(stack, storageRepository, tooltip, flag, this::formatAmount, getCapacity());
     }
 
-    protected abstract boolean hasCapacity();
+    @Nullable
+    protected abstract Long getCapacity();
 
     protected abstract String formatAmount(long amount);
 

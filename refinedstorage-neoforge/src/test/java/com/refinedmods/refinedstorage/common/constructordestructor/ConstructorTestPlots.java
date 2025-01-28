@@ -19,7 +19,7 @@ final class ConstructorTestPlots {
 
     static void preparePlot(final GameTestHelper helper,
                             final Direction direction,
-                            final TriConsumer<ConstructorBlockEntity, BlockPos, GameTestSequence> consumer) {
+                            final TriConsumer<AbstractConstructorBlockEntity, BlockPos, GameTestSequence> consumer) {
         helper.setBlock(ZERO.above(), RSBLOCKS.getCreativeController().getDefault());
         helper.setBlock(ZERO.above().above(), RSBLOCKS.getItemStorageBlock(ItemStorageVariant.ONE_K));
         helper.setBlock(
@@ -29,7 +29,7 @@ final class ConstructorTestPlots {
         final BlockPos constructorPos = ZERO.above().above().above();
         helper.setBlock(constructorPos, RSBLOCKS.getConstructor().getDefault().rotated(direction));
         consumer.accept(
-            requireBlockEntity(helper, constructorPos, ConstructorBlockEntity.class),
+            requireBlockEntity(helper, constructorPos, AbstractConstructorBlockEntity.class),
             constructorPos,
             helper.startSequence()
         );

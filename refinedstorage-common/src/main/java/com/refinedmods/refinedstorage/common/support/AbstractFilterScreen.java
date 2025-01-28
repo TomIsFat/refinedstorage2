@@ -14,8 +14,8 @@ public abstract class AbstractFilterScreen<T extends AbstractBaseContainerMenu> 
 
     protected AbstractFilterScreen(final T menu,
                                    final Inventory playerInventory,
-                                   final Component text) {
-        super(menu, playerInventory, text);
+                                   final Component title) {
+        super(menu, playerInventory, title);
         this.inventoryLabelY = 42;
         this.imageWidth = hasUpgrades() ? 210 : 176;
         this.imageHeight = 137;

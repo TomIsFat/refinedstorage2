@@ -20,7 +20,5 @@ public interface GridResource {
 
     Set<String> getAttribute(GridResourceAttributeKey key);
 
-    boolean isZeroed();
-
-    void setZeroed(boolean zeroed);
+    boolean isAutocraftable();
 }

@@ -1,21 +1,24 @@
 package com.refinedmods.refinedstorage.common.support;
 
+import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.content.BlockConstants;
+import com.refinedmods.refinedstorage.common.networking.CableConnections;
 import com.refinedmods.refinedstorage.common.support.direction.DefaultDirectionType;
 import com.refinedmods.refinedstorage.common.support.direction.DirectionType;
+import com.refinedmods.refinedstorage.common.util.PlatformUtil;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -26,12 +29,12 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public abstract class AbstractDirectionalCableBlock
-    extends AbstractDirectionalBlock<Direction>
+public abstract class AbstractDirectionalCableBlock extends AbstractDirectionalBlock<Direction>
     implements SimpleWaterloggedBlock {
-    private final Map<DirectionalCacheShapeCacheKey, VoxelShape> shapeCache;
+    private final ConcurrentHashMap<DirectionalCacheShapeCacheKey, VoxelShape> shapeCache;
 
-    protected AbstractDirectionalCableBlock(final Map<DirectionalCacheShapeCacheKey, VoxelShape> shapeCache) {
+    protected AbstractDirectionalCableBlock(final ConcurrentHashMap<DirectionalCacheShapeCacheKey, VoxelShape>
+                                                shapeCache) {
         super(BlockConstants.CABLE_PROPERTIES);
         this.shapeCache = shapeCache;
     }
@@ -43,7 +46,7 @@ public abstract class AbstractDirectionalCableBlock
 
     @Override
     protected BlockState getDefaultState() {
-        return CableBlockSupport.getDefaultState(super.getDefaultState());
+        return super.getDefaultState().setValue(BlockStateProperties.WATERLOGGED, false);
     }
 
     @Override
@@ -59,19 +62,9 @@ public abstract class AbstractDirectionalCableBlock
     }
 
     @Override
-    public BlockState updateShape(final BlockState state,
-                                  final Direction direction,
-                                  final BlockState newState,
-                                  final LevelAccessor level,
-                                  final BlockPos pos,
-                                  final BlockPos posFrom) {
-        return CableBlockSupport.getState(state, level, pos, getDirection(state));
-    }
-
-    @Override
-    protected BlockState getRotatedBlockState(final BlockState state, final Level level, final BlockPos pos) {
-        final BlockState rotated = super.getRotatedBlockState(state, level, pos);
-        return CableBlockSupport.getState(rotated, level, pos, getDirection(rotated));
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(BlockStateProperties.WATERLOGGED);
     }
 
     @Override
@@ -80,21 +73,23 @@ public abstract class AbstractDirectionalCableBlock
     }
 
     @Override
-    public BlockState getStateForPlacement(final BlockPlaceContext ctx) {
-        final BlockState stateWithDirection = Objects.requireNonNull(super.getStateForPlacement(ctx));
-        final Direction direction = getDirection(stateWithDirection);
-        return CableBlockSupport.getState(
-            stateWithDirection,
-            ctx.getLevel(),
-            ctx.getClickedPos(),
-            direction
-        );
-    }
-
-    @Override
-    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
-        super.createBlockStateDefinition(builder);
-        CableBlockSupport.appendBlockStateProperties(builder);
+    protected BlockState updateShape(final BlockState state,
+                                     final Direction direction,
+                                     final BlockState neighborState,
+                                     final LevelAccessor level,
+                                     final BlockPos pos,
+                                     final BlockPos neighborPos) {
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof AbstractCableLikeBlockEntity<?> cable) {
+            cable.updateConnections();
+            if (level instanceof ServerLevel serverLevel) {
+                PlatformUtil.sendBlockUpdateToClient(serverLevel, pos);
+            }
+        }
+        if (level.isClientSide()) {
+            Platform.INSTANCE.requestModelDataUpdateOnClient(level, pos, false);
+        }
+        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
     @Override
@@ -102,23 +97,41 @@ public abstract class AbstractDirectionalCableBlock
                                final BlockGetter world,
                                final BlockPos pos,
                                final CollisionContext context) {
-        final CableShapeCacheKey cableShapeCacheKey = CableShapeCacheKey.of(state);
+        final BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (!(blockEntity instanceof AbstractCableLikeBlockEntity<?> cable)) {
+            return Shapes.block();
+        }
+        final CableConnections connections = cable.getConnections();
         final Direction direction = getDirection(state);
         if (direction == null) {
-            return CableBlockSupport.getShape(cableShapeCacheKey);
+            return CableShapes.getShape(connections);
         }
-        final DirectionalCacheShapeCacheKey directionalCacheShapeCacheKey = new DirectionalCacheShapeCacheKey(
-            cableShapeCacheKey,
+        final DirectionalCacheShapeCacheKey directionalCacheKey = new DirectionalCacheShapeCacheKey(
+            connections,
             direction
         );
-        return shapeCache.computeIfAbsent(directionalCacheShapeCacheKey, this::calculateShape);
+        return shapeCache.computeIfAbsent(directionalCacheKey, this::computeShape);
     }
 
-    private VoxelShape calculateShape(final DirectionalCacheShapeCacheKey cacheKey) {
+    private VoxelShape computeShape(final DirectionalCacheShapeCacheKey cacheKey) {
         return Shapes.or(
-            CableBlockSupport.getShape(cacheKey.cableShapeCacheKey),
+            CableShapes.getShape(cacheKey.connections),
             getExtensionShape(cacheKey.direction)
         );
+    }
+
+    @Override
+    protected void onPlace(final BlockState state,
+                           final Level level,
+                           final BlockPos pos,
+                           final BlockState oldState,
+                           final boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity instanceof AbstractCableLikeBlockEntity<?> cable) {
+            cable.updateConnections();
+            PlatformUtil.sendBlockUpdateToClient(level, pos);
+        }
     }
 
     @Override
@@ -133,6 +146,6 @@ public abstract class AbstractDirectionalCableBlock
 
     protected abstract VoxelShape getExtensionShape(Direction direction);
 
-    protected record DirectionalCacheShapeCacheKey(CableShapeCacheKey cableShapeCacheKey, Direction direction) {
+    protected record DirectionalCacheShapeCacheKey(CableConnections connections, Direction direction) {
     }
 }

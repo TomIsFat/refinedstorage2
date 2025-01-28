@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -96,7 +97,7 @@ public class StorageMonitorBlock extends AbstractDirectionalBlock<BiDirection> i
         if (hitDirection != direction.asDirection()) {
             return;
         }
-        storageMonitor.extract(player);
+        storageMonitor.extract((ServerPlayer) player);
     }
 
     private Direction getHitDirection(final Level level, final Player player) {

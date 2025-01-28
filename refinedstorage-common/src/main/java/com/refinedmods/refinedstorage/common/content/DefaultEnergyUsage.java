@@ -22,6 +22,10 @@ public final class DefaultEnergyUsage {
     public static final long SECURITY_MANAGER = 16;
     public static final long RELAY_INPUT_NETWORK = 8;
     public static final long RELAY_OUTPUT_NETWORK = 8;
+    public static final long AUTOCRAFTER = 4;
+    public static final long AUTOCRAFTER_PER_PATTERN = 2;
+    public static final long AUTOCRAFTER_MANAGER = 16;
+    public static final long AUTOCRAFTING_MONITOR = 16;
 
     public static final long CONTROLLER_CAPACITY = 1000;
 
@@ -62,6 +66,11 @@ public final class DefaultEnergyUsage {
     public static final long PORTABLE_GRID_OPEN = 5;
     public static final long PORTABLE_GRID_INSERT = 5;
     public static final long PORTABLE_GRID_EXTRACT = 5;
+
+    public static final long WIRELESS_AUTOCRAFTING_MONITOR_CAPACITY = 1000;
+    public static final long WIRELESS_AUTOCRAFTING_MONITOR_OPEN = 5;
+    public static final long WIRELESS_AUTOCRAFTING_MONITOR_CANCEL = 5;
+    public static final long WIRELESS_AUTOCRAFTING_MONITOR_CANCEL_ALL = 5;
 
     private DefaultEnergyUsage() {
     }

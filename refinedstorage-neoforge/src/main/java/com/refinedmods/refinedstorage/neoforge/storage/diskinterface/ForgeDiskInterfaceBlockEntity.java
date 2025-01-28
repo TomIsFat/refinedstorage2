@@ -17,12 +17,6 @@ public class ForgeDiskInterfaceBlockEntity extends AbstractDiskInterfaceBlockEnt
         super(pos, state);
     }
 
-    @Override
-    protected void onClientDriveStateUpdated() {
-        requestModelDataUpdate();
-        super.onClientDriveStateUpdated();
-    }
-
     @Nonnull
     @Override
     public ModelData getModelData() {

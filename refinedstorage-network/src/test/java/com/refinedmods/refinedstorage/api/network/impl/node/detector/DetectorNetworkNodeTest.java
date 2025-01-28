@@ -2,8 +2,8 @@ package com.refinedmods.refinedstorage.api.network.impl.node.detector;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.Actor;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
 import com.refinedmods.refinedstorage.network.test.NetworkTest;
@@ -19,7 +19,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @NetworkTest
@@ -34,7 +34,7 @@ class DetectorNetworkNodeTest {
 
     @BeforeEach
     void setUp(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
-        storage.addSource(new InMemoryStorageImpl());
+        storage.addSource(new StorageImpl());
         sut.setAmountStrategy(new DetectorAmountStrategyImpl());
     }
 
@@ -125,7 +125,7 @@ class DetectorNetworkNodeTest {
         sut.setAmount(comparisonAmount);
 
         if (amountInNetwork > 0) {
-            storage.insert(A, amountInNetwork, Action.EXECUTE, EmptyActor.INSTANCE);
+            storage.insert(A, amountInNetwork, Action.EXECUTE, Actor.EMPTY);
         }
 
         // Act

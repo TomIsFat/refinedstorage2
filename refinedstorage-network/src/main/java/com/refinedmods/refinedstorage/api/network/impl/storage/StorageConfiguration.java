@@ -30,7 +30,9 @@ public interface StorageConfiguration extends PriorityProvider {
 
     void setFilterMode(FilterMode filterMode);
 
-    void setPriority(int priority);
+    void setInsertPriority(int insertPriority);
+
+    void setExtractPriority(int extractPriority);
 
     boolean isActive();
 }

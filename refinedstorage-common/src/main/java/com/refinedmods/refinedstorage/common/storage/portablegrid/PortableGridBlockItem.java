@@ -15,6 +15,7 @@ import com.refinedmods.refinedstorage.common.api.support.energy.AbstractEnergyBl
 import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotReference;
 import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotReferenceHandlerItem;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.ContentNames;
 import com.refinedmods.refinedstorage.common.storage.Disk;
 import com.refinedmods.refinedstorage.common.storage.DiskInventory;
 import com.refinedmods.refinedstorage.common.support.energy.CreativeEnergyStorage;
@@ -38,6 +39,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
+import static java.util.Objects.requireNonNullElse;
 
 public class PortableGridBlockItem extends AbstractEnergyBlockItem implements SlotReferenceHandlerItem {
     private static final Component HELP = createTranslation("item", "portable_grid.help");
@@ -139,6 +141,8 @@ public class PortableGridBlockItem extends AbstractEnergyBlockItem implements Sl
         energyStorage.portableGrid = portableGrid;
         portableGrid.updateStorage();
         Platform.INSTANCE.getMenuOpener().openMenu(player, new PortableGridItemExtendedMenuProvider(
+            requireNonNullElse(stack.get(DataComponents.CUSTOM_NAME),
+                type == PortableGridType.CREATIVE ? ContentNames.CREATIVE_PORTABLE_GRID : ContentNames.PORTABLE_GRID),
             portableGrid,
             energyStorage,
             diskInventory,

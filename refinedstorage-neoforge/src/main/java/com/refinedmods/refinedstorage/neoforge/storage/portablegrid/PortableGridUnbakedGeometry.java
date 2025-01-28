@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.neoforge.storage.portablegrid;
 
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.neoforge.support.render.DiskModelBaker;
 import com.refinedmods.refinedstorage.neoforge.support.render.RotationTranslationModelBaker;
 
@@ -40,7 +40,7 @@ public class PortableGridUnbakedGeometry implements IUnbakedGeometry<PortableGri
         modelGetter.apply(NORMAL_LED_MODEL).resolveParents(modelGetter);
         modelGetter.apply(NEAR_CAPACITY_LED_MODEL).resolveParents(modelGetter);
         modelGetter.apply(FULL_LED_MODEL).resolveParents(modelGetter);
-        RefinedStorageApi.INSTANCE.getStorageContainerItemHelper().getDiskModels().forEach(
+        RefinedStorageClientApi.INSTANCE.getDiskModels().forEach(
             diskModel -> modelGetter.apply(diskModel).resolveParents(modelGetter)
         );
     }

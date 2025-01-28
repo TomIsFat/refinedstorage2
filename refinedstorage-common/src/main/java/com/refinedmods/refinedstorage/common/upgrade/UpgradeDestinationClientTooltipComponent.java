@@ -2,7 +2,6 @@ package com.refinedmods.refinedstorage.common.upgrade;
 
 import com.refinedmods.refinedstorage.common.api.upgrade.UpgradeMapping;
 
-import java.util.Objects;
 import java.util.Set;
 
 import net.minecraft.ChatFormatting;
@@ -45,7 +44,7 @@ public class UpgradeDestinationClientTooltipComponent implements ClientTooltipCo
             mapping.destinationDisplayName().copy().withStyle(ChatFormatting.GRAY),
             x + 16 + 4,
             y + 4,
-            Objects.requireNonNullElse(ChatFormatting.GRAY.getColor(), 7)
+            0xAAAAAA
         );
     }
 

@@ -16,8 +16,8 @@ public class InterfaceScreen extends AbstractBaseScreen<InterfaceContainerMenu> 
 
     public InterfaceScreen(final InterfaceContainerMenu menu,
                            final Inventory playerInventory,
-                           final Component text) {
-        super(menu, playerInventory, text);
+                           final Component title) {
+        super(menu, playerInventory, title);
         this.inventoryLabelY = 88;
         this.imageWidth = 176;
         this.imageHeight = 182;

@@ -1,3 +1,4 @@
 {
-  "loader": "refinedstorage:magenta_disk_interface"
+  "color": "magenta",
+  "loader": "refinedstorage:disk_interface"
 }

@@ -22,7 +22,7 @@
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
     <module name="FileLength">
-        <property name="max" value="750"/>
+        <property name="max" value="1600"/>
     </module>
     <module name="NewlineAtEndOfFile"/>
     <module name="JavadocPackage"/>
@@ -63,7 +63,6 @@
             <property name="ignoreConstructorParameter" value="true"/>
             <property name="ignoreSetter" value="true"/>
         </module>
-        <module name="IllegalCatch"/>
         <module name="IllegalInstantiation"/>
         <module name="IllegalThrows"/>
         <module name="IllegalToken"/>
@@ -107,9 +106,13 @@
         <module name="IllegalIdentifierName"/>
         <module name="AnonInnerLength"/>
         <module name="MethodCount"/>
-        <module name="MethodLength"/>
+        <module name="MethodLength">
+            <property name="max" value="200"/>
+        </module>
         <module name="OuterTypeNumber"/>
-        <module name="RecordComponentNumber"/>
+        <module name="RecordComponentNumber">
+            <property name="max" value="20"/>
+        </module>
         <module name="EmptyForInitializerPad"/>
         <module name="EmptyForIteratorPad"/>
         <module name="NoWhitespaceAfter"/>

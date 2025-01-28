@@ -10,8 +10,8 @@ public class SecurityCardScreen extends AbstractSecurityCardScreen<SecurityCardC
 
     public SecurityCardScreen(final SecurityCardContainerMenu menu,
                               final Inventory playerInventory,
-                              final Component text) {
-        super(menu, playerInventory, text);
+                              final Component title) {
+        super(menu, playerInventory, title);
     }
 
     @Override

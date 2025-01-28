@@ -1,3 +1,4 @@
 {
-  "loader": "refinedstorage:gray_disk_interface"
+  "color": "gray",
+  "loader": "refinedstorage:disk_interface"
 }

@@ -7,32 +7,27 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.common.Platform;
-import com.refinedmods.refinedstorage.common.api.support.resource.AbstractResourceType;
 import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
-import com.refinedmods.refinedstorage.common.support.TextureIds;
+import com.refinedmods.refinedstorage.common.api.support.resource.ResourceType;
 
 import java.util.Optional;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
-class ItemResourceType extends AbstractResourceType {
-    ItemResourceType() {
-        super(
-            "ITEM",
-            createTranslation("misc", "resource_type.item"),
-            TextureIds.SIDE_BUTTON_ICONS,
-            0,
-            128
-        );
-    }
+class ItemResourceType implements ResourceType {
+    private static final MutableComponent TITLE = createTranslation("misc", "resource_type.item");
+    private static final ResourceLocation SPRITE = createIdentifier("widget/side_button/resource_type/item");
 
     @Override
-    public Optional<GridResource> toGridResource(final ResourceKey resource) {
-        return Platform.INSTANCE.getItemGridResourceFactory().apply(resource);
+    public Optional<GridResource> toGridResource(final ResourceKey resource, final boolean autocraftable) {
+        return Platform.INSTANCE.getItemGridResourceFactory().apply(resource, autocraftable);
     }
 
     @Override
@@ -72,5 +67,20 @@ class ItemResourceType extends AbstractResourceType {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public StreamCodec<RegistryFriendlyByteBuf, PlatformResourceKey> getStreamCodec() {
         return (StreamCodec) ResourceCodecs.ITEM_STREAM_CODEC;
+    }
+
+    @Override
+    public MutableComponent getTitle() {
+        return TITLE;
+    }
+
+    @Override
+    public ResourceLocation getSprite() {
+        return SPRITE;
+    }
+
+    @Override
+    public String toString() {
+        return "ITEM";
     }
 }

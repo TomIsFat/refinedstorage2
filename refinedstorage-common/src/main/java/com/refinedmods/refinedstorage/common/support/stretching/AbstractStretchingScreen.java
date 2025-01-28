@@ -4,6 +4,7 @@ import com.refinedmods.refinedstorage.common.Platform;
 import com.refinedmods.refinedstorage.common.support.AbstractBaseContainerMenu;
 import com.refinedmods.refinedstorage.common.support.AbstractBaseScreen;
 import com.refinedmods.refinedstorage.common.support.widget.ScrollbarWidget;
+import com.refinedmods.refinedstorage.common.support.widget.TextMarquee;
 
 import javax.annotation.Nullable;
 
@@ -14,11 +15,11 @@ import net.minecraft.world.entity.player.Inventory;
 public abstract class AbstractStretchingScreen<T extends AbstractBaseContainerMenu & ScreenSizeListener>
     extends AbstractBaseScreen<T> {
     protected static final int ROW_SIZE = 18;
+    protected static final int TOP_HEIGHT = 19;
 
-    private static final int TOP_HEIGHT = 19;
+    private static final int INVENTORY_INCLUDING_TITLE_HEIGHT = 99;
     private static final int COLUMNS = 9;
     private static final int MIN_ROWS = 3;
-    private static final int INVENTORY_INCLUDING_TITLE_HEIGHT = 99;
     private static final int ROW_PADDING = 3;
 
     private int visibleRows;
@@ -27,8 +28,14 @@ public abstract class AbstractStretchingScreen<T extends AbstractBaseContainerMe
 
     protected AbstractStretchingScreen(final T menu,
                                        final Inventory playerInventory,
-                                       final Component text) {
-        super(menu, playerInventory, text);
+                                       final TextMarquee title) {
+        super(menu, playerInventory, title);
+    }
+
+    protected AbstractStretchingScreen(final T menu,
+                                       final Inventory playerInventory,
+                                       final Component title) {
+        super(menu, playerInventory, title);
     }
 
     @Override
@@ -37,7 +44,7 @@ public abstract class AbstractStretchingScreen<T extends AbstractBaseContainerMe
         this.imageHeight = TOP_HEIGHT + (ROW_SIZE * visibleRows) + getBottomHeight();
         this.inventoryLabelY = imageHeight - INVENTORY_INCLUDING_TITLE_HEIGHT + 4;
 
-        getMenu().onScreenReady(imageHeight - INVENTORY_INCLUDING_TITLE_HEIGHT + 17);
+        resize();
 
         super.init();
 
@@ -57,6 +64,14 @@ public abstract class AbstractStretchingScreen<T extends AbstractBaseContainerMe
 
     protected void init(final int rows) {
         // no op
+    }
+
+    protected final void resize() {
+        getMenu().resized(
+            imageHeight - INVENTORY_INCLUDING_TITLE_HEIGHT + 17,
+            TOP_HEIGHT + 1,
+            TOP_HEIGHT + 1 + (ROW_SIZE * visibleRows) - 2
+        );
     }
 
     protected final int getScrollbarOffset() {

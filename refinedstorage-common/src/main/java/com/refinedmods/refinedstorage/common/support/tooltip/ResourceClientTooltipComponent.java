@@ -1,12 +1,9 @@
 package com.refinedmods.refinedstorage.common.support.tooltip;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 
-import java.util.Objects;
-
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -33,7 +30,7 @@ public class ResourceClientTooltipComponent implements ClientTooltipComponent {
 
     @Override
     public void renderImage(final Font font, final int x, final int y, final GuiGraphics graphics) {
-        RefinedStorageApi.INSTANCE.getResourceRendering(resourceAmount.resource()).render(
+        RefinedStorageClientApi.INSTANCE.getResourceRendering(resourceAmount.resource().getClass()).render(
             resourceAmount.resource(),
             graphics,
             x,
@@ -44,19 +41,16 @@ public class ResourceClientTooltipComponent implements ClientTooltipComponent {
             name,
             x + 16 + 4,
             y + 4,
-            Objects.requireNonNullElse(ChatFormatting.GRAY.getColor(), 11184810)
+            0xAAAAAA
         );
     }
 
     private static Component getNameWithAmount(final ResourceAmount resourceAmount) {
-        final ResourceRendering rendering = RefinedStorageApi.INSTANCE.getResourceRendering(
-            resourceAmount.resource()
+        final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(
+            resourceAmount.resource().getClass()
         );
-        final String amount = rendering.getDisplayedAmount(resourceAmount.amount(), true);
+        final String amount = rendering.formatAmount(resourceAmount.amount());
         final Component displayName = rendering.getDisplayName(resourceAmount.resource());
-        if (amount.isEmpty()) {
-            return displayName;
-        }
         return displayName.copy().append(" (").append(amount).append(")");
     }
 }

@@ -78,6 +78,7 @@ public class SecurityCardItem extends AbstractSecurityCardItem<PlayerBoundSecuri
         final ItemStack stack
     ) {
         return new SecurityCardExtendedMenuProvider(
+            stack.get(net.minecraft.core.component.DataComponents.CUSTOM_NAME),
             server,
             slotReference,
             policy,

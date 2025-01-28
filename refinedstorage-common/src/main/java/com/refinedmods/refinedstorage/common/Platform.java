@@ -43,6 +43,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
@@ -74,8 +75,6 @@ public interface Platform {
     Optional<FluidOperationResult> drainContainer(ItemStack container);
 
     Optional<FluidOperationResult> fillContainer(ItemStack container, ResourceAmount resourceAmount);
-
-    Optional<ItemStack> getFilledBucket(FluidResource fluidResource);
 
     TransferManager createTransferManager(AbstractContainerMenu containerMenu);
 
@@ -136,4 +135,6 @@ public interface Platform {
     int getItemColor(ItemStack stack, int tintIndex);
 
     void setSlotY(Slot slot, int y);
+
+    void requestModelDataUpdateOnClient(LevelAccessor level, BlockPos pos, boolean updateChunk);
 }

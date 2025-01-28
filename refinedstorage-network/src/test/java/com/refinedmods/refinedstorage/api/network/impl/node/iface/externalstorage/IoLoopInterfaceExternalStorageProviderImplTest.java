@@ -9,9 +9,9 @@ import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceExpor
 import com.refinedmods.refinedstorage.api.network.impl.node.iface.InterfaceNetworkNode;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetwork;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -21,7 +21,7 @@ import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @NetworkTest
@@ -76,12 +76,12 @@ class IoLoopInterfaceExternalStorageProviderImplTest {
         regularInterface.setExportState(regularInterfaceState);
         regularInterface.setTransferQuotaProvider(resource -> 100);
 
-        regularStorageInNetwork = new InMemoryStorageImpl();
-        regularStorageInNetwork.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        regularStorageInNetwork = new StorageImpl();
+        regularStorageInNetwork.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
         networkStorage.addSource(regularStorageInNetwork);
 
         externalStorageWithNonInterfaceConnection.initialize(new ExternalStorageProviderFactoryImpl(
-            new StorageExternalStorageProvider(new InMemoryStorageImpl())
+            new StorageExternalStorageProvider(new StorageImpl())
         ));
     }
 

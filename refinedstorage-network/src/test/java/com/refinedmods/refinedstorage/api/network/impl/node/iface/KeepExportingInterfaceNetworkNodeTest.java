@@ -3,8 +3,8 @@ package com.refinedmods.refinedstorage.api.network.impl.node.iface;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.Actor;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -14,10 +14,10 @@ import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A_ALTERNATIVE;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A_ALTERNATIVE2;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A_ALTERNATIVE;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A_ALTERNATIVE2;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @NetworkTest
@@ -41,8 +41,8 @@ class KeepExportingInterfaceNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 7);
 
@@ -95,8 +95,8 @@ class KeepExportingInterfaceNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 7, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 7, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 10);
 
@@ -145,9 +145,9 @@ class KeepExportingInterfaceNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A_ALTERNATIVE, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(A_ALTERNATIVE2, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A_ALTERNATIVE, 10, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(A_ALTERNATIVE2, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 10);
 
@@ -180,8 +180,8 @@ class KeepExportingInterfaceNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A_ALTERNATIVE, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A_ALTERNATIVE, 1, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 1);
 
@@ -204,7 +204,7 @@ class KeepExportingInterfaceNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
+        storage.addSource(new StorageImpl());
 
         exportState.setRequestedResource(1, A, 7);
         exportState.setCurrentlyExported(1, A, 10);
@@ -280,8 +280,8 @@ class KeepExportingInterfaceNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(B, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, B, 3);
         exportState.setCurrentlyExported(1, A, 3);
@@ -350,7 +350,7 @@ class KeepExportingInterfaceNetworkNodeTest {
     ) {
         // Arrange
         storage.addSource(new LimitedStorageImpl(11));
-        storage.insert(B, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(B, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, B, 3);
         exportState.setCurrentlyExported(1, A, 3);

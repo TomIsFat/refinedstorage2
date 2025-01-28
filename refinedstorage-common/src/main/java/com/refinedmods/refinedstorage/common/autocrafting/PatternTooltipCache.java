@@ -19,7 +19,7 @@ public final class PatternTooltipCache {
         return CACHE.computeIfAbsent(key.id(), id -> new CraftingPatternClientTooltipComponent(
             key.width(),
             key.height(),
-            key.craftingPattern()
+            key.pattern()
         ));
     }
 
@@ -28,5 +28,23 @@ public final class PatternTooltipCache {
             CACHE.clear();
         }
         return CACHE.computeIfAbsent(key.id(), id -> new ProcessingPatternClientTooltipComponent(key.state()));
+    }
+
+    public static ClientTooltipComponent getComponent(final PatternItem.StonecutterPatternTooltipComponent key) {
+        if (CACHE.size() > 1000) {
+            CACHE.clear();
+        }
+        return CACHE.computeIfAbsent(key.id(), id -> new StonecutterPatternClientTooltipComponent(
+            key.pattern()
+        ));
+    }
+
+    public static ClientTooltipComponent getComponent(final PatternItem.SmithingTablePatternTooltipComponent key) {
+        if (CACHE.size() > 1000) {
+            CACHE.clear();
+        }
+        return CACHE.computeIfAbsent(key.id(), id -> new SmithingTablePatternClientTooltipComponent(
+            key.pattern()
+        ));
     }
 }

@@ -4,16 +4,27 @@ import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import com.refinedmods.refinedstorage.common.support.containermenu.ClientProperty;
 import com.refinedmods.refinedstorage.common.support.widget.AbstractSideButtonWidget;
 
+import java.util.List;
+
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public class FilterModeSideButtonWidget extends AbstractSideButtonWidget {
     private static final MutableComponent TITLE = createTranslation("gui", "filter_mode");
-    private static final MutableComponent SUBTEXT_BLOCK = createTranslation("gui", "filter_mode.block");
-    private static final MutableComponent SUBTEXT_ALLOW = createTranslation("gui", "filter_mode.allow");
+    private static final List<MutableComponent> SUBTEXT_BLOCK = List.of(
+        createTranslation("gui", "filter_mode.block").withStyle(ChatFormatting.GRAY)
+    );
+    private static final List<MutableComponent> SUBTEXT_ALLOW = List.of(
+        createTranslation("gui", "filter_mode.allow").withStyle(ChatFormatting.GRAY)
+    );
     private static final Component FILTER_MODE_WARNING = createTranslation("gui", "storage.filter_mode.empty_warning");
+    private static final ResourceLocation ALLOW = createIdentifier("widget/side_button/storage/filter_mode/allow");
+    private static final ResourceLocation BLOCK = createIdentifier("widget/side_button/storage/filter_mode/block");
 
     private final ClientProperty<FilterMode> property;
     private final Component helpAllow;
@@ -45,13 +56,8 @@ public class FilterModeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected int getXTexture() {
-        return property.getValue() == FilterMode.BLOCK ? 16 : 0;
-    }
-
-    @Override
-    protected int getYTexture() {
-        return 64;
+    protected ResourceLocation getSprite() {
+        return property.getValue() == FilterMode.BLOCK ? BLOCK : ALLOW;
     }
 
     @Override
@@ -60,7 +66,7 @@ public class FilterModeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected MutableComponent getSubText() {
+    protected List<MutableComponent> getSubText() {
         return property.getValue() == FilterMode.BLOCK ? SUBTEXT_BLOCK : SUBTEXT_ALLOW;
     }
 

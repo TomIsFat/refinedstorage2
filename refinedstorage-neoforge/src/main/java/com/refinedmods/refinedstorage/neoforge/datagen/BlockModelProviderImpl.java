@@ -2,11 +2,11 @@ package com.refinedmods.refinedstorage.neoforge.datagen;
 
 import com.refinedmods.refinedstorage.common.content.BlockColorMap;
 import com.refinedmods.refinedstorage.common.content.Blocks;
+import com.refinedmods.refinedstorage.common.content.ContentIds;
 
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.model.generators.BlockModelProvider;
-import net.neoforged.neoforge.client.model.generators.CustomLoaderBuilder;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.MOD_ID;
@@ -19,9 +19,11 @@ public class BlockModelProviderImpl extends BlockModelProvider {
 
     private static final ResourceLocation EMISSIVE_CUTOUT = createIdentifier("block/emissive_cutout");
     private static final ResourceLocation EMISSIVE_ALL_CUTOUT = createIdentifier("block/emissive_all_cutout");
+    private static final ResourceLocation EMISSIVE_SIDES_CUTOUT = createIdentifier("block/emissive_sides_cutout");
     private static final ResourceLocation EMISSIVE_NORTH_CUTOUT = createIdentifier("block/emissive_north_cutout");
 
     private static final ResourceLocation CUTOUT = createIdentifier("block/cutout");
+    private static final ResourceLocation SIDES_CUTOUT = createIdentifier("block/sides_cutout");
     private static final ResourceLocation ALL_CUTOUT = createIdentifier("block/all_cutout");
     private static final ResourceLocation NORTH_CUTOUT = createIdentifier("block/north_cutout");
 
@@ -48,9 +50,11 @@ public class BlockModelProviderImpl extends BlockModelProvider {
     protected void registerModels() {
         registerCables();
         registerControllers();
-        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getGrid(), "grid", "");
-        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getCraftingGrid(), "crafting_grid", "");
-        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getPatternGrid(), "pattern_grid", "");
+        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getGrid(), "grid");
+        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getCraftingGrid(), "crafting_grid");
+        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getPatternGrid(), "pattern_grid");
+        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getAutocrafterManager(), "autocrafter_manager");
+        registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getAutocraftingMonitor(), "autocrafting_monitor");
         registerDetectors();
         registerWirelessTransmitters();
         registerNetworkReceivers();
@@ -58,6 +62,7 @@ public class BlockModelProviderImpl extends BlockModelProvider {
         registerSecurityManagers();
         registerRelays();
         registerDiskInterfaces();
+        registerAutocrafters();
     }
 
     private void registerCables() {
@@ -71,6 +76,14 @@ public class BlockModelProviderImpl extends BlockModelProvider {
             withExistingParent("block/cable/extension/" + color.getName(), extensionBase)
                 .texture("cable", texture)
                 .texture(PARTICLE_TEXTURE, texture);
+            getBuilder("block/cable/" + color.getName())
+                .customLoader((blockModelBuilder, existingFileHelper) -> new ColoredCustomLoaderBuilder<>(
+                    ContentIds.CABLE,
+                    blockModelBuilder,
+                    existingFileHelper,
+                    color
+                ) {
+                }).end();
         });
     }
 
@@ -84,6 +97,10 @@ public class BlockModelProviderImpl extends BlockModelProvider {
                 .texture("all", on)
                 .texture(CUTOUT_TEXTURE, cutout);
         });
+    }
+
+    private void registerRightLeftBackFrontTopModel(final BlockColorMap<?, ?> blockMap, final String name) {
+        registerRightLeftBackFrontTopModel(blockMap, name, "");
     }
 
     private void registerRightLeftBackFrontTopModel(final BlockColorMap<?, ?> blockMap,
@@ -197,7 +214,7 @@ public class BlockModelProviderImpl extends BlockModelProvider {
             final ResourceLocation cutoutTop = createIdentifier(
                 "block/security_manager/cutouts/top/" + color.getName()
             );
-            withExistingParent("block/security_manager/" + color.getName(), EMISSIVE_CUTOUT)
+            withExistingParent("block/security_manager/" + color.getName(), EMISSIVE_SIDES_CUTOUT)
                 .texture(PARTICLE_TEXTURE, back)
                 .texture(NORTH, front)
                 .texture(EAST, right)
@@ -209,15 +226,14 @@ public class BlockModelProviderImpl extends BlockModelProvider {
                 .texture(CUTOUT_EAST, cutoutRight)
                 .texture(CUTOUT_SOUTH, cutoutBack)
                 .texture(CUTOUT_WEST, cutoutLeft)
-                .texture(CUTOUT_UP, cutoutTop)
-                .texture(CUTOUT_DOWN, BOTTOM_TEXTURE);
+                .texture(CUTOUT_UP, cutoutTop);
         });
         final ResourceLocation cutoutBack = createIdentifier("block/security_manager/cutouts/back/inactive");
         final ResourceLocation cutoutFront = createIdentifier("block/security_manager/cutouts/front/inactive");
         final ResourceLocation cutoutLeft = createIdentifier("block/security_manager/cutouts/left/inactive");
         final ResourceLocation cutoutRight = createIdentifier("block/security_manager/cutouts/right/inactive");
         final ResourceLocation cutoutTop = createIdentifier("block/security_manager/cutouts/top/inactive");
-        withExistingParent("block/security_manager/inactive", CUTOUT)
+        withExistingParent("block/security_manager/inactive", SIDES_CUTOUT)
             .texture(PARTICLE_TEXTURE, back)
             .texture(NORTH, front)
             .texture(EAST, right)
@@ -229,8 +245,7 @@ public class BlockModelProviderImpl extends BlockModelProvider {
             .texture(CUTOUT_EAST, cutoutRight)
             .texture(CUTOUT_SOUTH, cutoutBack)
             .texture(CUTOUT_WEST, cutoutLeft)
-            .texture(CUTOUT_UP, cutoutTop)
-            .texture(CUTOUT_DOWN, BOTTOM_TEXTURE);
+            .texture(CUTOUT_UP, cutoutTop);
     }
 
     private void registerRelays() {
@@ -276,12 +291,49 @@ public class BlockModelProviderImpl extends BlockModelProvider {
         registerRightLeftBackFrontTopModel(Blocks.INSTANCE.getDiskInterface(), "disk_interface", "base_");
         Blocks.INSTANCE.getDiskInterface()
             .forEach((color, id, block) -> getBuilder("block/disk_interface/" + color.getName())
-                .customLoader((blockModelBuilder, existingFileHelper) -> new CustomLoaderBuilder<>(
-                    id,
+                .customLoader((blockModelBuilder, existingFileHelper) -> new ColoredCustomLoaderBuilder<>(
+                    ContentIds.DISK_INTERFACE,
                     blockModelBuilder,
                     existingFileHelper,
-                    true
+                    color
                 ) {
                 }).end());
+    }
+
+    private void registerAutocrafters() {
+        final ResourceLocation side = createIdentifier("block/autocrafter/side");
+        final ResourceLocation top = createIdentifier("block/autocrafter/top");
+        Blocks.INSTANCE.getAutocrafter().forEach((color, id, autocrafter) -> {
+            final ResourceLocation cutoutSide = createIdentifier("block/autocrafter/cutouts/side/" + color.getName());
+            final ResourceLocation cutoutTop = createIdentifier("block/autocrafter/cutouts/top/" + color.getName());
+            withExistingParent("block/autocrafter/" + color.getName(), EMISSIVE_SIDES_CUTOUT)
+                .texture(PARTICLE_TEXTURE, side)
+                .texture(NORTH, side)
+                .texture(EAST, side)
+                .texture(SOUTH, side)
+                .texture(WEST, side)
+                .texture(UP, top)
+                .texture(DOWN, BOTTOM_TEXTURE)
+                .texture(CUTOUT_NORTH, cutoutSide)
+                .texture(CUTOUT_EAST, cutoutSide)
+                .texture(CUTOUT_SOUTH, cutoutSide)
+                .texture(CUTOUT_WEST, cutoutSide)
+                .texture(CUTOUT_UP, cutoutTop);
+        });
+        final ResourceLocation cutoutSide = createIdentifier("block/autocrafter/cutouts/side/inactive");
+        final ResourceLocation cutoutTop = createIdentifier("block/autocrafter/cutouts/top/inactive");
+        withExistingParent("block/autocrafter/inactive", SIDES_CUTOUT)
+            .texture(PARTICLE_TEXTURE, side)
+            .texture(NORTH, side)
+            .texture(EAST, side)
+            .texture(SOUTH, side)
+            .texture(WEST, side)
+            .texture(UP, top)
+            .texture(DOWN, BOTTOM_TEXTURE)
+            .texture(CUTOUT_NORTH, cutoutSide)
+            .texture(CUTOUT_EAST, cutoutSide)
+            .texture(CUTOUT_SOUTH, cutoutSide)
+            .texture(CUTOUT_WEST, cutoutSide)
+            .texture(CUTOUT_UP, cutoutTop);
     }
 }

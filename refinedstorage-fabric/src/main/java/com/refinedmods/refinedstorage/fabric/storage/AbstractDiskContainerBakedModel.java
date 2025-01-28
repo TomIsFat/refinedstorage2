@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.fabric.storage;
 import com.refinedmods.refinedstorage.api.storage.StorageState;
 import com.refinedmods.refinedstorage.common.storage.AbstractDiskContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.storage.Disk;
-import com.refinedmods.refinedstorage.common.util.PlatformUtil;
+import com.refinedmods.refinedstorage.common.util.ClientPlatformUtil;
 import com.refinedmods.refinedstorage.fabric.support.render.QuadTranslator;
 
 import java.util.Map;
@@ -58,7 +58,7 @@ public abstract class AbstractDiskContainerBakedModel extends ForwardingBakedMod
     public void emitItemQuads(final ItemStack stack,
                               final Supplier<RandomSource> randomSupplier,
                               final RenderContext context) {
-        final Level level = PlatformUtil.getClientLevel();
+        final Level level = ClientPlatformUtil.getClientLevel();
         final CustomData customData = stack.get(DataComponents.BLOCK_ENTITY_DATA);
         if (customData == null || level == null) {
             return;

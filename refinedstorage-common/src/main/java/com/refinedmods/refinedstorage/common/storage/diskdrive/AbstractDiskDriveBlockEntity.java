@@ -63,8 +63,8 @@ public abstract class AbstractDiskDriveBlockEntity extends AbstractDiskContainer
     }
 
     @Override
-    public Component getDisplayName() {
-        return ContentNames.DISK_DRIVE;
+    public Component getName() {
+        return overrideName(ContentNames.DISK_DRIVE);
     }
 
     @Override

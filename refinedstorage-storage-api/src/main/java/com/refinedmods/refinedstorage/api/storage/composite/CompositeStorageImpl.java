@@ -3,7 +3,7 @@ package com.refinedmods.refinedstorage.api.storage.composite;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
@@ -25,25 +25,28 @@ import org.apiguardian.api.API;
  */
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.1.0")
 public class CompositeStorageImpl implements CompositeStorage, CompositeAwareChild, ParentComposite {
-    private final List<Storage> sources = new ArrayList<>();
-    private final ResourceList list;
+    private final List<Storage> insertSources = new ArrayList<>();
+    private final List<Storage> extractSources = new ArrayList<>();
+    private final MutableResourceList list;
     private final Set<ParentComposite> parentComposites = new HashSet<>();
 
     /**
      * @param list the backing list of this composite storage, used to retrieve a view of the sources
      */
-    public CompositeStorageImpl(final ResourceList list) {
+    public CompositeStorageImpl(final MutableResourceList list) {
         this.list = list;
     }
 
     @Override
     public void sortSources() {
-        sources.sort(PrioritizedStorageComparator.INSTANCE);
+        insertSources.sort(PrioritizedStorageComparator.INSERT);
+        extractSources.sort(PrioritizedStorageComparator.EXTRACT);
     }
 
     @Override
     public void addSource(final Storage source) {
-        sources.add(source);
+        insertSources.add(source);
+        extractSources.add(source);
         sortSources();
         addContentOfSourceToList(source);
         parentComposites.forEach(parentComposite -> parentComposite.onSourceAddedToChild(source));
@@ -54,7 +57,8 @@ public class CompositeStorageImpl implements CompositeStorage, CompositeAwareChi
 
     @Override
     public void removeSource(final Storage source) {
-        sources.remove(source);
+        insertSources.remove(source);
+        extractSources.remove(source);
         // Re-sort isn't necessary, since they are ordered when added.
         removeContentOfSourceFromList(source);
         parentComposites.forEach(parentComposite -> parentComposite.onSourceRemovedFromChild(source));
@@ -65,18 +69,18 @@ public class CompositeStorageImpl implements CompositeStorage, CompositeAwareChi
 
     @Override
     public List<Storage> getSources() {
-        return Collections.unmodifiableList(sources);
+        return Collections.unmodifiableList(insertSources);
     }
 
     @Override
     public void clearSources() {
-        final Set<Storage> oldSources = new HashSet<>(sources);
+        final Set<Storage> oldSources = new HashSet<>(insertSources);
         oldSources.forEach(this::removeSource);
     }
 
     @Override
     public boolean contains(final Storage storage) {
-        for (final Storage source : sources) {
+        for (final Storage source : insertSources) {
             if (source instanceof CompositeAwareChild compositeAwareChild && compositeAwareChild.contains(storage)) {
                 return true;
             }
@@ -88,7 +92,7 @@ public class CompositeStorageImpl implements CompositeStorage, CompositeAwareChi
     public long extract(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
         long remaining = amount;
         long toRemoveFromList = 0;
-        for (final Storage source : sources) {
+        for (final Storage source : extractSources) {
             if (source instanceof CompositeAwareChild compositeAwareChild) {
                 final Amount extracted = compositeAwareChild.compositeExtract(resource, remaining, action, actor);
                 remaining -= extracted.amount();
@@ -113,7 +117,7 @@ public class CompositeStorageImpl implements CompositeStorage, CompositeAwareChi
     public long insert(final ResourceKey resource, final long amount, final Action action, final Actor actor) {
         long inserted = 0;
         long toInsertIntoList = 0;
-        for (final Storage source : sources) {
+        for (final Storage source : insertSources) {
             if (source instanceof CompositeAwareChild compositeAwareChild) {
                 final Amount insertedAmount = compositeAwareChild.compositeInsert(
                     resource,
@@ -145,13 +149,13 @@ public class CompositeStorageImpl implements CompositeStorage, CompositeAwareChi
 
     @Override
     public long getStored() {
-        return sources.stream().mapToLong(Storage::getStored).sum();
+        return insertSources.stream().mapToLong(Storage::getStored).sum();
     }
 
     @Override
     public Optional<TrackedResource> findTrackedResourceByActorType(final ResourceKey resource,
                                                                     final Class<? extends Actor> actorType) {
-        return sources
+        return insertSources
             .stream()
             .filter(TrackedStorage.class::isInstance)
             .map(TrackedStorage.class::cast)

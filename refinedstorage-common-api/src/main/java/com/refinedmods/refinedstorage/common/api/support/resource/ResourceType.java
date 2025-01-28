@@ -23,17 +23,13 @@ public interface ResourceType {
 
     MutableComponent getTitle();
 
-    ResourceLocation getTextureIdentifier();
-
-    int getXTexture();
-
-    int getYTexture();
+    ResourceLocation getSprite();
 
     long normalizeAmount(double amount);
 
     double getDisplayAmount(long amount);
 
-    Optional<GridResource> toGridResource(ResourceKey resource);
+    Optional<GridResource> toGridResource(ResourceKey resource, boolean autocraftable);
 
     long getInterfaceExportLimit();
 

@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.common.support.packet.c2s;
 
-import com.refinedmods.refinedstorage.common.autocrafting.PatternGridContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridContainerMenu;
 import com.refinedmods.refinedstorage.common.support.packet.PacketContext;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;

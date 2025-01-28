@@ -18,7 +18,7 @@ import net.minecraft.world.entity.player.Player;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
-public class ImporterContainerMenu extends AbstractSimpleFilterContainerMenu<ImporterBlockEntity> {
+public class ImporterContainerMenu extends AbstractSimpleFilterContainerMenu<AbstractImporterBlockEntity> {
     private static final MutableComponent FILTER_HELP = createTranslation("gui", "importer.filter_help");
 
     public ImporterContainerMenu(final int syncId,
@@ -36,7 +36,7 @@ public class ImporterContainerMenu extends AbstractSimpleFilterContainerMenu<Imp
 
     ImporterContainerMenu(final int syncId,
                           final Player player,
-                          final ImporterBlockEntity importer,
+                          final AbstractImporterBlockEntity importer,
                           final ResourceContainer resourceContainer,
                           final UpgradeContainer upgradeContainer) {
         super(
@@ -58,7 +58,7 @@ public class ImporterContainerMenu extends AbstractSimpleFilterContainerMenu<Imp
     }
 
     @Override
-    protected void registerServerProperties(final ImporterBlockEntity blockEntity) {
+    protected void registerServerProperties(final AbstractImporterBlockEntity blockEntity) {
         registerProperty(new ServerProperty<>(
             PropertyTypes.FILTER_MODE,
             blockEntity::getFilterMode,

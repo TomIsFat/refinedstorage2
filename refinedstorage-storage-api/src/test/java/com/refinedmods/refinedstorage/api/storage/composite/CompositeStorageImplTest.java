@@ -2,11 +2,11 @@ package com.refinedmods.refinedstorage.api.storage.composite;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.FakeActors;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
+import com.refinedmods.refinedstorage.api.storage.Actor;
+import com.refinedmods.refinedstorage.api.storage.ActorFixtures;
 import com.refinedmods.refinedstorage.api.storage.Storage;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedStorage;
@@ -27,7 +27,7 @@ class CompositeStorageImplTest {
 
     @BeforeEach
     void setUp() {
-        sut = new CompositeStorageImpl(ResourceListImpl.create());
+        sut = new CompositeStorageImpl(MutableResourceListImpl.create());
     }
 
     @Test
@@ -41,21 +41,21 @@ class CompositeStorageImplTest {
     void shouldAddSource() {
         // Arrange
         final Storage storage1 = new LimitedStorageImpl(10);
-        storage1.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage1.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage2 = new LimitedStorageImpl(10);
-        storage2.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage2.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage3 = new LimitedStorageImpl(10);
-        storage3.insert(C, 7, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage3.insert(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage3.insert(C, 7, Action.EXECUTE, Actor.EMPTY);
+        storage3.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         // Act
         sut.addSource(storage1);
         sut.addSource(storage2);
         sut.addSource(storage3);
 
-        final long inserted = sut.insert(B, 6, Action.SIMULATE, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(B, 6, Action.SIMULATE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -71,14 +71,14 @@ class CompositeStorageImplTest {
     void shouldRemoveSource() {
         // Arrange
         final Storage storage1 = new LimitedStorageImpl(10);
-        storage1.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage1.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage2 = new LimitedStorageImpl(10);
-        storage2.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage2.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage3 = new LimitedStorageImpl(10);
-        storage3.insert(C, 7, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage3.insert(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage3.insert(C, 7, Action.EXECUTE, Actor.EMPTY);
+        storage3.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage1);
         sut.addSource(storage2);
@@ -87,7 +87,7 @@ class CompositeStorageImplTest {
         // Act
         sut.removeSource(storage3);
 
-        final long extracted = sut.extract(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -102,14 +102,14 @@ class CompositeStorageImplTest {
     void shouldClearSources() {
         // Arrange
         final Storage storage1 = new LimitedStorageImpl(10);
-        storage1.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage1.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage2 = new LimitedStorageImpl(10);
-        storage2.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage2.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
 
         final Storage storage3 = new LimitedStorageImpl(10);
-        storage3.insert(C, 7, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage3.insert(A, 3, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage3.insert(C, 7, Action.EXECUTE, Actor.EMPTY);
+        storage3.insert(A, 3, Action.EXECUTE, Actor.EMPTY);
 
         sut.addSource(storage1);
         sut.addSource(storage2);
@@ -118,7 +118,7 @@ class CompositeStorageImplTest {
         // Act
         sut.clearSources();
 
-        final long extracted = sut.extract(C, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long extracted = sut.extract(C, 1, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).isEmpty();
@@ -127,18 +127,18 @@ class CompositeStorageImplTest {
     }
 
     @Test
-    void shouldRespectPriorityWhenAddingNewSources() {
+    void shouldRespectInsertPriorityWhenAddingNewSources() {
         // Arrange
-        final Storage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 20);
-        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 10);
-        final Storage storage3 = PriorityStorage.of(new LimitedStorageImpl(10), 30);
+        final Storage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 20, 30);
+        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 10, 10);
+        final Storage storage3 = PriorityStorage.of(new LimitedStorageImpl(10), 30, 20);
 
         // Act
         sut.addSource(storage1);
         sut.addSource(storage2);
         sut.addSource(storage3);
 
-        final long inserted = sut.insert(A, 12, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(A, 12, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -152,11 +152,37 @@ class CompositeStorageImplTest {
     }
 
     @Test
-    void shouldRespectPriorityWhenRemovingSources() {
+    void shouldRespectExtractPriorityWhenAddingNewSources() {
         // Arrange
-        final Storage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 20);
-        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 10);
-        final Storage storage3 = PriorityStorage.of(new LimitedStorageImpl(10), 30);
+        final Storage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 20, 30);
+        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 10, 10);
+        final Storage storage3 = PriorityStorage.of(new LimitedStorageImpl(10), 30, 20);
+
+        // Act
+        sut.addSource(storage1);
+        sut.addSource(storage2);
+        sut.addSource(storage3);
+        sut.insert(A, 30, Action.EXECUTE, Actor.EMPTY);
+
+        final long extracted = sut.extract(A, 12, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 18)
+        );
+        assertThat(sut.getSources()).containsExactly(storage3, storage1, storage2);
+        assertThat(extracted).isEqualTo(12);
+        assertThat(storage1.getStored()).isZero();
+        assertThat(storage3.getStored()).isEqualTo(8);
+        assertThat(storage2.getStored()).isEqualTo(10);
+    }
+
+    @Test
+    void shouldRespectInsertPriorityWhenRemovingSources() {
+        // Arrange
+        final Storage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 20, 30);
+        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 10, 10);
+        final Storage storage3 = PriorityStorage.of(new LimitedStorageImpl(10), 30, 20);
 
         sut.addSource(storage1);
         sut.addSource(storage2);
@@ -164,7 +190,7 @@ class CompositeStorageImplTest {
         sut.removeSource(storage3);
 
         // Act
-        final long inserted = sut.insert(A, 12, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(A, 12, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
@@ -178,30 +204,85 @@ class CompositeStorageImplTest {
     }
 
     @Test
-    void shouldOnlyRespectPriorityWhenSortingSourcesExplicitlyWhenChangingPriorityAfterAddingSource() {
+    void shouldRespectExtractPriorityWhenRemovingSources() {
         // Arrange
-        final PriorityStorage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 1);
-        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 2);
+        final Storage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 20, 30);
+        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 10, 10);
+        final Storage storage3 = PriorityStorage.of(new LimitedStorageImpl(10), 30, 20);
+
+        sut.addSource(storage1);
+        sut.addSource(storage2);
+        sut.addSource(storage3);
+        sut.insert(A, 30, Action.EXECUTE, Actor.EMPTY);
+        sut.removeSource(storage3);
+
+        // Act
+        final long extracted = sut.extract(A, 12, Action.EXECUTE, Actor.EMPTY);
+
+        // Assert
+        assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+            new ResourceAmount(A, 8)
+        );
+        assertThat(sut.getSources()).containsExactly(storage1, storage2);
+        assertThat(extracted).isEqualTo(12);
+        assertThat(storage1.getStored()).isZero();
+        assertThat(storage2.getStored()).isEqualTo(8);
+        assertThat(storage3.getStored()).isEqualTo(10);
+    }
+
+    @Test
+    void shouldOnlyRespectInsertPriorityWhenSortingSourcesExplicitlyWhenChangingPriorityAfterAddingSource() {
+        // Arrange
+        final PriorityStorage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 1, 2);
+        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 2, 1);
 
         sut.addSource(storage1);
         sut.addSource(storage2);
 
         // Act & assert
-        sut.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
         assertThat(storage1.getStored()).isZero();
         assertThat(storage2.getStored()).isEqualTo(1);
 
-        storage1.setPriority(3);
+        storage1.setInsertPriority(3);
 
-        sut.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
         assertThat(storage1.getStored()).isZero();
         assertThat(storage2.getStored()).isEqualTo(2);
 
         sut.sortSources();
 
-        sut.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
         assertThat(storage1.getStored()).isEqualTo(1);
         assertThat(storage2.getStored()).isEqualTo(2);
+    }
+
+    @Test
+    void shouldOnlyRespectExtractPriorityWhenSortingSourcesExplicitlyWhenChangingPriorityAfterAddingSource() {
+        // Arrange
+        final PriorityStorage storage1 = PriorityStorage.of(new LimitedStorageImpl(10), 1, 2);
+        final Storage storage2 = PriorityStorage.of(new LimitedStorageImpl(10), 2, 1);
+
+        sut.addSource(storage1);
+        sut.addSource(storage2);
+        sut.insert(A, 20, Action.EXECUTE, Actor.EMPTY);
+
+        // Act & assert
+        sut.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
+        assertThat(storage1.getStored()).isEqualTo(9);
+        assertThat(storage2.getStored()).isEqualTo(10);
+
+        storage1.setExtractPriority(0);
+
+        sut.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
+        assertThat(storage1.getStored()).isEqualTo(8);
+        assertThat(storage2.getStored()).isEqualTo(10);
+
+        sut.sortSources();
+
+        sut.extract(A, 1, Action.EXECUTE, Actor.EMPTY);
+        assertThat(storage1.getStored()).isEqualTo(8);
+        assertThat(storage2.getStored()).isEqualTo(9);
     }
 
     @SuppressWarnings("AssertBetweenInconvertibleTypes") // intellij bug
@@ -210,28 +291,28 @@ class CompositeStorageImplTest {
         // Arrange
         final AtomicLong clock = new AtomicLong(0L);
 
-        final TrackedStorage a = new TrackedStorageImpl(new InMemoryStorageImpl(), clock::get);
-        final TrackedStorage b = new TrackedStorageImpl(new InMemoryStorageImpl(), clock::get);
+        final TrackedStorage a = new TrackedStorageImpl(new StorageImpl(), clock::get);
+        final TrackedStorage b = new TrackedStorageImpl(new StorageImpl(), clock::get);
 
         // Test if it uses the latest across 2 different storages
-        a.insert(A, 1, Action.EXECUTE, FakeActors.FakeActor1.INSTANCE);
+        a.insert(A, 1, Action.EXECUTE, ActorFixtures.ActorFixture1.INSTANCE);
         clock.set(1L);
-        b.insert(A, 1, Action.EXECUTE, FakeActors.FakeActor1.INSTANCE);
+        b.insert(A, 1, Action.EXECUTE, ActorFixtures.ActorFixture1.INSTANCE);
 
         // Test if it differentiates between source types properly
         clock.set(2L);
-        b.insert(B, 1, Action.EXECUTE, FakeActors.FakeActor1.INSTANCE);
+        b.insert(B, 1, Action.EXECUTE, ActorFixtures.ActorFixture1.INSTANCE);
         clock.set(3L);
-        b.insert(B, 1, Action.EXECUTE, FakeActors.FakeActor2.INSTANCE);
+        b.insert(B, 1, Action.EXECUTE, ActorFixtures.ActorFixture2.INSTANCE);
 
         sut.addSource(a);
         sut.addSource(b);
 
         // Act
-        final var oneOne = sut.findTrackedResourceByActorType(A, FakeActors.FakeActor1.class);
-        final var oneTwo = sut.findTrackedResourceByActorType(A, FakeActors.FakeActor2.class);
-        final var twoOne = sut.findTrackedResourceByActorType(B, FakeActors.FakeActor1.class);
-        final var twoTwo = sut.findTrackedResourceByActorType(B, FakeActors.FakeActor2.class);
+        final var oneOne = sut.findTrackedResourceByActorType(A, ActorFixtures.ActorFixture1.class);
+        final var oneTwo = sut.findTrackedResourceByActorType(A, ActorFixtures.ActorFixture2.class);
+        final var twoOne = sut.findTrackedResourceByActorType(B, ActorFixtures.ActorFixture1.class);
+        final var twoTwo = sut.findTrackedResourceByActorType(B, ActorFixtures.ActorFixture2.class);
 
         // Assert
         assertThat(oneOne).get().usingRecursiveComparison().isEqualTo(new TrackedResource("Source1", 1L));

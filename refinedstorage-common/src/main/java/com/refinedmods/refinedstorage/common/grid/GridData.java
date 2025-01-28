@@ -5,18 +5,21 @@ import com.refinedmods.refinedstorage.api.storage.TrackedResourceAmount;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.common.api.grid.Grid;
 import com.refinedmods.refinedstorage.common.api.storage.PlayerActor;
+import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.storage.StorageCodecs;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceCodecs;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record GridData(boolean active, List<GridResource> resources) {
+public record GridData(boolean active, List<GridResource> resources, Set<PlatformResourceKey> autocraftableResources) {
     public static final StreamCodec<RegistryFriendlyByteBuf, GridData> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.BOOL, GridData::active,
         ByteBufCodecs.collection(ArrayList::new, StreamCodec.composite(
@@ -24,13 +27,15 @@ public record GridData(boolean active, List<GridResource> resources) {
             StorageCodecs.TRACKED_RESOURCE_OPTIONAL_STREAM_CODEC, GridResource::trackedResource,
             GridResource::new
         )), GridData::resources,
+        ByteBufCodecs.collection(HashSet::new, ResourceCodecs.STREAM_CODEC), GridData::autocraftableResources,
         GridData::new
     );
 
     public static GridData of(final Grid grid) {
         return new GridData(
             grid.isGridActive(),
-            grid.getResources(PlayerActor.class).stream().map(GridResource::of).toList()
+            grid.getResources(PlayerActor.class).stream().map(GridResource::of).toList(),
+            grid.getAutocraftableResources()
         );
     }
 

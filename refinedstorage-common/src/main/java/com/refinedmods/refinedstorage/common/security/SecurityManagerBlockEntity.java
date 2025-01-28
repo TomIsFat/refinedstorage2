@@ -13,7 +13,7 @@ import com.refinedmods.refinedstorage.common.content.ContentNames;
 import com.refinedmods.refinedstorage.common.support.BlockEntityWithDrops;
 import com.refinedmods.refinedstorage.common.support.FilteredContainer;
 import com.refinedmods.refinedstorage.common.support.containermenu.NetworkNodeMenuProvider;
-import com.refinedmods.refinedstorage.common.support.network.AbstractRedstoneModeNetworkNodeContainerBlockEntity;
+import com.refinedmods.refinedstorage.common.support.network.AbstractBaseNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.support.network.NetworkNodeContainerProviderImpl;
 import com.refinedmods.refinedstorage.common.util.ContainerUtil;
 
@@ -32,7 +32,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class SecurityManagerBlockEntity
-    extends AbstractRedstoneModeNetworkNodeContainerBlockEntity<SecurityDecisionProviderProxyNetworkNode>
+    extends AbstractBaseNetworkNodeContainerBlockEntity<SecurityDecisionProviderProxyNetworkNode>
     implements BlockEntityWithDrops, NetworkNodeMenuProvider {
     static final int CARD_AMOUNT = 18;
 
@@ -134,7 +134,7 @@ public class SecurityManagerBlockEntity
     }
 
     @Override
-    public NonNullList<ItemStack> getDrops() {
+    public final NonNullList<ItemStack> getDrops() {
         final NonNullList<ItemStack> drops = NonNullList.create();
         for (int i = 0; i < securityCards.getContainerSize(); ++i) {
             drops.add(securityCards.getItem(i));
@@ -162,8 +162,8 @@ public class SecurityManagerBlockEntity
     }
 
     @Override
-    public Component getDisplayName() {
-        return ContentNames.SECURITY_MANAGER;
+    public Component getName() {
+        return overrideName(ContentNames.SECURITY_MANAGER);
     }
 
     @Nullable

@@ -7,6 +7,152 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+###  Added
+
+-   Colored variants are now moved to a separate creative mode tab.
+
+### Fixed
+
+-   Fixed Crafter and Security Manager bottom sides being lit on NeoForge.
+-   Fixed pattern input slot in the Pattern Grid not being accessible as an external inventory.
+-   Fixed duplication bug with the Crafting Grid matrix and insert-only storages.
+-   Fixed not being able to deselect the Grid search box.
+
+## [2.0.0-milestone.4.12] - 2025-01-27
+
+### Added
+
+-   Autocrafting engine.
+-   The crafting preview now has the ability to fill out the maximum amount of a resource you can currently craft.
+-   In the crafting preview, you can now indicate whether you want to be notified when an autocrafting task is finished.
+
+### Changed
+
+-   Autocrafting now handles multiple patterns with the same output correctly by trying to use the pattern with the
+    highest priority first. If there are missing resources, lower priority patterns are checked.
+-   The Autocrafter now faces the block you're clicking when placing it, like the other cable blocks (like the Exporter or Importer).
+-   You can no longer cancel autocrafting tasks if there is not enough space in storage to return the intermediate task storage.
+-   The Autocrafting Monitor now shows the machine in which a resource is processing.
+
+### Fixed
+
+-   Fixed amount in amount screens resetting when resizing the screen.
+
+## [2.0.0-milestone.4.11] - 2024-12-08
+
+### Added
+
+-   Ability to differentiate between insert and extract storage priorities. By default, the extract priority will match the insert priority unless configured otherwise.
+
+### Fixed
+
+-   Fixed External Storage not connecting properly to fluid storages.
+-   Fixed Interface filter not respecting maximum stack size of a resource.
+-   Fixed potential crash when trying to build cable shapes.
+-   Fixed storage disk upgrade recipes not showing properly in recipe viewers.
+-   Protect against crashes from other mods when trying to build the cached Grid tooltip.
+-   Fixed charging energy items not working on Fabric.
+
+## [2.0.0-milestone.4.10] - 2024-11-24
+
+### Added
+
+-   Autocrafting Monitor
+-   Wireless Autocrafting Monitor
+-   Creative Wireless Autocrafting Monitor
+
+### Changed
+
+-   The Autocrafting Monitor now has a sidebar with all tasks instead of using tabs.
+-   The auto-selected search box mode is now a global option used in the Autocrafter Manager as well.
+
+### Removed
+
+-   Block of Quartz Enriched Iron (has been moved to addon mod)
+-   Block of Quartz Enriched Copper (has been moved to addon mod)
+
+## [2.0.0-milestone.4.9] - 2024-11-01
+
+### Added
+
+-   Autocrafter Manager
+-   You can now configure the view type of the Autocrafter Manager:
+    -   Visible (only show autocrafters that are configured to be visible to the Autocrafter Manager)
+    -   Not full (only show autocrafters that are not full yet)
+    -   All (show all autocrafters)
+
+### Changed
+
+-   The search field in the Autocrafter Manager can now search in:
+    -   Pattern inputs
+    -   Pattern outputs
+    -   Autocrafter names
+    -   All of the above (by default)
+-   Due to technical limitations and the new filtering options listed above being client-side only, you can no longer shift-click patterns in the Autocrafter Manager.
+-   In the Autocrafter, you can now configure whether it is visible to the Autocrafter Manager (by default it's visible).
+
+## [2.0.0-milestone.4.8] - 2024-10-12
+
+### Added
+
+-   Autocrafter
+    -   Note: autocrafting itself hasn't been implemented yet. This is the in-game content, but not the autocrafting engine itself yet. 
+-   The Relay now has support for propagating autocrafting when not in pass-through mode.
+
+### Changed
+
+-   The Crafter has been renamed to "Autocrafter".
+-   Optimized memory usage and startup time of cable models. After updating, cables will appear disconnected, but this is only visual. Cause a block update to fix this.
+-   Optimized performance of searching in the Grid.
+-   Custom titles that overflow will now have a marquee effect instead, for every GUI.
+-   You can now define a priority in the Autocrafter.
+-   You can now change the name of a Autocrafter in the GUI.
+-   Changed "Crafter mode" to "Locking mode" with following options:
+    -   Never
+    -   Lock until redstone pulse is received
+    -   Lock until connected machine is empty (new, facilitates easier "blocking mode" without redstone)
+    -   Lock until all outputs are received (new, facilitates easier "blocking mode" without redstone)
+    -   Lock until low redstone signal
+    -   Lock until high redstone signal
+-   Resources in the Grid that are autocraftable now display an orange backdrop and tooltip to indicate whether the resource is autocraftable at a glance.
+-   Slots used in the Pattern Grid for pattern encoding and Crafting Grid crafting matrix slots now display an orange backdrop and tooltip to indicate whether the item is autocraftable at a glance. This checks patterns from your network and from your inventory.
+-   Added help tooltip for filtering based on recipe items in the Crafting Grid.
+-   The crafting amount and crafting preview screens have been merged. Changing the amount will update the live preview.
+-   The numbers on the crafting preview screen are now compacted with units.
+-   When requesting autocrafting multiple resources at once, which can happen via a recipe mod, all the crafting requests are now listed on the side of the GUI.
+-   You can now request autocrafting from the Storage Monitor if the resource count reaches zero.
+
+### Fixed
+
+-   Fixed mouse keybindings not working on NeoForge.
+-   Fixed upgrade destinations not being shown on upgrades.
+-   Fixed resources with changed data format or ID causing entire storage to fail to load.
+-   Fixed crash when trying to export fluids from an External Storage on Fabric.
+-   The Configuration Card can now also transfer the (configured) Regulator Upgrade.
+
+## [2.0.0-milestone.4.7] - 2024-08-11
+
+### Added
+
+-   You can now upgrade Storage Disks and Storage Blocks to a higher tier by combining with a higher tier Storage Part. The original Storage Part will be returned.
+
+### Changed
+
+-   Updated to Minecraft 1.21.1.
+-   The Network Transmitter and Wireless Transmitter GUI now has an inactive and active GUI animation.
+-   The Wireless Transmitter now shows whether it's inactive in GUI instead of always showing the range.
+
+### Fixed
+
+-   Use new slimeballs convention tag for Processor Binding.
+-   Portable Grid search bar texture being positioned in the wrong way.
+-   External Storage screen unnecessarily showing upgrade slots.
+-   Grid setting changes not persisting after restarting Minecraft.
+-   Fixed not being able to extract fluids from the Grid with an empty bucket or other empty fluid container.
+-   All blocks and items now correctly retain their custom name.
+
+## [2.0.0-milestone.4.6] - 2024-08-08
+
 ### Added
 
 -   Pattern Grid
@@ -14,14 +160,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
--   The Pattern now shows the crafting recipe in the tooltip.
--   When a Pattern is created for a crafting recipe, the Pattern will have a different texture and name to differentiate between empty patterns.
--   The Pattern Grid now has support for more pattern types.
+-   The Pattern now shows the recipe in the tooltip.
+-   When a Pattern is created for a recipe, the Pattern will have a different texture and name to differentiate between empty patterns.
+-   The Pattern Grid now has additional support for encoding stonecutter and smithing table recipes.
+-   The Pattern output is now always rendered in the Pattern Grid result slot.
+-   You can now search in the Pattern Grid alternatives screen.
+-   In the Pattern Grid alternatives screen, all resources belonging to a tag or no longer shown at once. You can expand or collapse them.
+-   The tag names in the Pattern Grid alternatives screen will now be translated.
+-   "Exact mode" in the Pattern Grid has been replaced with "Fuzzy mode" (inverse).
 
 ### Fixed
 
 -   Clicking on a scrollbar no longer makes a clicking sound.
 -   Incorrect and outdated (mentioning NBT tags) help explanations for fuzzy mode.
+-   Amount screen allowing more than the maximum for fluids.
+-   Potential text overflow in the Grid for localization with long "Grid" text.
 
 ## [2.0.0-milestone.4.5] - 2024-07-26
 
@@ -707,7 +860,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 -   The Grid can now use smooth scrolling.
 -   The Grid now has syntax highlighting for the search query.
 
-[Unreleased]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.5...HEAD
+[Unreleased]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.12...HEAD
+
+[2.0.0-milestone.4.12]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.11...v2.0.0-milestone.4.12
+
+[2.0.0-milestone.4.11]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.10...v2.0.0-milestone.4.11
+
+[2.0.0-milestone.4.10]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.9...v2.0.0-milestone.4.10
+
+[2.0.0-milestone.4.9]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.8...v2.0.0-milestone.4.9
+
+[2.0.0-milestone.4.8]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.7...v2.0.0-milestone.4.8
+
+[2.0.0-milestone.4.7]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.6...v2.0.0-milestone.4.7
+
+[2.0.0-milestone.4.6]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.5...v2.0.0-milestone.4.6
 
 [2.0.0-milestone.4.5]: https://github.com/refinedmods/refinedstorage2/compare/v2.0.0-milestone.4.4...v2.0.0-milestone.4.5
 

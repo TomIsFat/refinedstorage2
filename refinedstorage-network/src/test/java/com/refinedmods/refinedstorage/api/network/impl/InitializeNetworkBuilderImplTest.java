@@ -12,7 +12,7 @@ class InitializeNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldNotFormNetworkIfAlreadyFormed() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
         final NetworkNodeContainer container = createContainerWithNetwork();
 
         // Act
@@ -25,7 +25,7 @@ class InitializeNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldFormNetwork() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container = createContainer();
         final NetworkNodeContainer unrelatedContainer = createContainerWithNetwork();
@@ -58,7 +58,7 @@ class InitializeNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldJoinExistingNetwork() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer existingContainer1 = createContainerWithNetwork();
         final NetworkNodeContainer existingContainer2 =
@@ -111,7 +111,7 @@ class InitializeNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldMergeWithExistingNetworks() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer existingContainer0 = createContainerWithNetwork();
         final NetworkNodeContainer existingContainer1 =
@@ -166,7 +166,7 @@ class InitializeNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldFormNetworkIfThereAreNeighborsWithoutNetwork() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer unrelatedContainer = createContainerWithNetwork();
 

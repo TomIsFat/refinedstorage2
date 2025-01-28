@@ -18,6 +18,8 @@ public final class KeyMappings {
     private KeyMapping openWirelessGrid;
     @Nullable
     private KeyMapping openPortableGrid;
+    @Nullable
+    private KeyMapping openWirelessAutocraftingMonitor;
 
     private KeyMappings() {
     }
@@ -64,5 +66,14 @@ public final class KeyMappings {
 
     public void setOpenPortableGrid(final KeyMapping openPortableGrid) {
         this.openPortableGrid = openPortableGrid;
+    }
+
+    @Nullable
+    public KeyMapping getOpenWirelessAutocraftingMonitor() {
+        return openWirelessAutocraftingMonitor;
+    }
+
+    public void setOpenWirelessAutocraftingMonitor(final KeyMapping openWirelessAutocraftingMonitor) {
+        this.openWirelessAutocraftingMonitor = openWirelessAutocraftingMonitor;
     }
 }

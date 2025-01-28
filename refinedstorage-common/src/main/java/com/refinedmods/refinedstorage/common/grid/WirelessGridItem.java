@@ -12,17 +12,25 @@ import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotRefer
 import com.refinedmods.refinedstorage.common.content.ContentNames;
 import com.refinedmods.refinedstorage.common.security.BuiltinPermission;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import static java.util.Objects.requireNonNullElse;
+
 public class WirelessGridItem extends AbstractNetworkEnergyItem {
-    public WirelessGridItem() {
+    private final boolean creative;
+
+    public WirelessGridItem(final boolean creative) {
         super(
             new Item.Properties().stacksTo(1),
             RefinedStorageApi.INSTANCE.getEnergyItemHelper(),
             RefinedStorageApi.INSTANCE.getNetworkItemHelper()
         );
+        this.creative = creative;
     }
 
     public EnergyStorage createEnergyStorage(final ItemStack stack) {
@@ -33,17 +41,23 @@ public class WirelessGridItem extends AbstractNetworkEnergyItem {
     }
 
     @Override
-    protected void use(final ServerPlayer player,
+    protected void use(@Nullable final Component name,
+                       final ServerPlayer player,
                        final SlotReference slotReference,
                        final NetworkItemContext context) {
         final boolean isAllowed = context.resolveNetwork()
             .map(network -> SecurityHelper.isAllowed(player, BuiltinPermission.OPEN, network))
-            .orElse(true); // if the network can't be resolved that will be apparent later in the UI.
+            .orElse(true);
         if (!isAllowed) {
             RefinedStorageApi.INSTANCE.sendNoPermissionToOpenMessage(player, ContentNames.WIRELESS_GRID);
             return;
         }
         final Grid grid = new WirelessGrid(context);
-        Platform.INSTANCE.getMenuOpener().openMenu(player, new WirelessGridExtendedMenuProvider(grid, slotReference));
+        final Component correctedName = requireNonNullElse(
+            name,
+            creative ? ContentNames.CREATIVE_WIRELESS_GRID : ContentNames.WIRELESS_GRID
+        );
+        final var provider = new WirelessGridExtendedMenuProvider(correctedName, grid, slotReference);
+        Platform.INSTANCE.getMenuOpener().openMenu(player, provider);
     }
 }

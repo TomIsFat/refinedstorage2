@@ -1,16 +1,11 @@
 package com.refinedmods.refinedstorage.common.upgrade;
 
 import com.refinedmods.refinedstorage.common.Platform;
-import com.refinedmods.refinedstorage.common.api.support.HelpTooltipComponent;
 import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
 import com.refinedmods.refinedstorage.common.api.upgrade.UpgradeRegistry;
 
-import java.util.Optional;
-
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
@@ -21,7 +16,7 @@ public class RangeUpgradeItem extends AbstractUpgradeItem {
     private final boolean creative;
 
     public RangeUpgradeItem(final UpgradeRegistry registry, final boolean creative) {
-        super(new Item.Properties(), registry);
+        super(new Item.Properties(), registry, creative ? CREATIVE_HELP : HELP);
         this.creative = creative;
     }
 
@@ -31,10 +26,5 @@ public class RangeUpgradeItem extends AbstractUpgradeItem {
             return Platform.INSTANCE.getConfig().getUpgrade().getCreativeRangeUpgradeEnergyUsage();
         }
         return Platform.INSTANCE.getConfig().getUpgrade().getRangeUpgradeEnergyUsage();
-    }
-
-    @Override
-    public Optional<TooltipComponent> getTooltipImage(final ItemStack stack) {
-        return Optional.of(new HelpTooltipComponent(creative ? CREATIVE_HELP : HELP));
     }
 }

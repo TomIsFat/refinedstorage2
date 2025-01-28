@@ -13,9 +13,18 @@ class PatternBakedModel extends BakedModelWrapper<BakedModel> {
     PatternBakedModel(final ModelBaker modelBaker,
                       final BakedModel emptyModel,
                       final BakedModel craftingModel,
-                      final BakedModel processingModel) {
+                      final BakedModel processingModel,
+                      final BakedModel stonecutterModel,
+                      final BakedModel smithingTableModel) {
         super(emptyModel);
-        this.itemOverrides = new PatternItemOverrides(modelBaker, emptyModel, craftingModel, processingModel);
+        this.itemOverrides = new PatternItemOverrides(
+            modelBaker,
+            emptyModel,
+            craftingModel,
+            processingModel,
+            stonecutterModel,
+            smithingTableModel
+        );
     }
 
     @Override

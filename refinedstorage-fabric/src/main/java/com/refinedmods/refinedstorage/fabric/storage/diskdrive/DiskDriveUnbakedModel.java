@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.fabric.storage.diskdrive;
 
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.fabric.support.render.QuadRotators;
 
 import java.util.Collection;
@@ -38,14 +38,14 @@ public class DiskDriveUnbakedModel implements UnbakedModel {
         final Set<ResourceLocation> dependencies = new HashSet<>();
         dependencies.add(BASE_MODEL);
         dependencies.add(LED_INACTIVE_MODEL);
-        dependencies.addAll(RefinedStorageApi.INSTANCE.getStorageContainerItemHelper().getDiskModels());
+        dependencies.addAll(RefinedStorageClientApi.INSTANCE.getDiskModels());
         return dependencies;
     }
 
     @Override
     public void resolveParents(final Function<ResourceLocation, UnbakedModel> modelGetter) {
         modelGetter.apply(BASE_MODEL).resolveParents(modelGetter);
-        RefinedStorageApi.INSTANCE.getStorageContainerItemHelper().getDiskModels().forEach(
+        RefinedStorageClientApi.INSTANCE.getDiskModels().forEach(
             diskModel -> modelGetter.apply(diskModel).resolveParents(modelGetter)
         );
         modelGetter.apply(LED_INACTIVE_MODEL).resolveParents(modelGetter);
@@ -56,8 +56,7 @@ public class DiskDriveUnbakedModel implements UnbakedModel {
     public BakedModel bake(final ModelBaker baker,
                            final Function<Material, TextureAtlasSprite> spriteGetter,
                            final ModelState state) {
-        final Map<Item, BakedModel> diskModels = RefinedStorageApi.INSTANCE.getStorageContainerItemHelper()
-            .getDiskModelsByItem()
+        final Map<Item, BakedModel> diskModels = RefinedStorageClientApi.INSTANCE.getDiskModelsByItem()
             .entrySet()
             .stream()
             .collect(Collectors.toMap(

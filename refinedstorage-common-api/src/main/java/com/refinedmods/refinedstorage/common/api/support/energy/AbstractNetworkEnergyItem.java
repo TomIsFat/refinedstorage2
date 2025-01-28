@@ -8,7 +8,9 @@ import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotRefer
 
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -69,10 +71,13 @@ public abstract class AbstractNetworkEnergyItem extends AbstractEnergyItem imple
             player,
             slotReference
         );
-        use(player, slotReference, context);
+        use(stack.get(DataComponents.CUSTOM_NAME), player, slotReference, context);
     }
 
-    protected abstract void use(ServerPlayer player, SlotReference slotReference, NetworkItemContext context);
+    protected abstract void use(@Nullable Component name,
+                                ServerPlayer player,
+                                SlotReference slotReference,
+                                NetworkItemContext context);
 
     public boolean isBound(final ItemStack stack) {
         return networkItemHelper.isBound(stack);

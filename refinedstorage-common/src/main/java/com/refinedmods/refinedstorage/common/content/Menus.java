@@ -1,6 +1,11 @@
 package com.refinedmods.refinedstorage.common.content;
 
-import com.refinedmods.refinedstorage.common.autocrafting.PatternGridContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.monitor.AutocraftingMonitorContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.monitor.WirelessAutocraftingMonitorContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridContainerMenu;
+import com.refinedmods.refinedstorage.common.autocrafting.preview.AutocraftingPreviewContainerMenu;
 import com.refinedmods.refinedstorage.common.constructordestructor.ConstructorContainerMenu;
 import com.refinedmods.refinedstorage.common.constructordestructor.DestructorContainerMenu;
 import com.refinedmods.refinedstorage.common.controller.ControllerContainerMenu;
@@ -13,6 +18,7 @@ import com.refinedmods.refinedstorage.common.iface.InterfaceContainerMenu;
 import com.refinedmods.refinedstorage.common.importer.ImporterContainerMenu;
 import com.refinedmods.refinedstorage.common.networking.NetworkTransmitterContainerMenu;
 import com.refinedmods.refinedstorage.common.networking.RelayContainerMenu;
+import com.refinedmods.refinedstorage.common.networking.WirelessTransmitterContainerMenu;
 import com.refinedmods.refinedstorage.common.security.FallbackSecurityCardContainerMenu;
 import com.refinedmods.refinedstorage.common.security.SecurityCardContainerMenu;
 import com.refinedmods.refinedstorage.common.security.SecurityManagerContainerMenu;
@@ -21,15 +27,13 @@ import com.refinedmods.refinedstorage.common.storage.diskinterface.DiskInterface
 import com.refinedmods.refinedstorage.common.storage.externalstorage.ExternalStorageContainerMenu;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridBlockContainerMenu;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridItemContainerMenu;
-import com.refinedmods.refinedstorage.common.storage.storageblock.FluidStorageBlockContainerMenu;
-import com.refinedmods.refinedstorage.common.storage.storageblock.ItemStorageBlockContainerMenu;
 import com.refinedmods.refinedstorage.common.storagemonitor.StorageMonitorContainerMenu;
 import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeContainerMenu;
-import com.refinedmods.refinedstorage.common.wirelesstransmitter.WirelessTransmitterContainerMenu;
 
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 
 import static java.util.Objects.requireNonNull;
@@ -50,9 +54,9 @@ public final class Menus {
     @Nullable
     private Supplier<MenuType<ControllerContainerMenu>> controller;
     @Nullable
-    private Supplier<MenuType<ItemStorageBlockContainerMenu>> itemStorage;
+    private Supplier<MenuType<AbstractContainerMenu>> itemStorage;
     @Nullable
-    private Supplier<MenuType<FluidStorageBlockContainerMenu>> fluidStorage;
+    private Supplier<MenuType<AbstractContainerMenu>> fluidStorage;
     @Nullable
     private Supplier<MenuType<ImporterContainerMenu>> importer;
     @Nullable
@@ -74,6 +78,8 @@ public final class Menus {
     @Nullable
     private Supplier<MenuType<StorageMonitorContainerMenu>> storageMonitor;
     @Nullable
+    private Supplier<MenuType<AutocraftingPreviewContainerMenu>> autocraftingStorageMonitor;
+    @Nullable
     private Supplier<MenuType<NetworkTransmitterContainerMenu>> networkTransmitter;
     @Nullable
     private Supplier<MenuType<PortableGridBlockContainerMenu>> portableGridBlock;
@@ -89,6 +95,14 @@ public final class Menus {
     private Supplier<MenuType<RelayContainerMenu>> relay;
     @Nullable
     private Supplier<MenuType<DiskInterfaceContainerMenu>> diskInterface;
+    @Nullable
+    private Supplier<MenuType<AutocrafterContainerMenu>> autocrafter;
+    @Nullable
+    private Supplier<MenuType<AutocrafterManagerContainerMenu>> autocrafterManager;
+    @Nullable
+    private Supplier<MenuType<AutocraftingMonitorContainerMenu>> autocraftingMonitor;
+    @Nullable
+    private Supplier<MenuType<WirelessAutocraftingMonitorContainerMenu>> wirelessAutocraftingMonitor;
 
     private Menus() {
     }
@@ -141,19 +155,19 @@ public final class Menus {
         this.controller = supplier;
     }
 
-    public MenuType<ItemStorageBlockContainerMenu> getItemStorage() {
+    public MenuType<AbstractContainerMenu> getItemStorage() {
         return requireNonNull(itemStorage).get();
     }
 
-    public void setItemStorage(final Supplier<MenuType<ItemStorageBlockContainerMenu>> supplier) {
+    public void setItemStorage(final Supplier<MenuType<AbstractContainerMenu>> supplier) {
         this.itemStorage = supplier;
     }
 
-    public MenuType<FluidStorageBlockContainerMenu> getFluidStorage() {
+    public MenuType<AbstractContainerMenu> getFluidStorage() {
         return requireNonNull(fluidStorage).get();
     }
 
-    public void setFluidStorage(final Supplier<MenuType<FluidStorageBlockContainerMenu>> supplier) {
+    public void setFluidStorage(final Supplier<MenuType<AbstractContainerMenu>> supplier) {
         this.fluidStorage = supplier;
     }
 
@@ -237,6 +251,16 @@ public final class Menus {
         this.storageMonitor = supplier;
     }
 
+    public MenuType<AutocraftingPreviewContainerMenu> getAutocraftingStorageMonitor() {
+        return requireNonNull(autocraftingStorageMonitor).get();
+    }
+
+    public void setAutocraftingStorageMonitor(
+        final Supplier<MenuType<AutocraftingPreviewContainerMenu>> supplier
+    ) {
+        this.autocraftingStorageMonitor = supplier;
+    }
+
     public MenuType<NetworkTransmitterContainerMenu> getNetworkTransmitter() {
         return requireNonNull(networkTransmitter).get();
     }
@@ -301,5 +325,39 @@ public final class Menus {
 
     public void setDiskInterface(final Supplier<MenuType<DiskInterfaceContainerMenu>> diskInterface) {
         this.diskInterface = diskInterface;
+    }
+
+    public MenuType<AutocrafterContainerMenu> getAutocrafter() {
+        return requireNonNull(autocrafter).get();
+    }
+
+    public void setAutocrafter(final Supplier<MenuType<AutocrafterContainerMenu>> autocrafter) {
+        this.autocrafter = autocrafter;
+    }
+
+    public MenuType<AutocrafterManagerContainerMenu> getAutocrafterManager() {
+        return requireNonNull(autocrafterManager).get();
+    }
+
+    public void setAutocrafterManager(final Supplier<MenuType<AutocrafterManagerContainerMenu>> autocrafterManager) {
+        this.autocrafterManager = autocrafterManager;
+    }
+
+    public MenuType<AutocraftingMonitorContainerMenu> getAutocraftingMonitor() {
+        return requireNonNull(autocraftingMonitor).get();
+    }
+
+    public void setAutocraftingMonitor(final Supplier<MenuType<AutocraftingMonitorContainerMenu>> autocraftingMonitor) {
+        this.autocraftingMonitor = autocraftingMonitor;
+    }
+
+    public MenuType<WirelessAutocraftingMonitorContainerMenu> getWirelessAutocraftingMonitor() {
+        return requireNonNull(wirelessAutocraftingMonitor).get();
+    }
+
+    public void setWirelessAutocraftingMonitor(
+        final Supplier<MenuType<WirelessAutocraftingMonitorContainerMenu>> wirelessAutocraftingMonitor
+    ) {
+        this.wirelessAutocraftingMonitor = wirelessAutocraftingMonitor;
     }
 }

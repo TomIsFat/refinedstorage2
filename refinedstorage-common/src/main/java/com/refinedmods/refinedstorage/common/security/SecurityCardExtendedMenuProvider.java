@@ -17,16 +17,22 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 class SecurityCardExtendedMenuProvider extends AbstractSecurityCardExtendedMenuProvider<PlayerBoundSecurityCardData> {
+    @Nullable
+    private final Component name;
     private final MinecraftServer server;
     private final SlotReference slotReference;
     private final SecurityCardBoundPlayer boundPlayer;
 
-    SecurityCardExtendedMenuProvider(final MinecraftServer server,
-                                     final SlotReference slotReference,
-                                     final SecurityPolicy securityPolicy,
-                                     final Set<PlatformPermission> dirtyPermissions,
-                                     final SecurityCardBoundPlayer boundPlayer) {
+    SecurityCardExtendedMenuProvider(
+        @Nullable final Component name,
+        final MinecraftServer server,
+        final SlotReference slotReference,
+        final SecurityPolicy securityPolicy,
+        final Set<PlatformPermission> dirtyPermissions,
+        final SecurityCardBoundPlayer boundPlayer
+    ) {
         super(securityPolicy, dirtyPermissions);
+        this.name = name;
         this.server = server;
         this.slotReference = slotReference;
         this.boundPlayer = boundPlayer;
@@ -48,7 +54,7 @@ class SecurityCardExtendedMenuProvider extends AbstractSecurityCardExtendedMenuP
 
     @Override
     public Component getDisplayName() {
-        return ContentNames.SECURITY_CARD;
+        return name == null ? ContentNames.SECURITY_CARD : name;
     }
 
     @Nullable

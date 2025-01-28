@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.api.grid.view;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 
 import java.util.List;
@@ -71,6 +71,12 @@ public interface GridView {
     long getAmount(ResourceKey resource);
 
     /**
+     * @param resource the resource
+     * @return whether its autocraftable
+     */
+    boolean isAutocraftable(ResourceKey resource);
+
+    /**
      * Sorts the view list.
      * Applies sorting and filtering rules.
      */
@@ -94,7 +100,7 @@ public interface GridView {
     /**
      * @return a copy of the backing list
      */
-    ResourceList copyBackingList();
+    MutableResourceList copyBackingList();
 
     /**
      * Clears the backing list, view list and tracked resources index.

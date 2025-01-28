@@ -20,7 +20,8 @@ public enum UpgradeDestinations implements UpgradeDestination {
     )),
     DISK_INTERFACE(ContentNames.DISK_INTERFACE, () -> new ItemStack(
         Items.INSTANCE.getDiskInterfaces().getFirst().get()
-    ));
+    )),
+    AUTOCRAFTER(ContentNames.AUTOCRAFTER, () -> new ItemStack(Items.INSTANCE.getAutocrafters().getFirst().get()));
 
     private final Component name;
     private final Supplier<ItemStack> stackFactory;

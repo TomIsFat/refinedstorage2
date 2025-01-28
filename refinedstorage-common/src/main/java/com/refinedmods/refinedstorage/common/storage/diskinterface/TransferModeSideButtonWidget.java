@@ -4,21 +4,32 @@ import com.refinedmods.refinedstorage.api.network.impl.node.storagetransfer.Stor
 import com.refinedmods.refinedstorage.common.support.containermenu.ClientProperty;
 import com.refinedmods.refinedstorage.common.support.widget.AbstractSideButtonWidget;
 
+import java.util.List;
+
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 class TransferModeSideButtonWidget extends AbstractSideButtonWidget {
     private static final MutableComponent TITLE = createTranslation("gui", "disk_interface.transfer_mode");
-    private static final MutableComponent SUBTEXT_INSERT_INTO_NETWORK =
-        createTranslation("gui", "disk_interface.transfer_mode.insert_into_network");
-    private static final MutableComponent SUBTEXT_EXTRACT_FROM_NETWORK =
-        createTranslation("gui", "disk_interface.transfer_mode.extract_from_network");
+    private static final List<MutableComponent> SUBTEXT_INSERT_INTO_NETWORK = List.of(
+        createTranslation("gui", "disk_interface.transfer_mode.insert_into_network").withStyle(ChatFormatting.GRAY)
+    );
+    private static final List<MutableComponent> SUBTEXT_EXTRACT_FROM_NETWORK = List.of(
+        createTranslation("gui", "disk_interface.transfer_mode.extract_from_network").withStyle(ChatFormatting.GRAY)
+    );
     private static final Component HELP_INSERT_INTO_NETWORK =
         createTranslation("gui", "disk_interface.transfer_mode.insert_into_network.help");
     private static final Component HELP_EXTRACT_FROM_NETWORK =
         createTranslation("gui", "disk_interface.transfer_mode.extract_from_network.help");
+    private static final ResourceLocation INSERT_INTO_NETWORK =
+        createIdentifier("widget/side_button/disk_interface_transfer_mode/insert_into_network");
+    private static final ResourceLocation EXTRACT_FROM_NETWORK =
+        createIdentifier("widget/side_button/disk_interface_transfer_mode/extract_from_network");
 
     private final ClientProperty<StorageTransferMode> property;
 
@@ -39,16 +50,11 @@ class TransferModeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected int getXTexture() {
+    protected ResourceLocation getSprite() {
         return switch (property.getValue()) {
-            case INSERT_INTO_NETWORK -> 16;
-            case EXTRACT_FROM_NETWORK -> 0;
+            case INSERT_INTO_NETWORK -> INSERT_INTO_NETWORK;
+            case EXTRACT_FROM_NETWORK -> EXTRACT_FROM_NETWORK;
         };
-    }
-
-    @Override
-    protected int getYTexture() {
-        return 160;
     }
 
     @Override
@@ -57,7 +63,7 @@ class TransferModeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected MutableComponent getSubText() {
+    protected List<MutableComponent> getSubText() {
         return switch (property.getValue()) {
             case INSERT_INTO_NETWORK -> SUBTEXT_INSERT_INTO_NETWORK;
             case EXTRACT_FROM_NETWORK -> SUBTEXT_EXTRACT_FROM_NETWORK;

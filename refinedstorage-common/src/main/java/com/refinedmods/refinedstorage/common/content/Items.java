@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.content;
 
 import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternItem;
+import com.refinedmods.refinedstorage.common.autocrafting.monitor.WirelessAutocraftingMonitorItem;
 import com.refinedmods.refinedstorage.common.controller.ControllerBlockItem;
 import com.refinedmods.refinedstorage.common.controller.CreativeControllerBlockItem;
 import com.refinedmods.refinedstorage.common.grid.WirelessGridItem;
@@ -51,6 +52,9 @@ public final class Items {
     private final List<Supplier<BaseBlockItem>> allSecurityManagers = new ArrayList<>();
     private final List<Supplier<BaseBlockItem>> allRelays = new ArrayList<>();
     private final List<Supplier<BaseBlockItem>> allDiskInterfaces = new ArrayList<>();
+    private final List<Supplier<BaseBlockItem>> allAutocrafters = new ArrayList<>();
+    private final List<Supplier<BaseBlockItem>> allAutocrafterManagers = new ArrayList<>();
+    private final List<Supplier<BaseBlockItem>> allAutocraftingMonitors = new ArrayList<>();
     @Nullable
     private Supplier<Item> quartzEnrichedIron;
     @Nullable
@@ -106,6 +110,10 @@ public final class Items {
     private Supplier<FallbackSecurityCardItem> fallbackSecurityCard;
     @Nullable
     private Supplier<PatternItem> pattern;
+    @Nullable
+    private Supplier<WirelessAutocraftingMonitorItem> wirelessAutocraftingMonitor;
+    @Nullable
+    private Supplier<WirelessAutocraftingMonitorItem> creativeWirelessAutocraftingMonitor;
 
     private Items() {
     }
@@ -438,6 +446,30 @@ public final class Items {
         return Collections.unmodifiableList(allDiskInterfaces);
     }
 
+    public void addAutocrafter(final Supplier<BaseBlockItem> supplier) {
+        allAutocrafters.add(supplier);
+    }
+
+    public List<Supplier<BaseBlockItem>> getAutocrafters() {
+        return Collections.unmodifiableList(allAutocrafters);
+    }
+
+    public void addAutocrafterManager(final Supplier<BaseBlockItem> supplier) {
+        allAutocrafterManagers.add(supplier);
+    }
+
+    public List<Supplier<BaseBlockItem>> getAutocrafterManagers() {
+        return Collections.unmodifiableList(allAutocrafterManagers);
+    }
+
+    public void addAutocraftingMonitor(final Supplier<BaseBlockItem> supplier) {
+        allAutocraftingMonitors.add(supplier);
+    }
+
+    public List<Supplier<BaseBlockItem>> getAutocraftingMonitors() {
+        return Collections.unmodifiableList(allAutocraftingMonitors);
+    }
+
     public Item getNetworkCard() {
         return requireNonNull(networkCard).get();
     }
@@ -484,5 +516,21 @@ public final class Items {
 
     public void setPattern(final Supplier<PatternItem> supplier) {
         this.pattern = supplier;
+    }
+
+    public WirelessAutocraftingMonitorItem getWirelessAutocraftingMonitor() {
+        return requireNonNull(wirelessAutocraftingMonitor).get();
+    }
+
+    public void setWirelessAutocraftingMonitor(final Supplier<WirelessAutocraftingMonitorItem> supplier) {
+        this.wirelessAutocraftingMonitor = supplier;
+    }
+
+    public WirelessAutocraftingMonitorItem getCreativeWirelessAutocraftingMonitor() {
+        return requireNonNull(creativeWirelessAutocraftingMonitor).get();
+    }
+
+    public void setCreativeWirelessAutocraftingMonitor(final Supplier<WirelessAutocraftingMonitorItem> supplier) {
+        this.creativeWirelessAutocraftingMonitor = supplier;
     }
 }

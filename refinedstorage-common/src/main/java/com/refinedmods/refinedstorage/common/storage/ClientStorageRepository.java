@@ -44,6 +44,11 @@ public class ClientStorageRepository implements StorageRepository {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void remove(final UUID id) {
+        throw new UnsupportedOperationException();
+    }
+
     public void setInfo(final UUID id, final long stored, final long capacity) {
         info.put(id, new StorageInfo(stored, capacity));
     }

@@ -12,4 +12,6 @@ public interface RefinedStorageFabricApi {
     RefinedStorageFabricApi INSTANCE = new RefinedStorageFabricApiProxy();
 
     BlockApiLookup<NetworkNodeContainerProvider, @NullableType Direction> getNetworkNodeContainerProviderLookup();
+
+    void addStorageExternalPatternSinkStrategyFactory(FabricStorageExternalPatternSinkStrategyFactory factory);
 }

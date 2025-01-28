@@ -1,8 +1,8 @@
 package com.refinedmods.refinedstorage.api.resource.list.listenable;
 
 import com.refinedmods.refinedstorage.api.resource.TestResource;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +14,14 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ListenableResourceListTest {
-    private FakeResourceListListener listener;
-    private ResourceListImpl list;
+    private ResourceListListenerStub listener;
+    private MutableResourceListImpl list;
     private ListenableResourceList sut;
 
     @BeforeEach
     void setUp() {
-        listener = new FakeResourceListListener();
-        list = ResourceListImpl.create();
+        listener = new ResourceListListenerStub();
+        list = MutableResourceListImpl.create();
         sut = new ListenableResourceList(list);
     }
 
@@ -31,7 +31,7 @@ class ListenableResourceListTest {
         sut.addListener(listener);
 
         // Act
-        final ResourceList.OperationResult result = sut.add(TestResource.A, 10);
+        final MutableResourceList.OperationResult result = sut.add(TestResource.A, 10);
 
         // Assert
         assertThat(result.change()).isEqualTo(10);
@@ -44,7 +44,7 @@ class ListenableResourceListTest {
     @Test
     void shouldNotCallListenerWhenAddingWithoutListener() {
         // Act
-        final ResourceList.OperationResult result = sut.add(TestResource.A, 10);
+        final MutableResourceList.OperationResult result = sut.add(TestResource.A, 10);
 
         // Assert
         assertThat(result.change()).isEqualTo(10);
@@ -61,7 +61,7 @@ class ListenableResourceListTest {
         sut.add(TestResource.A, 10);
 
         // Act
-        final Optional<ResourceList.OperationResult> result = sut.remove(TestResource.A, 10);
+        final Optional<MutableResourceList.OperationResult> result = sut.remove(TestResource.A, 10);
 
         // Assert
         assertThat(result).isPresent();
@@ -78,7 +78,7 @@ class ListenableResourceListTest {
         sut.add(TestResource.A, 10);
 
         // Act
-        final Optional<ResourceList.OperationResult> result = sut.remove(TestResource.A, 10);
+        final Optional<MutableResourceList.OperationResult> result = sut.remove(TestResource.A, 10);
 
         // Assert
         assertThat(result).isPresent();
@@ -96,7 +96,7 @@ class ListenableResourceListTest {
         sut.add(TestResource.A, 10);
 
         // Act
-        final Optional<ResourceList.OperationResult> result = sut.remove(TestResource.B, 10);
+        final Optional<MutableResourceList.OperationResult> result = sut.remove(TestResource.B, 10);
 
         // Assert
         assertThat(result).isEmpty();
@@ -129,11 +129,11 @@ class ListenableResourceListTest {
         assertThat(listener.changes).hasSize(1);
     }
 
-    private static class FakeResourceListListener implements ResourceListListener {
-        private final List<ResourceList.OperationResult> changes = new ArrayList<>();
+    private static class ResourceListListenerStub implements ResourceListListener {
+        private final List<MutableResourceList.OperationResult> changes = new ArrayList<>();
 
         @Override
-        public void onChanged(final ResourceList.OperationResult change) {
+        public void changed(final MutableResourceList.OperationResult change) {
             changes.add(change);
         }
     }

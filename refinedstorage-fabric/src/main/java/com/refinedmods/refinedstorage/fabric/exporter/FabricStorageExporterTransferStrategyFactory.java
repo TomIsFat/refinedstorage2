@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.fabric.exporter;
 
+import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.network.impl.node.exporter.ExporterTransferStrategyImpl;
 import com.refinedmods.refinedstorage.api.network.node.exporter.ExporterTransferStrategy;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
@@ -20,11 +21,11 @@ import net.minecraft.server.level.ServerLevel;
 
 public class FabricStorageExporterTransferStrategyFactory<T> implements ExporterTransferStrategyFactory {
     private final BlockApiLookup<Storage<T>, Direction> lookup;
-    private final Function<ResourceKey, T> toPlatformMapper;
+    private final Function<ResourceKey, @NullableType T> toPlatformMapper;
     private final long singleAmount;
 
     public FabricStorageExporterTransferStrategyFactory(final BlockApiLookup<Storage<T>, Direction> lookup,
-                                                        final Function<ResourceKey, T> toPlatformMapper,
+                                                        final Function<ResourceKey, @NullableType T> toPlatformMapper,
                                                         final long singleAmount) {
         this.lookup = lookup;
         this.toPlatformMapper = toPlatformMapper;

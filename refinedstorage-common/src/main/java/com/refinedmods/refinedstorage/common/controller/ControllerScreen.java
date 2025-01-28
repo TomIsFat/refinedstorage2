@@ -20,8 +20,10 @@ public class ControllerScreen extends AbstractBaseScreen<ControllerContainerMenu
     @Nullable
     private ProgressWidget progressWidget;
 
-    public ControllerScreen(final ControllerContainerMenu menu, final Inventory playerInventory, final Component text) {
-        super(menu, playerInventory, text);
+    public ControllerScreen(final ControllerContainerMenu menu,
+                            final Inventory playerInventory,
+                            final Component title) {
+        super(menu, playerInventory, title);
         this.inventoryLabelY = 94;
         this.imageWidth = 176;
         this.imageHeight = 189;

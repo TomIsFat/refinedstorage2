@@ -15,7 +15,8 @@ public class NetworkNodeStorageConfiguration implements StorageConfiguration {
     private final AbstractNetworkNode node;
     private final Filter filter = new Filter();
 
-    private int priority;
+    private int insertPriority;
+    private int extractPriority;
     private AccessMode accessMode = AccessMode.INSERT_EXTRACT;
     private boolean voidExcess;
 
@@ -69,8 +70,14 @@ public class NetworkNodeStorageConfiguration implements StorageConfiguration {
     }
 
     @Override
-    public void setPriority(final int priority) {
-        this.priority = priority;
+    public void setInsertPriority(final int insertPriority) {
+        this.insertPriority = insertPriority;
+        trySortSources();
+    }
+
+    @Override
+    public void setExtractPriority(final int extractPriority) {
+        this.extractPriority = extractPriority;
         trySortSources();
     }
 
@@ -84,8 +91,13 @@ public class NetworkNodeStorageConfiguration implements StorageConfiguration {
     }
 
     @Override
-    public int getPriority() {
-        return priority;
+    public int getInsertPriority() {
+        return insertPriority;
+    }
+
+    @Override
+    public int getExtractPriority() {
+        return extractPriority;
     }
 
     @Override

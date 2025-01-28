@@ -12,7 +12,6 @@ import com.refinedmods.refinedstorage.query.lexer.SyntaxHighlighter;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -72,12 +71,6 @@ class GridSearchBoxWidget extends SearchFieldWidget implements GridSearchBox {
     }
 
     @Override
-    public void setAutoSelected(final boolean autoSelected) {
-        setFocused(autoSelected);
-        setCanLoseFocus(!autoSelected);
-    }
-
-    @Override
     public void addListener(final Consumer<String> listener) {
         this.listeners.add(listener);
     }
@@ -85,9 +78,6 @@ class GridSearchBoxWidget extends SearchFieldWidget implements GridSearchBox {
     @Override
     public void setValid(final boolean valid) {
         this.valid = valid;
-        setTextColor(valid
-            ? Objects.requireNonNullElse(ChatFormatting.WHITE.getColor(), 15)
-            : Objects.requireNonNullElse(ChatFormatting.RED.getColor(), 15)
-        );
+        setTextColor(valid ? 0xFFFFFF : 0xFF5555);
     }
 }

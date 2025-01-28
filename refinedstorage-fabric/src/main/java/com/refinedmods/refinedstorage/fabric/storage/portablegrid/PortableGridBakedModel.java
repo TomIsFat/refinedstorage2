@@ -6,7 +6,7 @@ import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridBl
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridBlockItem;
 import com.refinedmods.refinedstorage.common.storage.portablegrid.PortableGridBlockItemRenderInfo;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirection;
-import com.refinedmods.refinedstorage.common.util.PlatformUtil;
+import com.refinedmods.refinedstorage.common.util.ClientPlatformUtil;
 import com.refinedmods.refinedstorage.fabric.support.render.QuadRotators;
 import com.refinedmods.refinedstorage.fabric.support.render.QuadTranslator;
 
@@ -56,7 +56,7 @@ public class PortableGridBakedModel extends ForwardingBakedModel {
     public void emitItemQuads(final ItemStack stack,
                               final Supplier<RandomSource> randomSupplier,
                               final RenderContext context) {
-        final Level level = PlatformUtil.getClientLevel();
+        final Level level = ClientPlatformUtil.getClientLevel();
         if (level == null) {
             return;
         }

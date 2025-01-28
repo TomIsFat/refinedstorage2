@@ -15,8 +15,8 @@ public class DiskDriveScreen extends AbstractProgressStorageScreen<DiskDriveCont
     private static final ResourceLocation TEXTURE = createIdentifier("textures/gui/disk_drive.png");
     private static final MutableComponent DISKS_TEXT = createTranslation("gui", "disk_drive.disks");
 
-    public DiskDriveScreen(final DiskDriveContainerMenu menu, final Inventory playerInventory, final Component text) {
-        super(menu, playerInventory, text, 99);
+    public DiskDriveScreen(final DiskDriveContainerMenu menu, final Inventory playerInventory, final Component title) {
+        super(menu, playerInventory, title, 99);
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.apiguardian.api.API;
  * a provided {@link Storage}.
  */
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.1.2")
+@FunctionalInterface
 public interface StorageProvider {
     /**
      * This method is called when a {@link com.refinedmods.refinedstorage.api.network.node.NetworkNode} is added or

@@ -24,8 +24,8 @@ public class DiskInterfaceScreen extends AbstractBaseScreen<DiskInterfaceContain
 
     public DiskInterfaceScreen(final DiskInterfaceContainerMenu menu,
                                final Inventory playerInventory,
-                               final Component text) {
-        super(menu, playerInventory, text);
+                               final Component title) {
+        super(menu, playerInventory, title);
         this.inventoryLabelY = 117;
         this.imageWidth = 211;
         this.imageHeight = 211;

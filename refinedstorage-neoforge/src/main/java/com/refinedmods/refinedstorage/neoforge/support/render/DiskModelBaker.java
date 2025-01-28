@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.neoforge.support.render;
 
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -19,8 +19,7 @@ public class DiskModelBaker {
     public DiskModelBaker(final ModelState state,
                           final ModelBaker baker,
                           final Function<Material, TextureAtlasSprite> spriteGetter) {
-        this.bakers = RefinedStorageApi.INSTANCE.getStorageContainerItemHelper()
-            .getDiskModelsByItem()
+        this.bakers = RefinedStorageClientApi.INSTANCE.getDiskModelsByItem()
             .entrySet()
             .stream()
             .collect(Collectors.toMap(

@@ -6,8 +6,7 @@ import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedStorageImpl;
@@ -16,17 +15,17 @@ import com.refinedmods.refinedstorage.network.test.InjectNetwork;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
 import com.refinedmods.refinedstorage.network.test.NetworkTest;
 import com.refinedmods.refinedstorage.network.test.SetupNetwork;
-import com.refinedmods.refinedstorage.network.test.fake.FakeActor;
+import com.refinedmods.refinedstorage.network.test.fixtures.ActorFixture;
 import com.refinedmods.refinedstorage.network.test.nodefactory.AbstractNetworkNodeFactory;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.B;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.C;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.D;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.C;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.D;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -52,10 +51,10 @@ class GridNetworkNodeTest {
         @InjectNetworkStorageComponent(networkId = "other") final StorageNetworkComponent otherStorage
     ) {
         storage.addSource(new TrackedStorageImpl(new LimitedStorageImpl(1000), () -> 2L));
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 200, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 200, Action.EXECUTE, Actor.EMPTY);
 
-        otherStorage.addSource(new TrackedStorageImpl(new InMemoryStorageImpl(), () -> 3L));
+        otherStorage.addSource(new TrackedStorageImpl(new StorageImpl(), () -> 3L));
     }
 
     @Test
@@ -70,7 +69,7 @@ class GridNetworkNodeTest {
         final GridWatcher watcher = mock(GridWatcher.class);
 
         // Act
-        sut.addWatcher(watcher, EmptyActor.class);
+        sut.addWatcher(watcher, Actor.EMPTY.getClass());
         sut.setActive(true);
         sut.setActive(false);
         sut.removeWatcher(watcher);
@@ -89,13 +88,13 @@ class GridNetworkNodeTest {
     ) {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        sut.addWatcher(watcher, FakeActor.class);
+        sut.addWatcher(watcher, ActorFixture.class);
 
         // Act
-        networkStorage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(A, 1, Action.EXECUTE, FakeActor.INSTANCE);
+        networkStorage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(A, 1, Action.EXECUTE, ActorFixture.INSTANCE);
         sut.removeWatcher(watcher);
-        networkStorage.insert(A, 1, Action.EXECUTE, FakeActor.INSTANCE);
+        networkStorage.insert(A, 1, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Assert
         final ArgumentCaptor<ResourceKey> resources = ArgumentCaptor.forClass(ResourceKey.class);
@@ -127,8 +126,8 @@ class GridNetworkNodeTest {
     void shouldNotBeAbleToAddDuplicateWatcher() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        final Class<? extends Actor> actorType1 = EmptyActor.class;
-        final Class<? extends Actor> actorType2 = FakeActor.class;
+        final Class<? extends Actor> actorType1 = Actor.EMPTY.getClass();
+        final Class<? extends Actor> actorType2 = ActorFixture.class;
 
         sut.addWatcher(watcher, actorType1);
 
@@ -146,23 +145,23 @@ class GridNetworkNodeTest {
     ) {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        sut.addWatcher(watcher, FakeActor.class);
+        sut.addWatcher(watcher, ActorFixture.class);
 
         // Act
         // This one shouldn't be ignored!
-        otherStorage.insert(C, 10, Action.EXECUTE, FakeActor.INSTANCE);
+        otherStorage.insert(C, 10, Action.EXECUTE, ActorFixture.INSTANCE);
 
         sut.setNetwork(otherNetwork);
         network.removeContainer(() -> sut);
         otherNetwork.addContainer(() -> sut);
 
         // these one shouldn't be ignored either
-        otherStorage.insert(A, 10, Action.EXECUTE, FakeActor.INSTANCE);
-        otherStorage.insert(D, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        otherStorage.insert(A, 10, Action.EXECUTE, ActorFixture.INSTANCE);
+        otherStorage.insert(D, 10, Action.EXECUTE, Actor.EMPTY);
 
         // these should be ignored
-        storage.insert(B, 10, Action.EXECUTE, FakeActor.INSTANCE);
-        storage.insert(D, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.insert(B, 10, Action.EXECUTE, ActorFixture.INSTANCE);
+        storage.insert(D, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         verify(watcher, times(1)).invalidate();
@@ -175,7 +174,7 @@ class GridNetworkNodeTest {
         );
         assertThat(trackedResources1.getAllValues())
             .hasSize(1)
-            .allMatch(t -> FakeActor.INSTANCE.getName().equals(t.getSourceName()));
+            .allMatch(t -> ActorFixture.INSTANCE.getName().equals(t.getSourceName()));
 
         final ArgumentCaptor<TrackedResource> trackedResources2 = ArgumentCaptor.forClass(TrackedResource.class);
         verify(watcher, times(1)).onChanged(
@@ -185,7 +184,7 @@ class GridNetworkNodeTest {
         );
         assertThat(trackedResources2.getAllValues())
             .hasSize(1)
-            .allMatch(t -> FakeActor.INSTANCE.getName().equals(t.getSourceName()));
+            .allMatch(t -> ActorFixture.INSTANCE.getName().equals(t.getSourceName()));
 
         verify(watcher, times(1)).onChanged(
             eq(D),

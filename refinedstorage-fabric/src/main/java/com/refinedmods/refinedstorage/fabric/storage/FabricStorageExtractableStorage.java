@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.fabric.storage;
 
 import com.refinedmods.refinedstorage.api.core.Action;
+import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.ExtractableStorage;
@@ -18,12 +19,12 @@ import net.minecraft.server.level.ServerLevel;
 
 public class FabricStorageExtractableStorage<P> implements ExtractableStorage {
     private final BlockApiCache<Storage<P>, Direction> cache;
-    private final Function<ResourceKey, P> toPlatformMapper;
+    private final Function<ResourceKey, @NullableType P> toPlatformMapper;
     private final Direction direction;
     private final AmountOverride amountOverride;
 
     public FabricStorageExtractableStorage(final BlockApiLookup<Storage<P>, Direction> lookup,
-                                           final Function<ResourceKey, P> toPlatformMapper,
+                                           final Function<ResourceKey, @NullableType P> toPlatformMapper,
                                            final ServerLevel serverLevel,
                                            final BlockPos pos,
                                            final Direction direction,
@@ -41,6 +42,9 @@ public class FabricStorageExtractableStorage<P> implements ExtractableStorage {
             return 0L;
         }
         final P platformResource = toPlatformMapper.apply(resource);
+        if (platformResource == null) {
+            return 0L;
+        }
         final long correctedAmount = amountOverride.overrideAmount(
             resource,
             amount,

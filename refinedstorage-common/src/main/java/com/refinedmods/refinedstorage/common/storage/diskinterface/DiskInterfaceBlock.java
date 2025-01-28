@@ -4,6 +4,7 @@ import com.refinedmods.refinedstorage.api.network.impl.node.storagetransfer.Stor
 import com.refinedmods.refinedstorage.common.content.BlockColorMap;
 import com.refinedmods.refinedstorage.common.content.BlockConstants;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.content.Blocks;
 import com.refinedmods.refinedstorage.common.storage.DiskContainerBlockEntityTicker;
 import com.refinedmods.refinedstorage.common.support.AbstractActiveColoredDirectionalBlock;
@@ -14,7 +15,6 @@ import com.refinedmods.refinedstorage.common.support.direction.BiDirection;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirectionType;
 import com.refinedmods.refinedstorage.common.support.direction.DirectionType;
 
-import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -37,14 +37,13 @@ public class DiskInterfaceBlock
     private static final DiskContainerBlockEntityTicker<StorageTransferNetworkNode, AbstractDiskInterfaceBlockEntity>
         TICKER = new DiskContainerBlockEntityTicker<>(BlockEntities.INSTANCE::getDiskInterface, ACTIVE);
 
-    private final BiFunction<BlockPos, BlockState, AbstractDiskInterfaceBlockEntity> blockEntityFactory;
+    private final BlockEntityProvider<AbstractDiskInterfaceBlockEntity> blockEntityProvider;
 
     public DiskInterfaceBlock(final DyeColor color,
                               final MutableComponent name,
-                              final BiFunction<BlockPos, BlockState, AbstractDiskInterfaceBlockEntity>
-                                  blockEntityFactory) {
+                              final BlockEntityProvider<AbstractDiskInterfaceBlockEntity> blockEntityProvider) {
         super(BlockConstants.PROPERTIES, color, name);
-        this.blockEntityFactory = blockEntityFactory;
+        this.blockEntityProvider = blockEntityProvider;
     }
 
     @Override
@@ -63,7 +62,7 @@ public class DiskInterfaceBlock
     @Nullable
     @Override
     public BlockEntity newBlockEntity(final BlockPos blockPos, final BlockState blockState) {
-        return blockEntityFactory.apply(blockPos, blockState);
+        return blockEntityProvider.create(blockPos, blockState);
     }
 
     @Override

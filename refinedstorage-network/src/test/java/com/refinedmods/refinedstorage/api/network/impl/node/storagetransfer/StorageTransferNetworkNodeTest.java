@@ -6,11 +6,10 @@ import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponen
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
 import com.refinedmods.refinedstorage.api.storage.Storage;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -24,11 +23,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A_ALTERNATIVE;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.B;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.C;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.D;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A_ALTERNATIVE;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.C;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.D;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -54,10 +53,10 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldNotTransferWithoutNetwork(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -75,10 +74,10 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldNotTransferWhenInactive(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -100,11 +99,11 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
-        networkStorage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl());
+        networkStorage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage source = new InMemoryStorageImpl();
-        source.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source = new StorageImpl();
+        source.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -125,7 +124,7 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldInsert(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
         final Storage source0 = new LimitedStorageImpl(1) {
             @Override
@@ -136,18 +135,18 @@ class StorageTransferNetworkNodeTest {
                 return 0;
             }
         };
-        source0.insert(A, 1, Action.EXECUTE, EmptyActor.INSTANCE);
+        source0.insert(A, 1, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source0);
 
-        final Storage source1 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source1.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(C, 35, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source1 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source1.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(C, 35, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(1, source1);
 
-        final Storage source2 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source2.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source2 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source2.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(2, source2);
 
         sut.setProvider(provider);
@@ -178,17 +177,17 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldInsertAllowlist(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source1 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source1.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(C, 35, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source1 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source1.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(C, 35, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set((sut.getSize() / 2) - 2, source1);
 
-        final Storage source2 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source2.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source2 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source2.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set((sut.getSize() / 2) - 1, source2);
 
         sut.setProvider(provider);
@@ -217,17 +216,17 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldInsertBlocklist(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source1 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source1.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(C, 35, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source1 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source1.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(C, 35, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source1);
 
-        final Storage source2 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source2.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source2 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source2.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(1, source2);
 
         sut.setProvider(provider);
@@ -257,7 +256,7 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldNotifyListenerWhenReadyInsertingBecauseStorageWasAlreadyEmpty() {
         // Arrange
-        final Storage source = new InMemoryStorageImpl();
+        final Storage source = new StorageImpl();
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -275,12 +274,12 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        source.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -297,13 +296,13 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldNotifyListenerWhenReadyInsertingAllResourcesAndUsingFilterButInsertedNothing() {
         // Arrange
-        final Storage source1 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source1.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source1 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source1.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source1);
 
-        final Storage source2 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source2.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source2 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source2.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(1, source2);
 
         sut.setProvider(provider);
@@ -330,16 +329,16 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source1 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source1.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source1 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source1.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source1);
 
-        final Storage source2 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source2.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source2 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source2.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(1, source2);
 
         sut.setProvider(provider);
@@ -368,15 +367,15 @@ class StorageTransferNetworkNodeTest {
         // Arrange
         networkStorage.addSource(new LimitedStorageImpl(15));
 
-        final Storage source1 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source1.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source1.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source1 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source1.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
+        source1.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source1);
 
-        final Storage source2 = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source2.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source2 = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source2.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(1, source2);
 
         sut.setProvider(provider);
@@ -404,16 +403,16 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldExtract(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
-        networkStorage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(C, 35, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl());
+        networkStorage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(C, 35, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
 
         final Storage source1 = new LimitedStorageImpl(0);
         provider.set(0, source1);
 
-        final Storage source2 = new InMemoryStorageImpl();
+        final Storage source2 = new StorageImpl();
         provider.set(1, source2);
 
         sut.setProvider(provider);
@@ -440,16 +439,16 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldExtractAllowlist(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
-        networkStorage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(C, 35, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl());
+        networkStorage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(C, 35, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage source1 = new InMemoryStorageImpl();
+        final Storage source1 = new StorageImpl();
         provider.set(0, source1);
 
-        final Storage source2 = new InMemoryStorageImpl();
+        final Storage source2 = new StorageImpl();
         provider.set(1, source2);
 
         sut.setProvider(provider);
@@ -477,16 +476,16 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldExtractBlocklist(@InjectNetworkStorageComponent final StorageNetworkComponent networkStorage) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
-        networkStorage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(C, 35, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl());
+        networkStorage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(C, 35, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage source1 = new InMemoryStorageImpl();
+        final Storage source1 = new StorageImpl();
         provider.set(0, source1);
 
-        final Storage source2 = new InMemoryStorageImpl();
+        final Storage source2 = new StorageImpl();
         provider.set(1, source2);
 
         sut.setProvider(provider);
@@ -515,7 +514,7 @@ class StorageTransferNetworkNodeTest {
     @Test
     void shouldNotifyListenerWhenReadyExtractingBecauseStorageWasAlreadyEmpty() {
         // Arrange
-        final Storage source = new InMemoryStorageImpl();
+        final Storage source = new StorageImpl();
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -534,12 +533,12 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
-        networkStorage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl());
+        networkStorage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage source = new InMemoryStorageImpl();
+        final Storage source = new StorageImpl();
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -564,12 +563,12 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
-        networkStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl());
+        networkStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage source = new InMemoryStorageImpl();
+        final Storage source = new StorageImpl();
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -596,12 +595,12 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl(ResourceListImpl.orderPreserving()));
-        networkStorage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl(MutableResourceListImpl.orderPreserving()));
+        networkStorage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage source = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
+        final Storage source = new StorageImpl(MutableResourceListImpl.orderPreserving());
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -629,10 +628,10 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
-        networkStorage.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        networkStorage.insert(C, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        networkStorage.addSource(new StorageImpl());
+        networkStorage.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        networkStorage.insert(C, 5, Action.EXECUTE, Actor.EMPTY);
 
         final Storage source = new LimitedStorageImpl(10);
         provider.set(0, source);
@@ -660,13 +659,13 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source = new InMemoryStorageImpl(ResourceListImpl.orderPreserving());
-        source.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source.insert(A_ALTERNATIVE, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source.insert(B, 5, Action.EXECUTE, EmptyActor.INSTANCE);
-        source.insert(D, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source = new StorageImpl(MutableResourceListImpl.orderPreserving());
+        source.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
+        source.insert(A_ALTERNATIVE, 5, Action.EXECUTE, Actor.EMPTY);
+        source.insert(B, 5, Action.EXECUTE, Actor.EMPTY);
+        source.insert(D, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(0, source);
 
         sut.setProvider(provider);
@@ -695,10 +694,10 @@ class StorageTransferNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent networkStorage
     ) {
         // Arrange
-        networkStorage.addSource(new InMemoryStorageImpl());
+        networkStorage.addSource(new StorageImpl());
 
-        final Storage source = new InMemoryStorageImpl();
-        source.insert(A, 5, Action.EXECUTE, EmptyActor.INSTANCE);
+        final Storage source = new StorageImpl();
+        source.insert(A, 5, Action.EXECUTE, Actor.EMPTY);
         provider.set(sut.getSize() / 2, source);
 
         sut.setProvider(provider);

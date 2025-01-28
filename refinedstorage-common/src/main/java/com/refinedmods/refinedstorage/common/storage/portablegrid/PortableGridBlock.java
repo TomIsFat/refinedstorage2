@@ -2,12 +2,11 @@ package com.refinedmods.refinedstorage.common.storage.portablegrid;
 
 import com.refinedmods.refinedstorage.common.content.BlockConstants;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirection;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirectionType;
 import com.refinedmods.refinedstorage.common.support.direction.DirectionType;
-
-import java.util.function.BiFunction;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -33,15 +32,15 @@ public class PortableGridBlock extends AbstractDirectionalBlock<BiDirection> imp
     private static final VoxelShape SHAPE_VERTICAL_WEST = box(16 - 13.2, 0, 0, 16, 16, 16);
 
     private final PortableGridBlockEntityTicker ticker;
-    private final BiFunction<BlockPos, BlockState, AbstractPortableGridBlockEntity> blockEntityFactory;
+    private final BlockEntityProvider<AbstractPortableGridBlockEntity> blockEntityProvider;
 
     public PortableGridBlock(final PortableGridType type,
-                             final BiFunction<BlockPos, BlockState, AbstractPortableGridBlockEntity> factory) {
+                             final BlockEntityProvider<AbstractPortableGridBlockEntity> blockEntityProvider) {
         super(BlockConstants.PROPERTIES);
         this.ticker = new PortableGridBlockEntityTicker(() -> type == PortableGridType.NORMAL
             ? BlockEntities.INSTANCE.getPortableGrid()
             : BlockEntities.INSTANCE.getCreativePortableGrid());
-        this.blockEntityFactory = factory;
+        this.blockEntityProvider = blockEntityProvider;
     }
 
     @Override
@@ -80,7 +79,7 @@ public class PortableGridBlock extends AbstractDirectionalBlock<BiDirection> imp
 
     @Override
     public BlockEntity newBlockEntity(final BlockPos blockPos, final BlockState blockState) {
-        return blockEntityFactory.apply(blockPos, blockState);
+        return blockEntityProvider.create(blockPos, blockState);
     }
 
     @Override

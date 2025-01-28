@@ -14,7 +14,8 @@ import net.minecraft.world.inventory.MenuType;
 public abstract class AbstractStorageContainerMenu extends AbstractResourceContainerMenu {
     protected AbstractStorageContainerMenu(final MenuType<?> type, final int syncId) {
         super(type, syncId);
-        registerProperty(new ClientProperty<>(StoragePropertyTypes.PRIORITY, 0));
+        registerProperty(new ClientProperty<>(StoragePropertyTypes.INSERT_PRIORITY, 0));
+        registerProperty(new ClientProperty<>(StoragePropertyTypes.EXTRACT_PRIORITY, 0));
         registerProperty(new ClientProperty<>(PropertyTypes.FILTER_MODE, FilterMode.BLOCK));
         registerProperty(new ClientProperty<>(PropertyTypes.FUZZY_MODE, false));
         registerProperty(new ClientProperty<>(StoragePropertyTypes.ACCESS_MODE, AccessMode.INSERT_EXTRACT));
@@ -28,9 +29,14 @@ public abstract class AbstractStorageContainerMenu extends AbstractResourceConta
                                            final StorageConfigurationContainer configContainer) {
         super(type, syncId, player);
         registerProperty(new ServerProperty<>(
-            StoragePropertyTypes.PRIORITY,
-            configContainer::getPriority,
-            configContainer::setPriority
+            StoragePropertyTypes.INSERT_PRIORITY,
+            configContainer::getInsertPriority,
+            configContainer::setInsertPriority
+        ));
+        registerProperty(new ServerProperty<>(
+            StoragePropertyTypes.EXTRACT_PRIORITY,
+            configContainer::getExtractPriority,
+            configContainer::setExtractPriority
         ));
         registerProperty(new ServerProperty<>(
             PropertyTypes.FILTER_MODE,

@@ -36,7 +36,7 @@ public abstract class AbstractSecurityCardContainerMenu extends AbstractBaseCont
         this.playerInventory = playerInventory;
         this.disabledSlot = disabledSlot;
         this.permissions = new ArrayList<>();
-        onScreenReady(0);
+        resized(0, 0, 0);
     }
 
     List<SecurityCardData.Permission> getPermissions() {
@@ -44,7 +44,7 @@ public abstract class AbstractSecurityCardContainerMenu extends AbstractBaseCont
     }
 
     @Override
-    public void onScreenReady(final int playerInventoryY) {
+    public void resized(final int playerInventoryY, final int topYStart, final int topYEnd) {
         resetSlots();
         addPlayerInventory(playerInventory, 8, playerInventoryY);
     }

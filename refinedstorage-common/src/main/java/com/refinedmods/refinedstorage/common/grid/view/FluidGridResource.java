@@ -1,16 +1,19 @@
 package com.refinedmods.refinedstorage.common.grid.view;
 
 import com.refinedmods.refinedstorage.api.grid.operations.GridExtractMode;
+import com.refinedmods.refinedstorage.api.grid.view.GridResourceAttributeKey;
 import com.refinedmods.refinedstorage.api.grid.view.GridView;
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.Platform;
-import com.refinedmods.refinedstorage.common.api.grid.GridResourceAttributeKeys;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.grid.GridScrollMode;
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridExtractionStrategy;
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridScrollingStrategy;
 import com.refinedmods.refinedstorage.common.api.grid.view.AbstractPlatformGridResource;
+import com.refinedmods.refinedstorage.common.api.support.resource.FluidOperationResult;
+import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceType;
 import com.refinedmods.refinedstorage.common.support.resource.FluidResource;
-import com.refinedmods.refinedstorage.common.support.resource.FluidResourceRendering;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceTypes;
 import com.refinedmods.refinedstorage.common.support.tooltip.MouseClientTooltipComponent;
 
@@ -18,29 +21,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class FluidGridResource extends AbstractPlatformGridResource<FluidResource> {
+    private static final ItemStack EMPTY_BUCKET = new ItemStack(Items.BUCKET);
+
     private final int id;
+    private final ResourceRendering rendering;
 
     public FluidGridResource(final FluidResource resource,
                              final String name,
-                             final String modId,
-                             final String modName,
-                             final Set<String> tags,
-                             final String tooltip) {
-        super(resource, name, Map.of(
-            GridResourceAttributeKeys.MOD_ID, Set.of(modId),
-            GridResourceAttributeKeys.MOD_NAME, Set.of(modName),
-            GridResourceAttributeKeys.TAGS, tags,
-            GridResourceAttributeKeys.TOOLTIP, Set.of(tooltip)
-        ));
+                             final Map<GridResourceAttributeKey, Set<String>> attributes,
+                             final boolean autocraftable) {
+        super(resource, name, attributes, autocraftable);
         this.id = BuiltInRegistries.FLUID.getId(resource.fluid());
+        this.rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(FluidResource.class);
     }
 
     @Override
@@ -49,12 +52,41 @@ public class FluidGridResource extends AbstractPlatformGridResource<FluidResourc
     }
 
     @Override
-    public List<ClientTooltipComponent> getExtractionHints(final GridView view) {
-        return Platform.INSTANCE.getFilledBucket(resource).map(bucket -> MouseClientTooltipComponent.item(
-            MouseClientTooltipComponent.Type.LEFT,
-            bucket,
-            null
-        )).stream().toList();
+    public List<ClientTooltipComponent> getExtractionHints(final ItemStack carriedStack, final GridView view) {
+        return tryFillFluidContainer(carriedStack)
+            .filter(result -> result.amount() > 0)
+            .map(result -> MouseClientTooltipComponent.item(
+                MouseClientTooltipComponent.Type.LEFT,
+                result.container(),
+                null
+            )).stream().toList();
+    }
+
+    @Nullable
+    @Override
+    public ResourceAmount getAutocraftingRequest() {
+        return new ResourceAmount(resource, Platform.INSTANCE.getBucketAmount());
+    }
+
+    private Optional<FluidOperationResult> tryFillFluidContainer(final ItemStack carriedStack) {
+        final ResourceAmount toFill = new ResourceAmount(resource, Platform.INSTANCE.getBucketAmount());
+        return carriedStack.isEmpty()
+            ? Platform.INSTANCE.fillContainer(EMPTY_BUCKET, toFill)
+            : Platform.INSTANCE.fillContainer(carriedStack, toFill);
+    }
+
+    @Override
+    public boolean canExtract(final ItemStack carriedStack, final GridView view) {
+        if (getAmount(view) == 0) {
+            return false;
+        }
+        if (carriedStack.isEmpty()) {
+            return true;
+        }
+        final ResourceAmount toFill = new ResourceAmount(resource, view.getAmount(resource));
+        return Platform.INSTANCE.fillContainer(carriedStack, toFill)
+            .map(result -> result.amount() > 0)
+            .orElse(false);
     }
 
     @Override
@@ -76,12 +108,12 @@ public class FluidGridResource extends AbstractPlatformGridResource<FluidResourc
 
     @Override
     public String getDisplayedAmount(final GridView view) {
-        return FluidResourceRendering.formatWithUnits(getAmount(view));
+        return rendering.formatAmount(getAmount(view), true);
     }
 
     @Override
     public String getAmountInTooltip(final GridView view) {
-        return FluidResourceRendering.format(getAmount(view));
+        return rendering.formatAmount(getAmount(view));
     }
 
     @Override

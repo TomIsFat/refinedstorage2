@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.api.network.impl.node.iface;
 
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -12,8 +12,8 @@ import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @NetworkTest
@@ -37,7 +37,7 @@ class ClearSlotInterfaceNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
+        storage.addSource(new StorageImpl());
 
         exportState.setCurrentlyExported(1, A, 7);
         exportState.setCurrentlyExported(2, B, 2);

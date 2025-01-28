@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.common.security;
 
 import com.refinedmods.refinedstorage.common.api.security.PlatformPermission;
 import com.refinedmods.refinedstorage.common.support.stretching.AbstractStretchingScreen;
-import com.refinedmods.refinedstorage.common.support.widget.CustomCheckboxWidget;
+import com.refinedmods.refinedstorage.common.support.widget.CheckboxWidget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +32,8 @@ public abstract class AbstractSecurityCardScreen<T extends AbstractSecurityCardC
 
     private final List<Permission> permissions = new ArrayList<>();
 
-    protected AbstractSecurityCardScreen(final T menu, final Inventory playerInventory, final Component text) {
-        super(menu, playerInventory, text);
+    protected AbstractSecurityCardScreen(final T menu, final Inventory playerInventory, final Component title) {
+        super(menu, playerInventory, title);
         this.inventoryLabelY = 97;
         this.imageWidth = 193;
         this.imageHeight = 176;
@@ -59,24 +59,24 @@ public abstract class AbstractSecurityCardScreen<T extends AbstractSecurityCardC
     ) {
         final int y = getPermissionY(index);
         final boolean visible = isPermissionVisible(rows, y);
-        final CustomCheckboxWidget checkbox = createPermissionCheckbox(menuPermission, y, visible);
+        final CheckboxWidget checkbox = createPermissionCheckbox(menuPermission, y, visible);
         final Button resetButton = createPermissionResetButton(menuPermission, checkbox, y, visible);
         checkbox.setOnPressed((c, selected) -> updatePermission(menuPermission, resetButton, c, selected));
         return new Permission(checkbox, resetButton);
     }
 
-    private CustomCheckboxWidget createPermissionCheckbox(
+    private CheckboxWidget createPermissionCheckbox(
         final SecurityCardData.Permission menuPermission,
         final int y,
         final boolean visible
     ) {
-        final CustomCheckboxWidget checkbox = new CustomCheckboxWidget(
+        final CheckboxWidget checkbox = new CheckboxWidget(
             leftPos + 10,
             y,
             getPermissionName(menuPermission),
             font,
             menuPermission.allowed(),
-            CustomCheckboxWidget.Size.REGULAR
+            CheckboxWidget.Size.REGULAR
         );
         checkbox.visible = visible;
         checkbox.setTooltip(getPermissionTooltip(menuPermission));
@@ -85,7 +85,7 @@ public abstract class AbstractSecurityCardScreen<T extends AbstractSecurityCardC
 
     private void updatePermission(final SecurityCardData.Permission menuPermission,
                                   final Button resetButton,
-                                  final CustomCheckboxWidget checkbox,
+                                  final CheckboxWidget checkbox,
                                   final boolean allowed) {
         updateCheckboxAndResetButton(checkbox, resetButton, menu.changePermission(
             menuPermission.permission(),
@@ -103,7 +103,7 @@ public abstract class AbstractSecurityCardScreen<T extends AbstractSecurityCardC
     }
 
     private Button createPermissionResetButton(final SecurityCardData.Permission menuPermission,
-                                               final CustomCheckboxWidget checkbox,
+                                               final CheckboxWidget checkbox,
                                                final int y,
                                                final boolean visible) {
         final Button resetButton = Button.builder(RESET_TITLE, btn -> resetPermission(menuPermission, checkbox, btn))
@@ -116,12 +116,12 @@ public abstract class AbstractSecurityCardScreen<T extends AbstractSecurityCardC
     }
 
     private void resetPermission(final SecurityCardData.Permission menuPermission,
-                                 final CustomCheckboxWidget checkbox,
+                                 final CheckboxWidget checkbox,
                                  final Button resetButton) {
         updateCheckboxAndResetButton(checkbox, resetButton, menu.resetPermission(menuPermission.permission()));
     }
 
-    private void updateCheckboxAndResetButton(final CustomCheckboxWidget checkbox,
+    private void updateCheckboxAndResetButton(final CheckboxWidget checkbox,
                                               final Button resetButton,
                                               final SecurityCardData.Permission menuPermission) {
         checkbox.setMessage(getPermissionName(menuPermission));
@@ -204,7 +204,7 @@ public abstract class AbstractSecurityCardScreen<T extends AbstractSecurityCardC
         return TEXTURE;
     }
 
-    private record Permission(CustomCheckboxWidget checkbox, Button resetButton) {
+    private record Permission(CheckboxWidget checkbox, Button resetButton) {
         private void setY(final int y) {
             checkbox.setY(y);
             resetButton.setY(y);

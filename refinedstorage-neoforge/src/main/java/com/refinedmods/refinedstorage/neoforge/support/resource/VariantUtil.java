@@ -5,6 +5,7 @@ import com.refinedmods.refinedstorage.common.support.resource.FluidResource;
 
 import java.util.Objects;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.slf4j.Logger;
@@ -27,13 +28,12 @@ public final class VariantUtil {
         return new FluidResource(fluidStack.getFluid(), fluidStack.getComponents().asPatch());
     }
 
-    @SuppressWarnings("deprecation")
     public static FluidStack toFluidStack(final FluidResource fluidResource, final long amount) {
         if (amount > Integer.MAX_VALUE) {
             LOGGER.warn("Truncating too large amount for {} to fit into FluidStack {}", fluidResource, amount);
         }
         return new FluidStack(
-            fluidResource.fluid().builtInRegistryHolder(),
+            BuiltInRegistries.FLUID.wrapAsHolder(fluidResource.fluid()),
             (int) amount,
             fluidResource.components()
         );

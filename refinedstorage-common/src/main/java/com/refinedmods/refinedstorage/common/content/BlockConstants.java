@@ -12,6 +12,8 @@ public final class BlockConstants {
     public static final BlockBehaviour.Properties CABLE_PROPERTIES = BlockBehaviour.Properties
         .of()
         .strength(0.35F, 0.35F)
+        .noOcclusion()
+        .dynamicShape()
         .sound(SoundType.GLASS);
 
     private BlockConstants() {

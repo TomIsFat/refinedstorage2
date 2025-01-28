@@ -21,7 +21,7 @@ public interface ResourceContainerInsertStrategy {
      */
     Optional<InsertResult> insert(ItemStack container, ResourceAmount resourceAmount);
 
-    Optional<ConversionInfo> getConversionInfo(ResourceKey resource);
+    Optional<ConversionInfo> getConversionInfo(ResourceKey resource, ItemStack carriedStack);
 
     record InsertResult(ItemStack container, long inserted) {
     }

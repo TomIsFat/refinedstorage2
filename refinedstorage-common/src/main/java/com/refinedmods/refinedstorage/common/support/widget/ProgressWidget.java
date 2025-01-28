@@ -15,7 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 
 public class ProgressWidget extends AbstractWidget {
-    private static final ResourceLocation TEXTURE = createIdentifier("widget/progress_bar");
+    private static final ResourceLocation SPRITE = createIdentifier("widget/progress_bar");
 
     private final DoubleSupplier progressSupplier;
     private final Supplier<List<Component>> tooltipSupplier;
@@ -42,7 +42,7 @@ public class ProgressWidget extends AbstractWidget {
         final int correctedY = getY() + height - correctedHeight;
         final int u = 0;
         final int v = height - correctedHeight;
-        graphics.blitSprite(TEXTURE, 16, 70, u, v, getX(), correctedY, width, correctedHeight);
+        graphics.blitSprite(SPRITE, 16, 70, u, v, getX(), correctedY, width, correctedHeight);
         if (isHovered) {
             graphics.renderComponentTooltip(Minecraft.getInstance().font, tooltipSupplier.get(), mouseX, mouseY);
         }

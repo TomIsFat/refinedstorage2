@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.constructordestructor;
 
 import com.refinedmods.refinedstorage.common.content.BlockColorMap;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.content.Blocks;
 import com.refinedmods.refinedstorage.common.support.BaseBlockItem;
 import com.refinedmods.refinedstorage.common.support.BlockItemProvider;
@@ -19,15 +20,20 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class DestructorBlock extends AbstractConstructorDestructorBlock<
-    DestructorBlock, DestructorBlockEntity, BaseBlockItem
+    DestructorBlock, AbstractDestructorBlockEntity, BaseBlockItem
     > implements BlockItemProvider<BaseBlockItem> {
     private static final Component HELP = IdentifierUtil.createTranslation("item", "destructor.help");
 
-    public DestructorBlock(final DyeColor color, final MutableComponent name) {
+    private final BlockEntityProvider<AbstractDestructorBlockEntity> blockEntityProvider;
+
+    public DestructorBlock(final DyeColor color,
+                           final MutableComponent name,
+                           final BlockEntityProvider<AbstractDestructorBlockEntity> blockEntityProvider) {
         super(color, name, new NetworkNodeBlockEntityTicker<>(
             BlockEntities.INSTANCE::getDestructor,
             ACTIVE
         ));
+        this.blockEntityProvider = blockEntityProvider;
     }
 
     @Override
@@ -37,8 +43,8 @@ public class DestructorBlock extends AbstractConstructorDestructorBlock<
 
     @Nullable
     @Override
-    public BlockEntity newBlockEntity(final BlockPos blockPos, final BlockState blockState) {
-        return new DestructorBlockEntity(blockPos, blockState);
+    public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
+        return blockEntityProvider.create(pos, state);
     }
 
     @Override

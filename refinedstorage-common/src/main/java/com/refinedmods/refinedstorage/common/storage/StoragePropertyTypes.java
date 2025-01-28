@@ -7,8 +7,11 @@ import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 
 public final class StoragePropertyTypes {
-    public static final PropertyType<Integer> PRIORITY = PropertyTypes.createIntegerProperty(
-        createIdentifier("priority")
+    public static final PropertyType<Integer> INSERT_PRIORITY = PropertyTypes.createIntegerProperty(
+        createIdentifier("insert_priority")
+    );
+    public static final PropertyType<Integer> EXTRACT_PRIORITY = PropertyTypes.createIntegerProperty(
+        createIdentifier("extract_priority")
     );
 
     public static final PropertyType<AccessMode> ACCESS_MODE = new PropertyType<>(

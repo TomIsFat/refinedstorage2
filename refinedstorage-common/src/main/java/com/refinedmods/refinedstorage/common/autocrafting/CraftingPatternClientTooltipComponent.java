@@ -1,8 +1,7 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
-import com.refinedmods.refinedstorage.common.api.autocrafting.CraftingPattern;
-import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
+import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
 import java.util.List;
@@ -16,47 +15,45 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW_HEIGHT;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW_WIDTH;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.SLOT;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW_HEIGHT;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW_WIDTH;
+import static com.refinedmods.refinedstorage.common.support.Sprites.SLOT;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
-import static java.util.Objects.requireNonNullElse;
 
-public class CraftingPatternClientTooltipComponent implements ClientTooltipComponent {
+class CraftingPatternClientTooltipComponent implements ClientTooltipComponent {
     private static final long CYCLE_MS = 1000;
-    private static long cycleStart = 0;
-    private static int currentCycle = 0;
-
     private static final int ARROW_SPACING = 8;
-
     private static final ResourceLocation LARGE_SLOT = createIdentifier("large_slot");
     private static final int LARGE_SLOT_WIDTH = 26;
     private static final int LARGE_SLOT_HEIGHT = 26;
 
     private final int width;
     private final int height;
-    private final CraftingPattern craftingPattern;
+    private final PatternResolver.ResolvedCraftingPattern pattern;
 
     @Nullable
     private final ItemStack outputStack;
     @Nullable
     private final Component outputText;
 
-    public CraftingPatternClientTooltipComponent(final int width,
-                                                 final int height,
-                                                 final CraftingPattern craftingPattern) {
+    private long cycleStart = 0;
+    private int currentCycle = 0;
+
+    CraftingPatternClientTooltipComponent(final int width,
+                                          final int height,
+                                          final PatternResolver.ResolvedCraftingPattern pattern) {
         this.width = width;
         this.height = height;
-        this.craftingPattern = craftingPattern;
-        final ItemResource outputResource = craftingPattern.output().resource() instanceof ItemResource itemResource
+        this.pattern = pattern;
+        final ItemResource outputResource = pattern.output().resource() instanceof ItemResource itemResource
             ? itemResource
             : null;
         this.outputStack = outputResource != null
-            ? outputResource.toItemStack(craftingPattern.output().amount())
+            ? outputResource.toItemStack(pattern.output().amount())
             : null;
         this.outputText = outputResource != null
-            ? Component.literal(String.format("%dx ", craftingPattern.output().amount()))
+            ? Component.literal(String.format("%dx ", pattern.output().amount()))
             .append(outputResource.toItemStack().getHoverName())
             .withStyle(ChatFormatting.GRAY) : null;
     }
@@ -82,7 +79,7 @@ public class CraftingPatternClientTooltipComponent implements ClientTooltipCompo
             cycleStart = now;
         }
         if (outputText != null) {
-            graphics.drawString(font, outputText, x, y, requireNonNullElse(ChatFormatting.GRAY.getColor(), 15));
+            graphics.drawString(font, outputText, x, y, 0xAAAAAA);
         }
         renderInputSlots(x, y + 9 + 2, graphics);
         renderArrow(x, y + 9 + 2, graphics);
@@ -100,17 +97,18 @@ public class CraftingPatternClientTooltipComponent implements ClientTooltipCompo
     private void renderInputSlot(final int x, final int y, final GuiGraphics graphics, final int sx, final int sy) {
         graphics.blitSprite(SLOT, x + sx * 18, y + sy * 18, 18, 18);
         final int index = sy * width + sx;
-        final List<PlatformResourceKey> inputs = craftingPattern.inputs().get(index);
-        if (!inputs.isEmpty()) {
-            final int idx = currentCycle % inputs.size();
-            final PlatformResourceKey resource = inputs.get(idx);
-            RefinedStorageApi.INSTANCE.getResourceRendering(resource).render(
-                resource,
-                graphics,
-                x + sx * 18 + 1,
-                y + sy * 18 + 1
-            );
+        final List<ResourceKey> inputs = pattern.inputs().get(index);
+        if (inputs.isEmpty()) {
+            return;
         }
+        final int idx = currentCycle % inputs.size();
+        final ResourceKey resource = inputs.get(idx);
+        RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass()).render(
+            resource,
+            graphics,
+            x + sx * 18 + 1,
+            y + sy * 18 + 1
+        );
     }
 
     private void renderArrow(final int x, final int y, final GuiGraphics graphics) {

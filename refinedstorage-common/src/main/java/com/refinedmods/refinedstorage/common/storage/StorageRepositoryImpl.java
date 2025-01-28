@@ -57,12 +57,17 @@ public class StorageRepositoryImpl extends AbstractPlatformSavedData implements 
     public Optional<SerializableStorage> removeIfEmpty(final UUID id) {
         return get(id).map(storage -> {
             if (storage.getStored() == 0) {
-                entries.remove(id);
-                setDirty();
+                remove(id);
                 return storage;
             }
             return null;
         });
+    }
+
+    @Override
+    public void remove(final UUID id) {
+        entries.remove(id);
+        setDirty();
     }
 
     @Override

@@ -9,14 +9,11 @@ import com.refinedmods.refinedstorage.common.detector.DetectorBlock;
 import com.refinedmods.refinedstorage.common.networking.NetworkReceiverBlock;
 import com.refinedmods.refinedstorage.common.networking.NetworkTransmitterBlock;
 import com.refinedmods.refinedstorage.common.support.AbstractActiveColoredDirectionalBlock;
-import com.refinedmods.refinedstorage.common.support.CableBlockSupport;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirection;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirectionType;
 import com.refinedmods.refinedstorage.common.support.direction.DefaultDirectionType;
 import com.refinedmods.refinedstorage.common.support.direction.HorizontalDirectionType;
 
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import net.minecraft.core.Direction;
@@ -25,7 +22,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
@@ -38,15 +34,6 @@ import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createId
 public class BlockStateProviderImpl extends BlockStateProvider {
     private static final String BLOCK_PREFIX = "block";
 
-    private static final Map<Direction, BooleanProperty> PROPERTY_BY_DIRECTION = new EnumMap<>(Map.of(
-        Direction.NORTH, CableBlockSupport.NORTH,
-        Direction.EAST, CableBlockSupport.EAST,
-        Direction.SOUTH, CableBlockSupport.SOUTH,
-        Direction.WEST, CableBlockSupport.WEST,
-        Direction.UP, CableBlockSupport.UP,
-        Direction.DOWN, CableBlockSupport.DOWN
-    ));
-
     private final ExistingFileHelper existingFileHelper;
 
     public BlockStateProviderImpl(final PackOutput output, final ExistingFileHelper existingFileHelper) {
@@ -57,81 +44,47 @@ public class BlockStateProviderImpl extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         registerCables();
-        registerExporters();
-        registerImporters();
-        registerExternalStorages();
+        registerCableLike(Blocks.INSTANCE.getImporter(), "importer");
+        registerCableLike(Blocks.INSTANCE.getExporter(), "exporter");
+        registerCableLike(Blocks.INSTANCE.getExternalStorage(), "external_storage");
         registerControllers();
         registerGrids();
         registerDetectors();
         registerWirelessTransmitters();
-        registerConstructorDestructors(Blocks.INSTANCE.getConstructor(), "constructor");
-        registerConstructorDestructors(Blocks.INSTANCE.getDestructor(), "destructor");
+        registerConstructorDestructor(Blocks.INSTANCE.getConstructor(), "constructor");
+        registerConstructorDestructor(Blocks.INSTANCE.getDestructor(), "destructor");
         registerNetworkReceivers();
         registerNetworkTransmitters();
         registerSecurityManagers();
         registerRelays();
         registerDiskInterfaces();
+        registerAutocrafters();
+        registerAutocrafterManagers();
+        registerAutocraftingMonitors();
     }
 
     private void registerCables() {
-        Blocks.INSTANCE.getCable().forEach((color, id, block) -> addCableWithExtensions(block.get(), color));
-    }
-
-    private void registerExporters() {
-        Blocks.INSTANCE.getExporter().forEach((color, id, block) -> {
-            final MultiPartBlockStateBuilder builder = addCableWithExtensions(block.get(), color);
-            final ModelFile exporterModel = modelFile(createIdentifier("block/exporter"));
-            PROPERTY_BY_DIRECTION.forEach((direction, property) -> {
-                final var part = builder.part();
-                addDirectionalRotation(direction, part);
-                part.modelFile(exporterModel).addModel()
-                    .condition(DefaultDirectionType.FACE_CLICKED.getProperty(), direction);
-            });
+        Blocks.INSTANCE.getCable().forEach((color, id, block) -> {
+            final var builder = getVariantBuilder(block.get());
+            builder.addModels(
+                builder.partialState(),
+                ConfiguredModel.builder().modelFile(getCableModel(color)).build()
+            );
         });
     }
 
-    private void registerImporters() {
-        Blocks.INSTANCE.getImporter().forEach((color, id, block) -> {
-            final MultiPartBlockStateBuilder builder = addCableWithExtensions(block.get(), color);
-            final ModelFile importerModel = modelFile(createIdentifier("block/importer"));
-            PROPERTY_BY_DIRECTION.forEach((direction, property) -> {
+    private void registerCableLike(final BlockColorMap<?, ?> blockMap, final String type) {
+        final ModelFile model = modelFile(createIdentifier("block/" + type));
+        blockMap.forEach((color, id, block) -> {
+            final MultiPartBlockStateBuilder builder = getMultipartBuilder(block.get());
+            final var cablePart = builder.part();
+            cablePart.modelFile(getCableModel(color)).addModel();
+            for (final Direction direction : Direction.values()) {
                 final var part = builder.part();
                 addDirectionalRotation(direction, part);
-                part.modelFile(importerModel).addModel()
+                part.modelFile(model).addModel()
                     .condition(DefaultDirectionType.FACE_CLICKED.getProperty(), direction);
-            });
-        });
-    }
-
-    private void registerExternalStorages() {
-        Blocks.INSTANCE.getExternalStorage().forEach((color, id, block) -> {
-            final MultiPartBlockStateBuilder builder = addCableWithExtensions(block.get(), color);
-            final ModelFile model = modelFile(createIdentifier("block/external_storage"));
-            PROPERTY_BY_DIRECTION.forEach((direction, property) -> {
-                final var part = builder.part();
-                addDirectionalRotation(direction, part);
-                part.modelFile(model)
-                    .addModel()
-                    .condition(DefaultDirectionType.FACE_CLICKED.getProperty(), direction);
-            });
-        });
-    }
-
-    private MultiPartBlockStateBuilder addCableWithExtensions(final Block block, final DyeColor color) {
-        final var builder = getMultipartBuilder(block)
-            .part()
-            .modelFile(modelFile(createIdentifier("block/cable/core/" + color.getName()))).addModel()
-            .end();
-        final ModelFile extension = modelFile(createIdentifier("block/cable/extension/" + color.getName()));
-        addForEachDirection(builder, extension);
-        return builder;
-    }
-
-    private static void addForEachDirection(final MultiPartBlockStateBuilder builder, final ModelFile extension) {
-        PROPERTY_BY_DIRECTION.forEach((direction, property) -> {
-            final var part = builder.part();
-            addDirectionalRotation(direction, part);
-            part.modelFile(extension).addModel().condition(property, true);
+            }
         });
     }
 
@@ -227,12 +180,14 @@ public class BlockStateProviderImpl extends BlockStateProvider {
         });
     }
 
-    private void registerConstructorDestructors(final BlockColorMap<?, ?> blockMap, final String type) {
+    private void registerConstructorDestructor(final BlockColorMap<?, ?> blockMap, final String type) {
+        final ModelFile activeModel = modelFile(createIdentifier(BLOCK_PREFIX + "/" + type + "/active"));
+        final ModelFile inactiveModel = modelFile(createIdentifier(BLOCK_PREFIX + "/" + type + "/inactive"));
         blockMap.forEach((color, id, block) -> {
-            final MultiPartBlockStateBuilder builder = addCableWithExtensions(block.get(), color);
-            final ModelFile activeModel = modelFile(createIdentifier(BLOCK_PREFIX + "/" + type + "/active"));
-            final ModelFile inactiveModel = modelFile(createIdentifier(BLOCK_PREFIX + "/" + type + "/inactive"));
-            PROPERTY_BY_DIRECTION.forEach((direction, property) -> {
+            final MultiPartBlockStateBuilder builder = getMultipartBuilder(block.get());
+            final var cablePart = builder.part();
+            cablePart.modelFile(getCableModel(color)).addModel();
+            for (final Direction direction : Direction.values()) {
                 final var part = builder.part();
                 addDirectionalRotation(direction, part);
                 part.modelFile(activeModel)
@@ -245,8 +200,12 @@ public class BlockStateProviderImpl extends BlockStateProvider {
                     .condition(DefaultDirectionType.FACE_CLICKED.getProperty(), direction)
                     .condition(AbstractConstructorDestructorBlock.ACTIVE, false)
                     .end();
-            });
+            }
         });
+    }
+
+    private ModelFile getCableModel(final DyeColor color) {
+        return modelFile(createIdentifier("block/cable/" + color.getName()));
     }
 
     private ConfiguredModel[] registerDetector(final ModelFile unpowered,
@@ -330,13 +289,8 @@ public class BlockStateProviderImpl extends BlockStateProvider {
                 } else {
                     model.modelFile(inactive);
                 }
-                final Direction direction = blockState.getValue(DefaultDirectionType.FACE_PLAYER.getProperty());
-                final BiDirection biDirection;
-                if (direction.getAxis().isHorizontal()) {
-                    biDirection = BiDirection.forHorizontal(direction);
-                } else {
-                    biDirection = direction == Direction.UP ? BiDirection.UP_NORTH : BiDirection.DOWN_NORTH;
-                }
+                final Direction direction = blockState.getValue(DefaultDirectionType.FACE_CLICKED.getProperty());
+                final BiDirection biDirection = BiDirection.forDirection(direction);
                 addRotationFrontFacingNorth(model, biDirection);
                 return model.build();
             });
@@ -355,6 +309,41 @@ public class BlockStateProviderImpl extends BlockStateProvider {
         });
     }
 
+    private void registerAutocrafters() {
+        final ModelFile inactive = modelFile(createIdentifier(BLOCK_PREFIX + "/autocrafter/inactive"));
+        Blocks.INSTANCE.getAutocrafter().forEach((color, id, block) -> {
+            final ModelFile active = modelFile(createIdentifier(BLOCK_PREFIX + "/autocrafter/" + color.getName()));
+            final var builder = getVariantBuilder(block.get());
+            builder.forAllStates(blockState -> {
+                final ConfiguredModel.Builder<?> model = ConfiguredModel.builder();
+                if (Boolean.TRUE.equals(blockState.getValue(AbstractActiveColoredDirectionalBlock.ACTIVE))) {
+                    model.modelFile(active);
+                } else {
+                    model.modelFile(inactive);
+                }
+                final Direction direction = blockState.getValue(DefaultDirectionType.FACE_CLICKED.getProperty());
+                addAutocrafterRotation(model, direction);
+                return model.build();
+            });
+        });
+    }
+
+    private void registerAutocrafterManagers() {
+        Blocks.INSTANCE.getAutocrafterManager().forEach((color, id, block) -> configureActiveColoredDirectionalBlock(
+            color,
+            block,
+            "autocrafter_manager"
+        ));
+    }
+
+    private void registerAutocraftingMonitors() {
+        Blocks.INSTANCE.getAutocraftingMonitor().forEach((color, id, block) -> configureActiveColoredDirectionalBlock(
+            color,
+            block,
+            "autocrafting_monitor"
+        ));
+    }
+
     private void configureActiveColoredDirectionalBlock(final DyeColor color,
                                                         final Supplier<? extends Block> block,
                                                         final String name) {
@@ -368,7 +357,8 @@ public class BlockStateProviderImpl extends BlockStateProvider {
             } else {
                 model.modelFile(inactive);
             }
-            addRotationFrontFacingNorth(model, blockState.getValue(BiDirectionType.INSTANCE.getProperty()));
+            final BiDirection direction = blockState.getValue(BiDirectionType.INSTANCE.getProperty());
+            addRotationFrontFacingNorth(model, direction);
             return model.build();
         });
     }
@@ -395,6 +385,15 @@ public class BlockStateProviderImpl extends BlockStateProvider {
             case EAST, WEST -> model.rotationY(y + 180);
             case NORTH, SOUTH -> model.rotationY(y);
         }
+    }
+
+    private void addAutocrafterRotation(final ConfiguredModel.Builder<?> model, final Direction direction) {
+        if (direction.getAxis().isHorizontal()) {
+            model.rotationX(90);
+        } else if (direction == Direction.DOWN) {
+            model.rotationX(180);
+        }
+        model.rotationY(direction.getAxis().isVertical() ? 0 : (((int) direction.toYRot()) + 180) % 360);
     }
 
     private ModelFile modelFile(final ResourceLocation location) {

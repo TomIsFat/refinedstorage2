@@ -16,12 +16,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 class FallbackSecurityCardExtendedMenuProvider extends AbstractSecurityCardExtendedMenuProvider<SecurityCardData> {
+    @Nullable
+    private final Component name;
     private final SlotReference slotReference;
 
-    FallbackSecurityCardExtendedMenuProvider(final SlotReference slotReference,
-                                             final SecurityPolicy securityPolicy,
-                                             final Set<PlatformPermission> dirtyPermissions) {
+    FallbackSecurityCardExtendedMenuProvider(
+        @Nullable final Component name,
+        final SlotReference slotReference,
+        final SecurityPolicy securityPolicy,
+        final Set<PlatformPermission> dirtyPermissions
+    ) {
         super(securityPolicy, dirtyPermissions);
+        this.name = name;
         this.slotReference = slotReference;
     }
 
@@ -37,7 +43,7 @@ class FallbackSecurityCardExtendedMenuProvider extends AbstractSecurityCardExten
 
     @Override
     public Component getDisplayName() {
-        return ContentNames.FALLBACK_SECURITY_CARD;
+        return name == null ? ContentNames.FALLBACK_SECURITY_CARD : name;
     }
 
     @Nullable

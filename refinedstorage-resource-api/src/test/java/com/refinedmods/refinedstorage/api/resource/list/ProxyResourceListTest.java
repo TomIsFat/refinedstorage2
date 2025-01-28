@@ -1,9 +1,9 @@
 package com.refinedmods.refinedstorage.api.resource.list;
 
-class ProxyResourceListTest extends AbstractResourceListTest {
+class ProxyResourceListTest extends AbstractMutableResourceListTest {
     @Override
-    protected ResourceList createList() {
-        return new AbstractProxyResourceList(ResourceListImpl.create()) {
+    protected MutableResourceList createList() {
+        return new AbstractProxyMutableResourceList(MutableResourceListImpl.create()) {
         };
     }
 }

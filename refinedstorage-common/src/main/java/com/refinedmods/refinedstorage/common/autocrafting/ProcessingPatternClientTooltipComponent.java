@@ -1,12 +1,11 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
-import com.refinedmods.refinedstorage.common.support.AbstractBaseScreen;
+import com.refinedmods.refinedstorage.common.support.ResourceSlotRendering;
 
 import java.util.List;
-import java.util.Optional;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -14,29 +13,42 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.network.chat.Component;
 
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW_HEIGHT;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW_WIDTH;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.SLOT;
-import static java.util.Objects.requireNonNullElse;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW_HEIGHT;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW_WIDTH;
+import static com.refinedmods.refinedstorage.common.support.Sprites.SLOT;
 
-public class ProcessingPatternClientTooltipComponent implements ClientTooltipComponent {
+class ProcessingPatternClientTooltipComponent implements ClientTooltipComponent {
+    private static final long CYCLE_MS = 1000;
     private static final int ARROW_SPACING = 8;
 
-    private final ProcessingPatternState state;
     private final int rows;
-    private final List<Component> outputs;
+    private final List<Component> outputTexts;
+    private final List<List<ResourceAmount>> inputs;
+    private final List<List<ResourceAmount>> outputs;
 
-    public ProcessingPatternClientTooltipComponent(final ProcessingPatternState state) {
-        this.state = state;
+    private long cycleStart = 0;
+    private int currentCycle = 0;
+
+    ProcessingPatternClientTooltipComponent(final ProcessingPatternState state) {
         this.rows = calculateMaxRows(state);
-        this.outputs = getOutputText(state);
+        this.outputTexts = getOutputText(state);
+        this.inputs = state.ingredients()
+            .stream()
+            .map(processingIngredient ->
+                processingIngredient
+                    .stream()
+                    .flatMap(i -> i.calculateInputsIncludingAlternatives().stream()
+                        .map(resource -> new ResourceAmount(resource, i.input().amount())))
+                    .toList()
+            ).toList();
+        this.outputs = state.outputs().stream().map(output -> output.map(List::of).orElse(List.of())).toList();
     }
 
     private static int calculateMaxRows(final ProcessingPatternState state) {
         int lastFilledInputIndex = 0;
-        for (int i = 0; i < state.inputs().size(); i++) {
-            if (state.inputs().get(i).isPresent()) {
+        for (int i = 0; i < state.ingredients().size(); i++) {
+            if (state.ingredients().get(i).isPresent()) {
                 lastFilledInputIndex = i;
             }
         }
@@ -59,13 +71,10 @@ public class ProcessingPatternClientTooltipComponent implements ClientTooltipCom
     }
 
     private static Component getOutputText(final ResourceAmount resourceAmount) {
-        final ResourceRendering rendering = RefinedStorageApi.INSTANCE.getResourceRendering(
-            resourceAmount.resource()
+        final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(
+            resourceAmount.resource().getClass()
         );
-        final String displayAmount = rendering.getDisplayedAmount(
-            resourceAmount.amount(),
-            false
-        );
+        final String displayAmount = rendering.formatAmount(resourceAmount.amount());
         return Component.literal(String.format("%sx ", displayAmount))
             .append(rendering.getDisplayName(resourceAmount.resource()))
             .withStyle(ChatFormatting.GRAY);
@@ -73,7 +82,7 @@ public class ProcessingPatternClientTooltipComponent implements ClientTooltipCom
 
     @Override
     public int getHeight() {
-        return (outputs.size() * 9) + 2 + (rows * 18) + 3;
+        return (outputTexts.size() * 9) + 2 + (rows * 18) + 3;
     }
 
     @Override
@@ -83,13 +92,21 @@ public class ProcessingPatternClientTooltipComponent implements ClientTooltipCom
 
     @Override
     public void renderImage(final Font font, final int x, final int y, final GuiGraphics graphics) {
+        final long now = System.currentTimeMillis();
+        if (cycleStart == 0) {
+            cycleStart = now;
+        }
+        if (now - cycleStart >= CYCLE_MS) {
+            currentCycle++;
+            cycleStart = now;
+        }
         renderOutputText(font, x, y, graphics);
-        final int matrixSlotsY = y + (outputs.size() * 9) + 2;
+        final int matrixSlotsY = y + (outputTexts.size() * 9) + 2;
         renderMatrixSlots(x, matrixSlotsY, true, graphics);
         graphics.blitSprite(
             LIGHT_ARROW,
             x + (18 * 3) + ARROW_SPACING,
-            y + (outputs.size() * 9) + 2 + ((rows * 18) / 2) - (LIGHT_ARROW_HEIGHT / 2),
+            y + (outputTexts.size() * 9) + 2 + ((rows * 18) / 2) - (LIGHT_ARROW_HEIGHT / 2),
             LIGHT_ARROW_WIDTH,
             LIGHT_ARROW_HEIGHT
         );
@@ -100,37 +117,51 @@ public class ProcessingPatternClientTooltipComponent implements ClientTooltipCom
                                    final int y,
                                    final boolean input,
                                    final GuiGraphics graphics) {
-        final List<Optional<ResourceAmount>> slots = input ? state.inputs() : state.outputs();
+        final int maxSize = input ? inputs.size() : outputs.size();
         for (int row = 0; row < rows; ++row) {
             for (int column = 0; column < 3; ++column) {
                 final int slotXOffset = !input ? ((18 * 3) + ARROW_SPACING + LIGHT_ARROW_WIDTH + ARROW_SPACING) : 0;
                 final int slotX = x + slotXOffset + column * 18;
                 final int slotY = y + row * 18;
                 final int idx = row * 3 + column;
-                if (idx >= slots.size()) {
+                if (idx >= maxSize) {
                     break;
                 }
-                graphics.blitSprite(SLOT, slotX, slotY, 18, 18);
-                slots.get(idx).ifPresent(resourceAmount -> {
-                    final ResourceRendering rendering = RefinedStorageApi.INSTANCE.getResourceRendering(
-                        resourceAmount.resource()
-                    );
-                    rendering.render(resourceAmount.resource(), graphics, slotX + 1, slotY + 1);
-                    AbstractBaseScreen.renderResourceAmount(graphics, slotX + 1, slotY + 1, resourceAmount.amount(),
-                        rendering);
-                });
+                if (input) {
+                    renderMatrixSlot(graphics, slotX, slotY, inputs.get(idx));
+                } else {
+                    renderMatrixSlot(graphics, slotX, slotY, outputs.get(idx));
+                }
             }
         }
     }
 
+    private void renderMatrixSlot(
+        final GuiGraphics graphics,
+        final int slotX,
+        final int slotY,
+        final List<ResourceAmount> possibilities
+    ) {
+        graphics.blitSprite(SLOT, slotX, slotY, 18, 18);
+        if (possibilities.isEmpty()) {
+            return;
+        }
+        final ResourceAmount resourceAmount = possibilities.get(currentCycle % possibilities.size());
+        final ResourceRendering rendering = RefinedStorageClientApi.INSTANCE.getResourceRendering(
+            resourceAmount.resource().getClass()
+        );
+        rendering.render(resourceAmount.resource(), graphics, slotX + 1, slotY + 1);
+        ResourceSlotRendering.renderAmount(graphics, slotX + 1, slotY + 1, resourceAmount.amount(), rendering);
+    }
+
     private void renderOutputText(final Font font, final int x, final int y, final GuiGraphics graphics) {
-        for (int i = 0; i < outputs.size(); ++i) {
+        for (int i = 0; i < outputTexts.size(); ++i) {
             graphics.drawString(
                 font,
-                outputs.get(i),
+                outputTexts.get(i),
                 x,
                 y + (i * 9),
-                requireNonNullElse(ChatFormatting.GRAY.getColor(), 15)
+                0xAAAAAA
             );
         }
     }

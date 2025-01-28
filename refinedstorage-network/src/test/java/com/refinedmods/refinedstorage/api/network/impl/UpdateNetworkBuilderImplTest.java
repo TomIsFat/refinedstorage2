@@ -19,7 +19,7 @@ class UpdateNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
         final NetworkNodeContainer container = createContainer();
 
         // Act
-        final Executable action = () -> sut.update(container, new FakeConnectionProvider());
+        final Executable action = () -> sut.update(container, new ConnectionProviderImpl());
 
         // Assert
         assertThrows(IllegalStateException.class, action);
@@ -28,7 +28,7 @@ class UpdateNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldUpdateWithSoleContainer() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
 
@@ -62,7 +62,7 @@ class UpdateNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldSplitNetworkWhenUpdatingWithSoleContainerOnLeftSide() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
         final NetworkNodeContainer container2 =
@@ -123,7 +123,7 @@ class UpdateNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldSplitNetworkWhenUpdatingWithTwoContainersOnBothSides() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
         final NetworkNodeContainer container2 =
@@ -187,7 +187,7 @@ class UpdateNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldSplitNetworkAndMergeAdditionalContainerWhenUpdating() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
         final NetworkNodeContainer container2 = createContainerWithNetwork();
@@ -257,7 +257,7 @@ class UpdateNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldNotUpdateAnythingWhenStateIsTheSame() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
         final NetworkNodeContainer container2 =

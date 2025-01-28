@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.common.support.amount;
 
-import com.refinedmods.refinedstorage.common.support.containermenu.ClientProperty;
+import java.util.function.IntConsumer;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.MutableComponent;
@@ -9,24 +9,24 @@ import net.minecraft.world.entity.player.Inventory;
 import org.joml.Vector3f;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
-import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public class PriorityScreen extends AbstractAmountScreen<AbstractAmountScreen.DefaultDummyContainerMenu, Integer> {
     private static final ResourceLocation TEXTURE = createIdentifier("textures/gui/priority.png");
-    private static final MutableComponent PRIORITY_TEXT = createTranslation("gui", "priority");
 
-    private final ClientProperty<Integer> property;
+    private final IntConsumer priorityChanged;
 
-    public PriorityScreen(final ClientProperty<Integer> property,
+    public PriorityScreen(final MutableComponent title,
+                          final int priority,
+                          final IntConsumer priorityChanged,
                           final Screen parent,
                           final Inventory playerInventory) {
         super(
             new DefaultDummyContainerMenu(),
             parent,
             playerInventory,
-            PRIORITY_TEXT,
+            title,
             AmountScreenConfiguration.AmountScreenConfigurationBuilder.<Integer>create()
-                .withInitialAmount(property.get())
+                .withInitialAmount(priority)
                 .withIncrementsTop(1, 5, 10)
                 .withIncrementsBottom(-1, -5, -10)
                 .withAmountFieldPosition(new Vector3f(19, 48, 0))
@@ -37,14 +37,15 @@ public class PriorityScreen extends AbstractAmountScreen<AbstractAmountScreen.De
                 .build(),
             IntegerAmountOperations.INSTANCE
         );
-        this.property = property;
-        this.imageWidth = 164;
+        this.priorityChanged = priorityChanged;
+        this.imageWidth = 172;
         this.imageHeight = 92;
     }
 
     @Override
-    protected void accept(final Integer amount) {
-        property.setValue(amount);
+    protected boolean confirm(final Integer amount) {
+        priorityChanged.accept(amount);
+        return true;
     }
 
     @Override

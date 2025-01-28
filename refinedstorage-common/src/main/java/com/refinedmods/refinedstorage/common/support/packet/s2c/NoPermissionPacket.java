@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.common.support.packet.s2c;
 
-import com.refinedmods.refinedstorage.common.util.SecurityToastUtil;
+import com.refinedmods.refinedstorage.common.util.ClientPlatformUtil;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -18,7 +18,7 @@ public record NoPermissionPacket(Component component) implements CustomPacketPay
     );
 
     public static void handle(final NoPermissionPacket packet) {
-        SecurityToastUtil.addNoPermissionToast(packet.component);
+        ClientPlatformUtil.addNoPermissionToast(packet.component);
     }
 
     @Override

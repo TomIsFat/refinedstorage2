@@ -12,7 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
-import static com.refinedmods.refinedstorage.common.util.PacketUtil.enumStreamCodec;
+import static com.refinedmods.refinedstorage.common.util.PlatformUtil.enumStreamCodec;
 
 public record GridExtractPacket(
     PlatformResourceKey resource,

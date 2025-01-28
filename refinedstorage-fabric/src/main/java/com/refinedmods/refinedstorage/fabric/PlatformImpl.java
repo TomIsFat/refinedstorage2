@@ -196,22 +196,6 @@ public final class PlatformImpl extends AbstractPlatform {
     }
 
     @Override
-    public Optional<ItemStack> getFilledBucket(final FluidResource fluidResource) {
-        final SimpleSingleStackStorage interceptingStorage = SimpleSingleStackStorage.forEmptyBucket();
-        final Storage<FluidVariant> destination = FluidStorage.ITEM.find(
-            interceptingStorage.getStack(),
-            ContainerItemContext.ofSingleSlot(interceptingStorage)
-        );
-        if (destination == null) {
-            return Optional.empty();
-        }
-        try (Transaction tx = Transaction.openOuter()) {
-            destination.insert(toFluidVariant(fluidResource), FluidConstants.BUCKET, tx);
-            return Optional.of(interceptingStorage.getStack());
-        }
-    }
-
-    @Override
     public TransferManager createTransferManager(final AbstractContainerMenu containerMenu) {
         return new TransferManager(containerMenu, ContainerTransferDestination::new);
     }
@@ -489,6 +473,27 @@ public final class PlatformImpl extends AbstractPlatform {
     @Override
     public void setSlotY(final Slot slot, final int y) {
         slot.y = y;
+    }
+
+    @Override
+    public void requestModelDataUpdateOnClient(final LevelAccessor level,
+                                               final BlockPos pos,
+                                               final boolean updateChunk) {
+        if (!level.isClientSide()) {
+            throw new IllegalArgumentException("Cannot request model data update on server");
+        }
+        final BlockEntity blockEntity = level.getBlockEntity(pos);
+        if (blockEntity == null) {
+            return;
+        }
+        if (updateChunk && level instanceof Level updatable) {
+            updatable.sendBlockUpdated(
+                blockEntity.getBlockPos(),
+                blockEntity.getBlockState(),
+                blockEntity.getBlockState(),
+                Block.UPDATE_ALL
+            );
+        }
     }
 
     private void doSave(final CompoundTag compoundTag, final Path tempFile, final Path targetPath) throws IOException {

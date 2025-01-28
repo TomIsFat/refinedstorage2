@@ -1,6 +1,5 @@
 package com.refinedmods.refinedstorage.neoforge;
 
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.AbstractClientModInitializer;
 import com.refinedmods.refinedstorage.common.api.support.HelpTooltipComponent;
 import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
@@ -10,7 +9,6 @@ import com.refinedmods.refinedstorage.common.autocrafting.PatternItemColor;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternTooltipCache;
 import com.refinedmods.refinedstorage.common.configurationcard.ConfigurationCardItemPropertyFunction;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
-import com.refinedmods.refinedstorage.common.content.Blocks;
 import com.refinedmods.refinedstorage.common.content.ContentNames;
 import com.refinedmods.refinedstorage.common.content.Items;
 import com.refinedmods.refinedstorage.common.content.KeyMappings;
@@ -21,10 +19,10 @@ import com.refinedmods.refinedstorage.common.storagemonitor.StorageMonitorBlockE
 import com.refinedmods.refinedstorage.common.support.network.item.NetworkItemPropertyFunction;
 import com.refinedmods.refinedstorage.common.support.tooltip.CompositeClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.support.tooltip.HelpClientTooltipComponent;
-import com.refinedmods.refinedstorage.common.support.tooltip.ResourceClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeItem;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeDestinationClientTooltipComponent;
 import com.refinedmods.refinedstorage.neoforge.autocrafting.PatternGeometryLoader;
+import com.refinedmods.refinedstorage.neoforge.networking.CableGeometryLoader;
 import com.refinedmods.refinedstorage.neoforge.storage.diskdrive.DiskDriveBlockEntityRendererImpl;
 import com.refinedmods.refinedstorage.neoforge.storage.diskdrive.DiskDriveGeometryLoader;
 import com.refinedmods.refinedstorage.neoforge.storage.diskinterface.DiskInterfaceBlockEntityRendererImpl;
@@ -38,7 +36,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -59,7 +56,9 @@ import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.neoforge.common.NeoForge;
 import org.lwjgl.glfw.GLFW;
 
+import static com.refinedmods.refinedstorage.common.content.ContentIds.CABLE;
 import static com.refinedmods.refinedstorage.common.content.ContentIds.DISK_DRIVE;
+import static com.refinedmods.refinedstorage.common.content.ContentIds.DISK_INTERFACE;
 import static com.refinedmods.refinedstorage.common.content.ContentIds.PATTERN;
 import static com.refinedmods.refinedstorage.common.content.ContentIds.PORTABLE_GRID;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
@@ -71,6 +70,7 @@ public final class ClientModInitializer extends AbstractClientModInitializer {
     @SubscribeEvent
     public static void onClientSetup(final FMLClientSetupEvent e) {
         NeoForge.EVENT_BUS.addListener(ClientModInitializer::onKeyInput);
+        NeoForge.EVENT_BUS.addListener(ClientModInitializer::onMouseInput);
         e.enqueueWork(ClientModInitializer::registerModelPredicates);
         e.enqueueWork(ClientModInitializer::registerItemProperties);
         registerBlockEntityRenderer();
@@ -84,6 +84,11 @@ public final class ClientModInitializer extends AbstractClientModInitializer {
         handleInputEvents();
     }
 
+    @SubscribeEvent
+    public static void onMouseInput(final InputEvent.MouseButton.Pre e) {
+        handleInputEvents();
+    }
+
     private static void registerModelPredicates() {
         Items.INSTANCE.getControllers().forEach(controllerBlockItem -> ItemProperties.register(
             controllerBlockItem.get(),
@@ -93,14 +98,13 @@ public final class ClientModInitializer extends AbstractClientModInitializer {
     }
 
     @SubscribeEvent
-    public static void onRegisterModelGeometry(final ModelEvent.RegisterGeometryLoaders e) {
+    public static void onRegisterCustomModels(final ModelEvent.RegisterGeometryLoaders e) {
         registerDiskModels();
         e.register(PATTERN, new PatternGeometryLoader());
         e.register(DISK_DRIVE, new DiskDriveGeometryLoader());
         e.register(PORTABLE_GRID, new PortableGridGeometryLoader());
-        Blocks.INSTANCE.getDiskInterface().forEach(
-            (color, id, supplier) -> e.register(id, new DiskInterfaceGeometryLoader(color))
-        );
+        e.register(DISK_INTERFACE, new DiskInterfaceGeometryLoader());
+        e.register(CABLE, new CableGeometryLoader());
     }
 
     @SubscribeEvent
@@ -163,6 +167,15 @@ public final class ClientModInitializer extends AbstractClientModInitializer {
         );
         e.register(openPortableGrid);
         KeyMappings.INSTANCE.setOpenPortableGrid(openPortableGrid);
+
+        final KeyMapping openWirelessAutocraftingMonitor = new KeyMapping(
+            ContentNames.OPEN_WIRELESS_AUTOCRAFTING_MONITOR_TRANSLATION_KEY,
+            KeyConflictContext.IN_GAME,
+            InputConstants.UNKNOWN,
+            ContentNames.MOD_TRANSLATION_KEY
+        );
+        e.register(openWirelessAutocraftingMonitor);
+        KeyMappings.INSTANCE.setOpenWirelessAutocraftingMonitor(openWirelessAutocraftingMonitor);
     }
 
     private static void registerBlockEntityRenderer() {
@@ -207,7 +220,10 @@ public final class ClientModInitializer extends AbstractClientModInitializer {
     public static void onRegisterTooltipFactories(final RegisterClientTooltipComponentFactoriesEvent e) {
         e.register(
             AbstractUpgradeItem.UpgradeDestinationTooltipComponent.class,
-            component -> new UpgradeDestinationClientTooltipComponent(component.destinations())
+            component -> new CompositeClientTooltipComponent(List.of(
+                new UpgradeDestinationClientTooltipComponent(component.destinations()),
+                HelpClientTooltipComponent.create(component.helpText())
+            ))
         );
         e.register(
             HelpTooltipComponent.class,
@@ -215,25 +231,16 @@ public final class ClientModInitializer extends AbstractClientModInitializer {
         );
         e.register(
             RegulatorUpgradeItem.RegulatorTooltipComponent.class,
-            component -> {
-                final ClientTooltipComponent help = HelpClientTooltipComponent.create(component.helpText());
-                return component.configuredResource() == null
-                    ? help
-                    : createRegulatorUpgradeClientTooltipComponent(component.configuredResource(), help);
-            }
+            component -> createRegulatorUpgradeClientTooltipComponent(
+                component.destinations(),
+                component.configuredResource(),
+                component.helpText()
+            )
         );
         e.register(PatternItem.CraftingPatternTooltipComponent.class, PatternTooltipCache::getComponent);
         e.register(PatternItem.ProcessingPatternTooltipComponent.class, PatternTooltipCache::getComponent);
-    }
-
-    private static CompositeClientTooltipComponent createRegulatorUpgradeClientTooltipComponent(
-        final ResourceAmount configuredResource,
-        final ClientTooltipComponent help
-    ) {
-        return new CompositeClientTooltipComponent(List.of(
-            new ResourceClientTooltipComponent(configuredResource),
-            help
-        ));
+        e.register(PatternItem.StonecutterPatternTooltipComponent.class, PatternTooltipCache::getComponent);
+        e.register(PatternItem.SmithingTablePatternTooltipComponent.class, PatternTooltipCache::getComponent);
     }
 
     private static void registerItemProperties() {
@@ -261,6 +268,16 @@ public final class ClientModInitializer extends AbstractClientModInitializer {
             Items.INSTANCE.getSecurityCard(),
             SecurityCardItemPropertyFunction.NAME,
             new SecurityCardItemPropertyFunction()
+        );
+        ItemProperties.register(
+            Items.INSTANCE.getWirelessAutocraftingMonitor(),
+            NetworkItemPropertyFunction.NAME,
+            new NetworkItemPropertyFunction()
+        );
+        ItemProperties.register(
+            Items.INSTANCE.getCreativeWirelessAutocraftingMonitor(),
+            NetworkItemPropertyFunction.NAME,
+            new NetworkItemPropertyFunction()
         );
     }
 }

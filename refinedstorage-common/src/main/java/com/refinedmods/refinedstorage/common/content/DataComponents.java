@@ -3,6 +3,8 @@ package com.refinedmods.refinedstorage.common.content;
 import com.refinedmods.refinedstorage.common.autocrafting.CraftingPatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.PatternState;
 import com.refinedmods.refinedstorage.common.autocrafting.ProcessingPatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.SmithingTablePatternState;
+import com.refinedmods.refinedstorage.common.autocrafting.StonecutterPatternState;
 import com.refinedmods.refinedstorage.common.configurationcard.ConfigurationCardState;
 import com.refinedmods.refinedstorage.common.security.SecurityCardBoundPlayer;
 import com.refinedmods.refinedstorage.common.security.SecurityCardPermissions;
@@ -27,6 +29,8 @@ public final class DataComponents {
     @Nullable
     private Supplier<DataComponentType<UUID>> storageReference;
     @Nullable
+    private Supplier<DataComponentType<UUID>> storageReferenceToBeTransferred;
+    @Nullable
     private Supplier<DataComponentType<RegulatorUpgradeState>> regulatorUpgradeState;
     @Nullable
     private Supplier<DataComponentType<SecurityCardBoundPlayer>> securityCardBoundPlayer;
@@ -40,6 +44,10 @@ public final class DataComponents {
     private Supplier<DataComponentType<CraftingPatternState>> craftingPatternState;
     @Nullable
     private Supplier<DataComponentType<ProcessingPatternState>> processingPatternState;
+    @Nullable
+    private Supplier<DataComponentType<StonecutterPatternState>> stonecutterPatternState;
+    @Nullable
+    private Supplier<DataComponentType<SmithingTablePatternState>> smithingTablePatternState;
 
     private DataComponents() {
     }
@@ -66,6 +74,14 @@ public final class DataComponents {
 
     public void setStorageReference(@Nullable final Supplier<DataComponentType<UUID>> supplier) {
         this.storageReference = supplier;
+    }
+
+    public DataComponentType<UUID> getStorageReferenceToBeTransferred() {
+        return requireNonNull(storageReferenceToBeTransferred).get();
+    }
+
+    public void setStorageReferenceToBeTransferred(@Nullable final Supplier<DataComponentType<UUID>> supplier) {
+        this.storageReferenceToBeTransferred = supplier;
     }
 
     public DataComponentType<RegulatorUpgradeState> getRegulatorUpgradeState() {
@@ -134,5 +150,25 @@ public final class DataComponents {
         @Nullable final Supplier<DataComponentType<ProcessingPatternState>> supplier
     ) {
         this.processingPatternState = supplier;
+    }
+
+    public DataComponentType<StonecutterPatternState> getStonecutterPatternState() {
+        return requireNonNull(stonecutterPatternState).get();
+    }
+
+    public void setStonecutterPatternState(
+        @Nullable final Supplier<DataComponentType<StonecutterPatternState>> supplier
+    ) {
+        this.stonecutterPatternState = supplier;
+    }
+
+    public DataComponentType<SmithingTablePatternState> getSmithingTablePatternState() {
+        return requireNonNull(smithingTablePatternState).get();
+    }
+
+    public void setSmithingTablePatternState(
+        @Nullable final Supplier<DataComponentType<SmithingTablePatternState>> supplier
+    ) {
+        this.smithingTablePatternState = supplier;
     }
 }

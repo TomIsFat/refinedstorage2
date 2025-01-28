@@ -9,9 +9,9 @@ import com.refinedmods.refinedstorage.api.network.impl.node.grid.GridNetworkNode
 import com.refinedmods.refinedstorage.api.network.impl.node.storage.StorageNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.container.NetworkNodeContainer;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
-import com.refinedmods.refinedstorage.network.test.fake.FakeActor;
+import com.refinedmods.refinedstorage.api.storage.Actor;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
+import com.refinedmods.refinedstorage.network.test.fixtures.ActorFixture;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -39,7 +39,7 @@ class PriorityNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
         final NetworkSide slave = createNetworkSide(SLAVE, () -> originalNetwork);
         clearInvocations(master.watcher);
 
-        final ConnectionProvider connectionProvider = new FakeConnectionProvider()
+        final ConnectionProvider connectionProvider = new ConnectionProviderImpl()
             .with(master.a, master.b, slave.a, slave.b)
             .connect(master.a, master.b)
             .connect(slave.a, slave.b);
@@ -78,7 +78,7 @@ class PriorityNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
         final NetworkNodeContainer connector = createContainer();
         final NetworkSide slave = createNetworkSide(SLAVE, () -> new NetworkImpl(componentMapFactory));
 
-        final ConnectionProvider connectionProvider = new FakeConnectionProvider()
+        final ConnectionProvider connectionProvider = new ConnectionProviderImpl()
             .with(master.a, master.b, connector, slave.a, slave.b)
             .connect(master.a, master.b)
             .connect(master.b, connector)
@@ -117,8 +117,8 @@ class PriorityNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     private NetworkSide createNetworkSide(final MasterSlave side,
                                           final Supplier<Network> networkFactory) {
         final StorageNetworkNode nodeA = new StorageNetworkNode(0, 0, 1);
-        final InMemoryStorageImpl storage = new InMemoryStorageImpl();
-        storage.insert(side, 10, Action.EXECUTE, FakeActor.INSTANCE);
+        final StorageImpl storage = new StorageImpl();
+        storage.insert(side, 10, Action.EXECUTE, ActorFixture.INSTANCE);
         nodeA.setProvider(index -> Optional.of(storage));
         final NetworkNodeContainer a = createContainerWithNetwork(
             nodeA,
@@ -134,7 +134,7 @@ class PriorityNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
         );
         final GridWatcher watcher = mock(GridWatcher.class, "watcher for " + side.name());
         nodeB.setActive(true);
-        nodeB.addWatcher(watcher, EmptyActor.class);
+        nodeB.addWatcher(watcher, Actor.EMPTY.getClass());
         return new NetworkSide(a, nodeA, b, nodeB, watcher);
     }
 

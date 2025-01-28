@@ -1,10 +1,7 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.relay;
 
 import com.refinedmods.refinedstorage.api.network.Network;
-import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.node.AbstractNetworkNode;
-import com.refinedmods.refinedstorage.api.network.security.SecurityNetworkComponent;
-import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import com.refinedmods.refinedstorage.api.storage.AccessMode;
@@ -16,7 +13,7 @@ import javax.annotation.Nullable;
 
 public class RelayInputNetworkNode extends AbstractNetworkNode {
     private final long energyUsage;
-    private final Set<RelayComponentType> componentTypes = new HashSet<>();
+    private final Set<RelayComponentType<?>> componentTypes = new HashSet<>();
 
     @Nullable
     private RelayOutputNetworkNode outputNode;
@@ -41,13 +38,13 @@ public class RelayInputNetworkNode extends AbstractNetworkNode {
         this.outputNode = outputNode;
     }
 
-    public void setComponentTypes(final Set<RelayComponentType> componentTypes) {
+    public void setComponentTypes(final Set<RelayComponentType<?>> componentTypes) {
         this.componentTypes.clear();
         this.componentTypes.addAll(componentTypes);
         updateComponents();
     }
 
-    public void updateComponentType(final RelayComponentType componentType, final boolean enabled) {
+    public void updateComponentType(final RelayComponentType<?> componentType, final boolean enabled) {
         if (enabled) {
             componentTypes.add(componentType);
         } else {
@@ -61,18 +58,13 @@ public class RelayInputNetworkNode extends AbstractNetworkNode {
             return;
         }
         final boolean valid = network != null && isActive();
-        final boolean hasEnergy = componentTypes.contains(RelayComponentType.ENERGY);
-        outputNode.setEnergyDelegate(valid && hasEnergy
-            ? network.getComponent(EnergyNetworkComponent.class)
-            : null);
-        final boolean hasSecurity = componentTypes.contains(RelayComponentType.SECURITY);
-        outputNode.setSecurityDelegate(valid && hasSecurity
-            ? network.getComponent(SecurityNetworkComponent.class)
-            : null);
-        final boolean hasStorage = componentTypes.contains(RelayComponentType.STORAGE);
-        outputNode.setStorageDelegate(valid && hasStorage
-            ? network.getComponent(StorageNetworkComponent.class)
-            : null);
+        for (final RelayComponentType<?> componentType : RelayComponentType.ALL) {
+            if (!componentTypes.contains(componentType) || !valid) {
+                componentType.remove(outputNode);
+            } else {
+                componentType.apply(network, outputNode);
+            }
+        }
     }
 
     public void setAccessMode(final AccessMode accessMode) {
@@ -81,9 +73,15 @@ public class RelayInputNetworkNode extends AbstractNetworkNode {
         }
     }
 
-    public void setPriority(final int priority) {
+    public void setInsertPriority(final int insertPriority) {
         if (outputNode != null) {
-            outputNode.setPriority(priority);
+            outputNode.setInsertPriority(insertPriority);
+        }
+    }
+
+    public void setExtractPriority(final int extractPriority) {
+        if (outputNode != null) {
+            outputNode.setExtractPriority(extractPriority);
         }
     }
 
@@ -105,7 +103,7 @@ public class RelayInputNetworkNode extends AbstractNetworkNode {
         }
     }
 
-    public boolean hasComponentType(final RelayComponentType componentType) {
+    public boolean hasComponentType(final RelayComponentType<?> componentType) {
         return componentTypes.contains(componentType);
     }
 

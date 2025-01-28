@@ -49,7 +49,7 @@ public final class StorageCodecs {
 
         return RecordCodecBuilder.mapCodec(instance -> instance.group(
             Codec.optionalField("capacity", Codec.LONG, false).forGetter(StorageData::capacity),
-            Codec.list(storageResourceCodec).fieldOf("resources").forGetter(StorageData::resources)
+            new ErrorHandlingListCodec<>(storageResourceCodec).fieldOf("resources").forGetter(StorageData::resources)
         ).apply(instance, StorageData::new));
     }
 

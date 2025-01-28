@@ -1,42 +1,42 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.exporter;
 
 import com.refinedmods.refinedstorage.api.core.Action;
-import com.refinedmods.refinedstorage.api.network.impl.node.task.RandomTaskExecutor;
+import com.refinedmods.refinedstorage.api.network.impl.node.task.RandomSchedulingMode;
+import com.refinedmods.refinedstorage.api.network.node.SchedulingMode;
 import com.refinedmods.refinedstorage.api.network.node.exporter.ExporterTransferStrategy;
-import com.refinedmods.refinedstorage.api.network.node.task.TaskExecutor;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.B;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.B;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RandomExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest {
     @Override
-    protected TaskExecutor<ExporterNetworkNode.TaskContext> createTaskExecutor() {
-        return new RandomTaskExecutor<>(list -> {
+    protected SchedulingMode createSchedulingMode() {
+        return new RandomSchedulingMode(list -> {
             list.clear();
-            list.add(sut.new TaskImpl(A));
-            list.add(sut.new TaskImpl(B));
+            list.add(sut.new ExporterTask(A));
+            list.add(sut.new ExporterTask(B));
         });
     }
 
     @Test
     void shouldTransfer(@InjectNetworkStorageComponent final StorageNetworkComponent storage) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 100, Action.EXECUTE, EmptyActor.INSTANCE);
-        storage.insert(B, 100, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 100, Action.EXECUTE, Actor.EMPTY);
+        storage.insert(B, 100, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 5);
 
         sut.setTransferStrategy(strategy);
@@ -69,10 +69,10 @@ class RandomExporterNetworkNodeTest extends AbstractExporterNetworkNodeTest {
         @InjectNetworkStorageComponent final StorageNetworkComponent storage
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(B, 7, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(B, 7, Action.EXECUTE, Actor.EMPTY);
 
-        final Storage destination = new InMemoryStorageImpl();
+        final Storage destination = new StorageImpl();
         final ExporterTransferStrategy strategy = createTransferStrategy(destination, 10);
 
         sut.setTransferStrategy(strategy);

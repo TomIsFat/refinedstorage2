@@ -4,15 +4,29 @@ import com.refinedmods.refinedstorage.api.network.impl.node.detector.DetectorMod
 import com.refinedmods.refinedstorage.common.support.containermenu.ClientProperty;
 import com.refinedmods.refinedstorage.common.support.widget.AbstractSideButtonWidget;
 
-import net.minecraft.network.chat.MutableComponent;
+import java.util.List;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 class DetectorModeSideButtonWidget extends AbstractSideButtonWidget {
     private static final MutableComponent TITLE = createTranslation("gui", "detector.mode");
-    private static final MutableComponent SUBTEXT_EQUAL = createTranslation("gui", "detector.mode.equal");
-    private static final MutableComponent SUBTEXT_ABOVE = createTranslation("gui", "detector.mode.above");
-    private static final MutableComponent SUBTEXT_UNDER = createTranslation("gui", "detector.mode.under");
+    private static final List<MutableComponent> SUBTEXT_EQUAL = List.of(
+        createTranslation("gui", "detector.mode.equal").withStyle(ChatFormatting.GRAY)
+    );
+    private static final List<MutableComponent> SUBTEXT_ABOVE = List.of(
+        createTranslation("gui", "detector.mode.above").withStyle(ChatFormatting.GRAY)
+    );
+    private static final List<MutableComponent> SUBTEXT_UNDER = List.of(
+        createTranslation("gui", "detector.mode.under").withStyle(ChatFormatting.GRAY)
+    );
+    private static final ResourceLocation EQUAL = createIdentifier("widget/side_button/detector_mode/equal");
+    private static final ResourceLocation ABOVE = createIdentifier("widget/side_button/detector_mode/above");
+    private static final ResourceLocation UNDER = createIdentifier("widget/side_button/detector_mode/under");
 
     private final ClientProperty<DetectorMode> property;
 
@@ -34,17 +48,12 @@ class DetectorModeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected int getXTexture() {
+    protected ResourceLocation getSprite() {
         return switch (property.getValue()) {
-            case UNDER -> 0;
-            case EQUAL -> 16;
-            case ABOVE -> 32;
+            case UNDER -> UNDER;
+            case EQUAL -> EQUAL;
+            case ABOVE -> ABOVE;
         };
-    }
-
-    @Override
-    protected int getYTexture() {
-        return 176;
     }
 
     @Override
@@ -53,7 +62,7 @@ class DetectorModeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected MutableComponent getSubText() {
+    protected List<MutableComponent> getSubText() {
         return switch (property.getValue()) {
             case UNDER -> SUBTEXT_UNDER;
             case EQUAL -> SUBTEXT_EQUAL;

@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.common.support.packet.c2s;
 
-import com.refinedmods.refinedstorage.common.grid.CraftingGridContainerMenu;
+import com.refinedmods.refinedstorage.common.grid.AbstractCraftingGridContainerMenu;
 import com.refinedmods.refinedstorage.common.support.packet.PacketContext;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -19,7 +19,7 @@ public record CraftingGridClearPacket(boolean toPlayerInventory) implements Cust
         );
 
     public static void handle(final CraftingGridClearPacket packet, final PacketContext ctx) {
-        if (ctx.getPlayer().containerMenu instanceof CraftingGridContainerMenu craftingGridContainerMenu) {
+        if (ctx.getPlayer().containerMenu instanceof AbstractCraftingGridContainerMenu craftingGridContainerMenu) {
             craftingGridContainerMenu.clear(packet.toPlayerInventory());
         }
     }

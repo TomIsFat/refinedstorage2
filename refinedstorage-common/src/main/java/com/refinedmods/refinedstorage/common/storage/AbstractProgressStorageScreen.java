@@ -39,10 +39,10 @@ public abstract class AbstractProgressStorageScreen<T extends AbstractStorageCon
                 tooltip,
                 menu.getStored(),
                 menu.getCapacity(),
-                this::formatQuantity
+                this::formatAmount
             );
         } else {
-            StorageTooltipHelper.addAmountStoredWithoutCapacity(tooltip, menu.getStored(), this::formatQuantity);
+            StorageTooltipHelper.addAmountStoredWithoutCapacity(tooltip, menu.getStored(), this::formatAmount);
         }
         return tooltip;
     }

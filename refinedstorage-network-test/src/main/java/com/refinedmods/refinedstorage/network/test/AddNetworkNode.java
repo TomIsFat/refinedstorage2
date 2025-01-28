@@ -17,6 +17,8 @@ public @interface AddNetworkNode {
     @interface Property {
         String key();
 
+        int intValue() default -1;
+
         long longValue() default -1;
 
         boolean boolValue() default false;

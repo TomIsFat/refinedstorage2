@@ -1,18 +1,19 @@
 package com.refinedmods.refinedstorage.api.grid.query;
 
-import com.refinedmods.refinedstorage.api.grid.view.FakeGridResourceAttributeKeys;
 import com.refinedmods.refinedstorage.api.grid.view.GridResource;
 import com.refinedmods.refinedstorage.api.grid.view.GridResourceAttributeKey;
+import com.refinedmods.refinedstorage.api.grid.view.GridResourceAttributeKeys;
 import com.refinedmods.refinedstorage.api.grid.view.GridResourceImpl;
 import com.refinedmods.refinedstorage.api.grid.view.GridView;
 import com.refinedmods.refinedstorage.api.grid.view.GridViewImpl;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.tracked.TrackedResource;
 import com.refinedmods.refinedstorage.query.lexer.LexerTokenMappings;
 import com.refinedmods.refinedstorage.query.parser.ParserOperatorMappings;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -29,13 +30,14 @@ class GridQueryParserImplTest {
     private final GridQueryParser queryParser = new GridQueryParserImpl(
         LexerTokenMappings.DEFAULT_MAPPINGS,
         ParserOperatorMappings.DEFAULT_MAPPINGS,
-        FakeGridResourceAttributeKeys.UNARY_OPERATOR_TO_ATTRIBUTE_KEY_MAPPING
+        GridResourceAttributeKeys.UNARY_OPERATOR_TO_ATTRIBUTE_KEY_MAPPING
     );
 
     private final GridView view = new GridViewImpl(
-        resource -> Optional.of(new GridResourceImpl(resource)),
-        ResourceListImpl.create(),
+        (resource, craftable) -> Optional.of(new GridResourceImpl(resource)),
+        MutableResourceListImpl.create(),
         new HashMap<>(),
+        new HashSet<>(),
         v -> Comparator.comparing(GridResource::getName),
         v -> Comparator.comparingLong(resource -> resource.getAmount(v))
     );
@@ -295,9 +297,9 @@ class GridQueryParserImplTest {
             this.name = name;
             this.amount = amount;
             this.attributes = Map.of(
-                FakeGridResourceAttributeKeys.MOD_ID, Set.of(modId),
-                FakeGridResourceAttributeKeys.MOD_NAME, Set.of(modName),
-                FakeGridResourceAttributeKeys.TAGS, tags
+                GridResourceAttributeKeys.MOD_ID, Set.of(modId),
+                GridResourceAttributeKeys.MOD_NAME, Set.of(modName),
+                GridResourceAttributeKeys.TAGS, tags
             );
         }
 
@@ -322,13 +324,8 @@ class GridQueryParserImplTest {
         }
 
         @Override
-        public boolean isZeroed() {
+        public boolean isAutocraftable() {
             return false;
-        }
-
-        @Override
-        public void setZeroed(final boolean zeroed) {
-            throw new UnsupportedOperationException();
         }
     }
 }

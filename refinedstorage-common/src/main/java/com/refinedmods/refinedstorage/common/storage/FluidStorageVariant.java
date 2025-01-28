@@ -1,10 +1,14 @@
 package com.refinedmods.refinedstorage.common.storage;
 
 import com.refinedmods.refinedstorage.common.Platform;
+import com.refinedmods.refinedstorage.common.content.Items;
 
 import javax.annotation.Nullable;
 
-public enum FluidStorageVariant {
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.item.Item;
+
+public enum FluidStorageVariant implements StringRepresentable, StorageVariant {
     SIXTY_FOUR_B("64b", 64L),
     TWO_HUNDRED_FIFTY_SIX_B("256b", 256L),
     THOUSAND_TWENTY_FOUR_B("1024b", 1024L),
@@ -29,6 +33,7 @@ public enum FluidStorageVariant {
         return capacityInBuckets;
     }
 
+    @Override
     @Nullable
     public Long getCapacity() {
         if (capacityInBuckets == null) {
@@ -37,7 +42,17 @@ public enum FluidStorageVariant {
         return capacityInBuckets * Platform.INSTANCE.getBucketAmount();
     }
 
-    public boolean hasCapacity() {
-        return capacityInBuckets != null;
+    @Nullable
+    @Override
+    public Item getStoragePart() {
+        if (this == CREATIVE) {
+            return null;
+        }
+        return Items.INSTANCE.getFluidStoragePart(this);
+    }
+
+    @Override
+    public String getSerializedName() {
+        return name;
     }
 }

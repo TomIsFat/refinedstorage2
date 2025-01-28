@@ -4,17 +4,34 @@ import com.refinedmods.refinedstorage.common.grid.AbstractGridContainerMenu;
 import com.refinedmods.refinedstorage.common.grid.GridSortingTypes;
 import com.refinedmods.refinedstorage.common.support.widget.AbstractSideButtonWidget;
 
-import net.minecraft.network.chat.MutableComponent;
+import java.util.List;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 class SortingTypeSideButtonWidget extends AbstractSideButtonWidget {
     private static final MutableComponent TITLE = createTranslation("gui", "grid.sorting.type");
-    private static final MutableComponent SUBTEXT_QUANTITY = createTranslation("gui", "grid.sorting.type.quantity");
-    private static final MutableComponent SUBTEXT_NAME = createTranslation("gui", "grid.sorting.type.name");
-    private static final MutableComponent SUBTEXT_ID = createTranslation("gui", "grid.sorting.type.id");
-    private static final MutableComponent SUBTEXT_LAST_MODIFIED =
-        createTranslation("gui", "grid.sorting.type.last_modified");
+    private static final List<MutableComponent> SUBTEXT_QUANTITY = List.of(
+        createTranslation("gui", "grid.sorting.type.quantity").withStyle(ChatFormatting.GRAY)
+    );
+    private static final List<MutableComponent> SUBTEXT_NAME = List.of(
+        createTranslation("gui", "grid.sorting.type.name").withStyle(ChatFormatting.GRAY)
+    );
+    private static final List<MutableComponent> SUBTEXT_ID = List.of(
+        createTranslation("gui", "grid.sorting.type.id").withStyle(ChatFormatting.GRAY)
+    );
+    private static final List<MutableComponent> SUBTEXT_LAST_MODIFIED = List.of(
+        createTranslation("gui", "grid.sorting.type.last_modified").withStyle(ChatFormatting.GRAY)
+    );
+    private static final ResourceLocation QUANTITY = createIdentifier("widget/side_button/grid/sorting_type/quantity");
+    private static final ResourceLocation NAME = createIdentifier("widget/side_button/grid/sorting_type/name");
+    private static final ResourceLocation ID = createIdentifier("widget/side_button/grid/sorting_type/id");
+    private static final ResourceLocation LAST_MODIFIED =
+        createIdentifier("widget/side_button/grid/sorting_type/last_modified");
 
     private final AbstractGridContainerMenu menu;
 
@@ -37,18 +54,13 @@ class SortingTypeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected int getXTexture() {
+    protected ResourceLocation getSprite() {
         return switch (menu.getSortingType()) {
-            case QUANTITY -> 0;
-            case NAME -> 16;
-            case ID -> 32;
-            case LAST_MODIFIED -> 48;
+            case QUANTITY -> QUANTITY;
+            case NAME -> NAME;
+            case ID -> ID;
+            case LAST_MODIFIED -> LAST_MODIFIED;
         };
-    }
-
-    @Override
-    protected int getYTexture() {
-        return menu.getSortingType() == GridSortingTypes.LAST_MODIFIED ? 48 : 32;
     }
 
     @Override
@@ -57,7 +69,7 @@ class SortingTypeSideButtonWidget extends AbstractSideButtonWidget {
     }
 
     @Override
-    protected MutableComponent getSubText() {
+    protected List<MutableComponent> getSubText() {
         return switch (menu.getSortingType()) {
             case QUANTITY -> SUBTEXT_QUANTITY;
             case NAME -> SUBTEXT_NAME;

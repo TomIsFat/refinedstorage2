@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.api.grid.watcher;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.storage.Actor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorage;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 
@@ -30,18 +30,18 @@ class GridWatcherManagerImplTest {
     void setUp() {
         sut = new GridWatcherManagerImpl();
         rootStorage = new RootStorageImpl();
-        rootStorage.addSource(new InMemoryStorageImpl());
+        rootStorage.addSource(new StorageImpl());
     }
 
     @Test
     void shouldAddWatcherAndNotifyOfChanges() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        rootStorage.insert(A, 10, Action.EXECUTE, FakeActor.INSTANCE);
+        rootStorage.insert(A, 10, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Act
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
-        rootStorage.insert(B, 5, Action.EXECUTE, FakeActor.INSTANCE);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
+        rootStorage.insert(B, 5, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Assert
         verify(watcher, times(1)).onChanged(B, 5, null);
@@ -52,12 +52,12 @@ class GridWatcherManagerImplTest {
     void shouldNotAddDuplicateWatcher() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
 
         // Act & assert
         assertThrows(
             IllegalArgumentException.class,
-            () -> sut.addWatcher(watcher, FakeActor.class, rootStorage),
+            () -> sut.addWatcher(watcher, ActorFixture.class, rootStorage),
             "Watcher is already registered"
         );
     }
@@ -66,12 +66,12 @@ class GridWatcherManagerImplTest {
     void shouldRemoveWatcher() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        rootStorage.insert(A, 10, Action.EXECUTE, FakeActor.INSTANCE);
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
+        rootStorage.insert(A, 10, Action.EXECUTE, ActorFixture.INSTANCE);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
 
         // Act
         sut.removeWatcher(watcher, rootStorage);
-        rootStorage.insert(B, 5, Action.EXECUTE, FakeActor.INSTANCE);
+        rootStorage.insert(B, 5, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Assert
         verifyNoInteractions(watcher);
@@ -94,15 +94,15 @@ class GridWatcherManagerImplTest {
     void shouldAddAndRemoveAndAddWatcherAgain() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        rootStorage.insert(A, 10, Action.EXECUTE, FakeActor.INSTANCE);
+        rootStorage.insert(A, 10, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Act
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
-        rootStorage.insert(B, 5, Action.EXECUTE, FakeActor.INSTANCE);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
+        rootStorage.insert(B, 5, Action.EXECUTE, ActorFixture.INSTANCE);
         sut.removeWatcher(watcher, rootStorage);
-        rootStorage.insert(C, 4, Action.EXECUTE, FakeActor.INSTANCE);
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
-        rootStorage.insert(D, 3, Action.EXECUTE, FakeActor.INSTANCE);
+        rootStorage.insert(C, 4, Action.EXECUTE, ActorFixture.INSTANCE);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
+        rootStorage.insert(D, 3, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Assert
         verify(watcher, times(1)).onChanged(B, 5, null);
@@ -114,15 +114,15 @@ class GridWatcherManagerImplTest {
     void shouldDetachAll() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        rootStorage.insert(A, 10, Action.EXECUTE, FakeActor.INSTANCE);
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
+        rootStorage.insert(A, 10, Action.EXECUTE, ActorFixture.INSTANCE);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
 
         // Act
         sut.detachAll(rootStorage);
-        rootStorage.insert(B, 10, Action.EXECUTE, FakeActor.INSTANCE);
+        rootStorage.insert(B, 10, Action.EXECUTE, ActorFixture.INSTANCE);
         assertThrows(IllegalArgumentException.class, () -> sut.addWatcher(
             watcher,
-            FakeActor.class,
+            ActorFixture.class,
             rootStorage
         ), "Watcher is already registered");
 
@@ -134,14 +134,14 @@ class GridWatcherManagerImplTest {
     void shouldAttachAll() {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
-        rootStorage.insert(A, 10, Action.EXECUTE, FakeActor.INSTANCE);
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
+        rootStorage.insert(A, 10, Action.EXECUTE, ActorFixture.INSTANCE);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
         sut.detachAll(rootStorage);
-        rootStorage.insert(B, 5, Action.EXECUTE, FakeActor.INSTANCE);
+        rootStorage.insert(B, 5, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Act
         sut.attachAll(rootStorage);
-        rootStorage.insert(C, 4, Action.EXECUTE, FakeActor.INSTANCE);
+        rootStorage.insert(C, 4, Action.EXECUTE, ActorFixture.INSTANCE);
 
         // Assert
         final InOrder inOrder = inOrder(watcher);
@@ -157,7 +157,7 @@ class GridWatcherManagerImplTest {
         // Arrange
         final GridWatcher watcher = mock(GridWatcher.class);
         sut.activeChanged(true);
-        sut.addWatcher(watcher, FakeActor.class, rootStorage);
+        sut.addWatcher(watcher, ActorFixture.class, rootStorage);
 
         // Act
         sut.activeChanged(false);
@@ -170,10 +170,10 @@ class GridWatcherManagerImplTest {
         inOrder.verifyNoMoreInteractions();
     }
 
-    private static class FakeActor implements Actor {
-        public static final FakeActor INSTANCE = new FakeActor();
+    private static class ActorFixture implements Actor {
+        public static final ActorFixture INSTANCE = new ActorFixture();
 
-        private FakeActor() {
+        private ActorFixture() {
         }
 
         @Override

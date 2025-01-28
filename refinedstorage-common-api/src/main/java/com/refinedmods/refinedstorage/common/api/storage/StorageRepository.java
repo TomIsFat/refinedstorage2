@@ -32,6 +32,13 @@ public interface StorageRepository {
     Optional<SerializableStorage> removeIfEmpty(UUID id);
 
     /**
+     * Removes a storage by ID.
+     *
+     * @param id the id
+     */
+    void remove(UUID id);
+
+    /**
      * Retrieves info for a given storage ID.
      *
      * @param id the id

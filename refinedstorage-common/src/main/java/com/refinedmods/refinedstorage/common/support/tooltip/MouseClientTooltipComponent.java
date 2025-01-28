@@ -2,7 +2,7 @@ package com.refinedmods.refinedstorage.common.support.tooltip;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.Platform;
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.support.resource.FluidResource;
 
 import javax.annotation.Nullable;
@@ -15,9 +15,9 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW_HEIGHT;
-import static com.refinedmods.refinedstorage.common.support.TextureIds.LIGHT_ARROW_WIDTH;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW_HEIGHT;
+import static com.refinedmods.refinedstorage.common.support.Sprites.LIGHT_ARROW_WIDTH;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 
 public class MouseClientTooltipComponent implements ClientTooltipComponent {
@@ -102,7 +102,7 @@ public class MouseClientTooltipComponent implements ClientTooltipComponent {
                                                   @Nullable final String amount) {
         return new MouseClientTooltipComponent(
             type,
-            (graphics, x, y) -> RefinedStorageApi.INSTANCE.getResourceRendering(resource)
+            (graphics, x, y) -> RefinedStorageClientApi.INSTANCE.getResourceRendering(resource.getClass())
                 .render(resource, graphics, x, y),
             amount
         );

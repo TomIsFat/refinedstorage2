@@ -18,9 +18,5 @@ public interface GridSynchronizer {
     @Nullable
     String getTextToSynchronizeToGrid();
 
-    ResourceLocation getTextureIdentifier();
-
-    int getXTexture();
-
-    int getYTexture();
+    ResourceLocation getSprite();
 }

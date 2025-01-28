@@ -11,8 +11,8 @@ import net.minecraft.world.entity.player.Inventory;
 public class ConstructorScreen extends AbstractFilterScreen<ConstructorContainerMenu> {
     public ConstructorScreen(final ConstructorContainerMenu menu,
                              final Inventory playerInventory,
-                             final Component text) {
-        super(menu, playerInventory, text);
+                             final Component title) {
+        super(menu, playerInventory, title);
     }
 
     @Override

@@ -15,7 +15,7 @@ public class PortableGridItemContainerMenu extends AbstractPortableGridContainer
                                          final PortableGridData portableGridData) {
         super(Menus.INSTANCE.getPortableGridItem(), syncId, playerInventory, portableGridData);
         this.disabledSlot = portableGridData.slotReference().orElse(null);
-        this.onScreenReady(0);
+        resized(0, 0, 0);
     }
 
     PortableGridItemContainerMenu(final int syncId,
@@ -33,6 +33,6 @@ public class PortableGridItemContainerMenu extends AbstractPortableGridContainer
             energyStorage
         );
         this.disabledSlot = slotReference;
-        this.onScreenReady(0);
+        resized(0, 0, 0);
     }
 }

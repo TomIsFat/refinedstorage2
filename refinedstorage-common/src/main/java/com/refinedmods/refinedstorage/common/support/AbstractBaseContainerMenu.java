@@ -23,6 +23,8 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import static java.util.Objects.requireNonNull;
+
 public abstract class AbstractBaseContainerMenu extends AbstractContainerMenu {
     protected final TransferManager transferManager;
     @Nullable
@@ -40,7 +42,7 @@ public abstract class AbstractBaseContainerMenu extends AbstractContainerMenu {
 
     @SuppressWarnings("unchecked")
     public <T> ClientProperty<T> getProperty(final PropertyType<T> type) {
-        return (ClientProperty<T>) propertyMap.get(type);
+        return (ClientProperty<T>) requireNonNull(propertyMap.get(type), "Property not found");
     }
 
     public void receivePropertyChangeFromClient(final ResourceLocation id, final int newValue) {
@@ -63,11 +65,20 @@ public abstract class AbstractBaseContainerMenu extends AbstractContainerMenu {
         slots.clear();
     }
 
-    protected void addPlayerInventory(final Inventory inventory, final int inventoryX, final int inventoryY) {
+    protected final void addPlayerInventory(final Inventory inventory,
+                                            final int inventoryX,
+                                            final int inventoryY) {
+        addPlayerInventory(inventory, inventoryX, inventoryY, null);
+    }
+
+    protected final void addPlayerInventory(final Inventory inventory,
+                                            final int inventoryX,
+                                            final int inventoryY,
+                                            @Nullable final PlayerInventoryListener listener) {
         int id = 9;
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 9; x++) {
-                addSlot(new Slot(inventory, id++, inventoryX + x * 18, inventoryY + y * 18));
+                addSlot(new PlayerInventorySlot(inventory, id++, inventoryX + x * 18, inventoryY + y * 18, listener));
             }
         }
 
@@ -77,7 +88,10 @@ public abstract class AbstractBaseContainerMenu extends AbstractContainerMenu {
             final int y = inventoryY + 4 + (3 * 18);
             final boolean disabled = disabledSlot != null
                 && disabledSlot.isDisabledSlot(id);
-            addSlot(disabled ? new DisabledSlot(inventory, id, x, y) : new Slot(inventory, id, x, y));
+            final Slot slot = disabled
+                ? new DisabledSlot(inventory, id, x, y)
+                : new PlayerInventorySlot(inventory, id, x, y, listener);
+            addSlot(slot);
             id++;
         }
     }
@@ -126,5 +140,14 @@ public abstract class AbstractBaseContainerMenu extends AbstractContainerMenu {
         return disabledSlot != null
             && clickType == ClickType.SWAP
             && disabledSlot.isDisabledSlot(dragType);
+    }
+
+    public void handleFilterSlotChange(final int slotIndex, final ItemStack stack) {
+        if (slotIndex < 0 || slotIndex >= slots.size()) {
+            return;
+        }
+        if (slots.get(slotIndex) instanceof FilterSlot filterSlot && filterSlot.mayPlace(stack)) {
+            filterSlot.set(stack);
+        }
     }
 }

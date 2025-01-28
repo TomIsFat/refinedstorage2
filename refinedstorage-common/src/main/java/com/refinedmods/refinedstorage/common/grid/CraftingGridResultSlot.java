@@ -1,7 +1,7 @@
 package com.refinedmods.refinedstorage.common.grid;
 
 import com.refinedmods.refinedstorage.common.Platform;
-import com.refinedmods.refinedstorage.common.support.CraftingMatrix;
+import com.refinedmods.refinedstorage.common.support.RecipeMatrixContainer;
 import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
 
 import java.util.List;
@@ -14,23 +14,23 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 
 class CraftingGridResultSlot extends ResultSlot {
-    private final CraftingGridSource source;
+    private final CraftingGrid craftingGrid;
 
     CraftingGridResultSlot(final Player player,
-                           final CraftingGridSource source,
+                           final CraftingGrid craftingGrid,
                            final int x,
                            final int y) {
-        super(player, source.getCraftingMatrix(), source.getCraftingResult(), 0, x, y);
-        this.source = source;
+        super(player, craftingGrid.getCraftingMatrix(), craftingGrid.getCraftingResult(), 0, x, y);
+        this.craftingGrid = craftingGrid;
     }
 
     public ItemStack onQuickCraft(final Player player) {
         final ItemStack singleResultStack = getItem().copy();
         final int maxCrafted = singleResultStack.getMaxStackSize();
         int crafted = 0;
-        try (CraftingGridRefillContext refillContext = source.openSnapshotRefillContext(player)) {
+        try (ExtractTransaction transaction = craftingGrid.startExtractTransaction(player, false)) {
             while (ItemStack.isSameItemSameComponents(singleResultStack, getItem()) && crafted < maxCrafted) {
-                doTake(player, refillContext);
+                doTake(player, transaction);
                 crafted += singleResultStack.getCount();
             }
         }
@@ -43,32 +43,32 @@ class CraftingGridResultSlot extends ResultSlot {
         if (player.level().isClientSide()) {
             return;
         }
-        try (CraftingGridRefillContext refillContext = source.openRefillContext()) {
-            doTake(player, refillContext);
+        try (ExtractTransaction transaction = craftingGrid.startExtractTransaction(player, true)) {
+            doTake(player, transaction);
         }
     }
 
-    private void doTake(final Player player, final CraftingGridRefillContext refillContext) {
+    private void doTake(final Player player, final ExtractTransaction transaction) {
         fireCraftingEvents(player, getItem().copy());
-        final CraftingInput.Positioned positioned = source.getCraftingMatrix().asPositionedCraftInput();
+        final CraftingInput.Positioned positioned = craftingGrid.getCraftingMatrix().asPositionedCraftInput();
         final CraftingInput input = positioned.input();
         final int left = positioned.left();
         final int top = positioned.top();
-        final NonNullList<ItemStack> remainingItems = source.getRemainingItems(player, input);
+        final NonNullList<ItemStack> remainingItems = craftingGrid.getRemainingItems(player, input);
         for (int y = 0; y < input.height(); ++y) {
             for (int x = 0; x < input.width(); ++x) {
-                final int index = x + left + (y + top) * source.getCraftingMatrix().getWidth();
-                final ItemStack matrixStack = source.getCraftingMatrix().getItem(index);
+                final int index = x + left + (y + top) * craftingGrid.getCraftingMatrix().getWidth();
+                final ItemStack matrixStack = craftingGrid.getCraftingMatrix().getItem(index);
                 final int recipeIndex = x + y * input.width();
                 final ItemStack remainingItem = remainingItems.get(recipeIndex);
                 if (!remainingItem.isEmpty()) {
                     useIngredientWithRemainingItem(player, index, remainingItem);
                 } else if (!matrixStack.isEmpty()) {
-                    useIngredient(player, refillContext, index, matrixStack);
+                    useIngredient(player, transaction, index, matrixStack);
                 }
             }
         }
-        source.getCraftingMatrix().changed();
+        craftingGrid.getCraftingMatrix().changed();
     }
 
     private void useIngredientWithRemainingItem(final Player player,
@@ -76,26 +76,26 @@ class CraftingGridResultSlot extends ResultSlot {
                                                 final ItemStack remainingItem) {
         final ItemStack matrixStack = decrementMatrixSlot(index);
         if (matrixStack.isEmpty()) {
-            source.getCraftingMatrix().setItem(index, remainingItem);
+            craftingGrid.getCraftingMatrix().setItem(index, remainingItem);
         } else if (ItemStack.isSameItemSameComponents(matrixStack, remainingItem)) {
             remainingItem.grow(matrixStack.getCount());
-            source.getCraftingMatrix().setItem(index, remainingItem);
+            craftingGrid.getCraftingMatrix().setItem(index, remainingItem);
         } else if (!player.getInventory().add(remainingItem)) {
             player.drop(remainingItem, false);
         }
     }
 
     private void useIngredient(final Player player,
-                               final CraftingGridRefillContext refillContext,
+                               final ExtractTransaction transaction,
                                final int index,
                                final ItemStack matrixStack) {
-        if (matrixStack.getCount() > 1 || !refillContext.extract(ItemResource.ofItemStack(matrixStack), player)) {
+        if (matrixStack.getCount() > 1 || !transaction.extract(ItemResource.ofItemStack(matrixStack), player)) {
             decrementMatrixSlot(index);
         }
     }
 
     private ItemStack decrementMatrixSlot(final int index) {
-        final CraftingMatrix matrix = source.getCraftingMatrix();
+        final RecipeMatrixContainer matrix = craftingGrid.getCraftingMatrix();
         matrix.removeItem(index, 1);
         return matrix.getItem(index);
     }
@@ -103,7 +103,7 @@ class CraftingGridResultSlot extends ResultSlot {
     private void fireCraftingEvents(final Player player, final ItemStack crafted) {
         // reimplementation of checkTakeAchievements
         crafted.onCraftedBy(player.level(), player, crafted.getCount());
-        Platform.INSTANCE.onItemCrafted(player, crafted, source.getCraftingMatrix());
+        Platform.INSTANCE.onItemCrafted(player, crafted, craftingGrid.getCraftingMatrix());
         if (container instanceof RecipeCraftingHolder recipeHolder) {
             recipeHolder.awardUsedRecipes(player, List.of(crafted));
         }

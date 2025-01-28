@@ -6,12 +6,19 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "refinedstorage:creative_fluid_storage_block",
           "functions": [
             {
               "function": "refinedstorage:storage_block"
+            },
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "minecraft:custom_name"
+              ],
+              "source": "block_entity"
             }
-          ]
+          ],
+          "name": "refinedstorage:creative_fluid_storage_block"
         }
       ]
     }

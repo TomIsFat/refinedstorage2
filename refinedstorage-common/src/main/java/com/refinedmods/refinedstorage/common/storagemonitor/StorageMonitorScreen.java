@@ -16,8 +16,8 @@ public class StorageMonitorScreen extends AbstractBaseScreen<StorageMonitorConta
 
     public StorageMonitorScreen(final StorageMonitorContainerMenu menu,
                                 final Inventory playerInventory,
-                                final Component text) {
-        super(menu, playerInventory, text);
+                                final Component title) {
+        super(menu, playerInventory, title);
         this.inventoryLabelY = 43;
         this.imageWidth = 211;
         this.imageHeight = 137;

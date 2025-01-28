@@ -8,8 +8,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 public class DetectorScreen extends AbstractSingleAmountScreen<DetectorContainerMenu> {
-    public DetectorScreen(final DetectorContainerMenu menu, final Inventory playerInventory, final Component text) {
-        super(menu, playerInventory, text, menu.getAmount(), 0);
+    public DetectorScreen(final DetectorContainerMenu menu, final Inventory playerInventory, final Component title) {
+        super(menu, playerInventory, title, menu.getAmount(), 0);
     }
 
     @Override

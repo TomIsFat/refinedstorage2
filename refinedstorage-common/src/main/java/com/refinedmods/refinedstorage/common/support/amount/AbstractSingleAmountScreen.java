@@ -38,8 +38,9 @@ public abstract class AbstractSingleAmountScreen<T extends AbstractSingleAmountC
     }
 
     @Override
-    protected void accept(final Double amount) {
+    protected boolean confirm(final Double amount) {
         getMenu().changeAmountOnClient(amount);
+        return true;
     }
 
     @Override
@@ -50,6 +51,6 @@ public abstract class AbstractSingleAmountScreen<T extends AbstractSingleAmountC
     @Override
     protected void renderLabels(final GuiGraphics graphics, final int mouseX, final int mouseY) {
         super.renderLabels(graphics, mouseX, mouseY);
-        graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 4210752, false);
+        renderPlayerInventoryTitle(graphics);
     }
 }

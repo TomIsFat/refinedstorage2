@@ -1,14 +1,14 @@
 package com.refinedmods.refinedstorage.common.autocrafting;
 
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
-import com.refinedmods.refinedstorage.common.api.autocrafting.CraftingPattern;
 import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderItem;
-import com.refinedmods.refinedstorage.common.api.autocrafting.ProcessingPattern;
-import com.refinedmods.refinedstorage.common.support.resource.ItemResource;
-import com.refinedmods.refinedstorage.common.util.PlatformUtil;
+import com.refinedmods.refinedstorage.common.autocrafting.autocrafter.AutocrafterScreen;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerScreen;
+import com.refinedmods.refinedstorage.common.autocrafting.patterngrid.PatternGridScreen;
+import com.refinedmods.refinedstorage.common.util.ClientPlatformUtil;
 
 import java.util.Optional;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -18,25 +18,34 @@ public final class PatternRendering {
     }
 
     public static boolean canDisplayOutput(final ItemStack stack) {
-        return stack.getItem() instanceof PatternProviderItem && Screen.hasShiftDown();
+        if (!(stack.getItem() instanceof PatternProviderItem)) {
+            return false;
+        }
+        if (Screen.hasShiftDown()) {
+            return true;
+        }
+        return canDisplayOutputInScreen(stack);
+    }
+
+    private static boolean canDisplayOutputInScreen(final ItemStack stack) {
+        final Screen screen = Minecraft.getInstance().screen;
+        return switch (screen) {
+            case PatternGridScreen patternGridScreen -> patternGridScreen.getMenu().isPatternInOutput(stack);
+            case AutocrafterScreen autocrafterScreen -> autocrafterScreen.getMenu().containsPattern(stack);
+            case AutocrafterManagerScreen autocrafterManagerScreen ->
+                autocrafterManagerScreen.getMenu().containsPattern(stack);
+            case null, default -> false;
+        };
     }
 
     public static Optional<ItemStack> getOutput(final ItemStack stack) {
-        final Level level = PlatformUtil.getClientLevel();
+        final Level level = ClientPlatformUtil.getClientLevel();
         if (level == null) {
             return Optional.empty();
         }
-        return RefinedStorageApi.INSTANCE.getPattern(stack, level).map(pattern -> {
-            if (pattern instanceof CraftingPattern craftingPattern
-                && craftingPattern.output().resource() instanceof ItemResource itemResource) {
-                return itemResource.toItemStack();
-            }
-            if (pattern instanceof ProcessingPattern processingPattern
-                && processingPattern.outputs().size() == 1
-                && processingPattern.outputs().getFirst().resource() instanceof ItemResource itemResource) {
-                return itemResource.toItemStack();
-            }
-            return null;
-        });
+        if (stack.getItem() instanceof PatternProviderItem patternProviderItem) {
+            return patternProviderItem.getOutput(stack, level);
+        }
+        return Optional.empty();
     }
 }

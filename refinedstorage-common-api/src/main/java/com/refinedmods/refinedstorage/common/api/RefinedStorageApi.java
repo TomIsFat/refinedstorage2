@@ -1,19 +1,17 @@
 package com.refinedmods.refinedstorage.common.api;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.core.component.ComponentMapFactory;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.NetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyStorage;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNode;
 import com.refinedmods.refinedstorage.api.network.security.SecurityPolicy;
-import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.common.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderExternalPatternSinkFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.ConstructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.DestructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.exporter.ExporterTransferStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.grid.Grid;
-import com.refinedmods.refinedstorage.common.api.grid.GridInsertionHint;
-import com.refinedmods.refinedstorage.common.api.grid.GridInsertionHints;
 import com.refinedmods.refinedstorage.common.api.grid.GridSynchronizer;
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridExtractionStrategy;
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridExtractionStrategyFactory;
@@ -23,6 +21,8 @@ import com.refinedmods.refinedstorage.common.api.grid.strategy.GridScrollingStra
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridScrollingStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.importer.ImporterTransferStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.security.PlatformPermission;
+import com.refinedmods.refinedstorage.common.api.storage.StorageBlockData;
+import com.refinedmods.refinedstorage.common.api.storage.StorageBlockProvider;
 import com.refinedmods.refinedstorage.common.api.storage.StorageContainerItemHelper;
 import com.refinedmods.refinedstorage.common.api.storage.StorageRepository;
 import com.refinedmods.refinedstorage.common.api.storage.StorageType;
@@ -30,6 +30,7 @@ import com.refinedmods.refinedstorage.common.api.storage.externalstorage.Platfor
 import com.refinedmods.refinedstorage.common.api.storagemonitor.StorageMonitorExtractionStrategy;
 import com.refinedmods.refinedstorage.common.api.storagemonitor.StorageMonitorInsertionStrategy;
 import com.refinedmods.refinedstorage.common.api.support.energy.EnergyItemHelper;
+import com.refinedmods.refinedstorage.common.api.support.network.AbstractNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.api.support.network.NetworkNodeContainerProvider;
 import com.refinedmods.refinedstorage.common.api.support.network.item.NetworkItemHelper;
@@ -37,7 +38,6 @@ import com.refinedmods.refinedstorage.common.api.support.registry.PlatformRegist
 import com.refinedmods.refinedstorage.common.api.support.resource.RecipeModIngredientConverter;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceContainerInsertStrategy;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceFactory;
-import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceType;
 import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotReference;
 import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotReferenceFactory;
@@ -51,16 +51,22 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apiguardian.api.API;
 
@@ -102,6 +108,10 @@ public interface RefinedStorageApi {
 
     StorageMonitorInsertionStrategy getStorageMonitorInsertionStrategy();
 
+    void addPatternProviderExternalPatternSinkFactory(PatternProviderExternalPatternSinkFactory factory);
+
+    PatternProviderExternalPatternSinkFactory getPatternProviderExternalPatternSinkFactory();
+
     ComponentMapFactory<NetworkComponent, Network> getNetworkComponentMapFactory();
 
     PlatformRegistry<GridSynchronizer> getGridSynchronizerRegistry();
@@ -130,10 +140,6 @@ public interface RefinedStorageApi {
 
     Collection<ResourceContainerInsertStrategy> getResourceContainerInsertStrategies();
 
-    void addAlternativeGridInsertionHint(GridInsertionHint hint);
-
-    GridInsertionHints getGridInsertionHints();
-
     GridExtractionStrategy createGridExtractionStrategy(AbstractContainerMenu containerMenu,
                                                         ServerPlayer player,
                                                         Grid grid);
@@ -157,10 +163,6 @@ public interface RefinedStorageApi {
     StorageType getFluidStorageType();
 
     Set<ResourceFactory> getAlternativeResourceFactories();
-
-    <T extends ResourceKey> void registerResourceRendering(Class<T> resourceClass, ResourceRendering rendering);
-
-    ResourceRendering getResourceRendering(ResourceKey resource);
 
     void addIngredientConverter(RecipeModIngredientConverter converter);
 
@@ -203,4 +205,22 @@ public interface RefinedStorageApi {
     boolean canPlaceNetworkNode(ServerPlayer player, Level level, BlockPos pos, BlockState state);
 
     Optional<Pattern> getPattern(ItemStack stack, Level level);
+
+    ResourceLocation getCreativeModeTabId();
+
+    ResourceLocation getColoredCreativeModeTabId();
+
+    AbstractNetworkNodeContainerBlockEntity<?> createStorageBlockEntity(BlockPos pos,
+                                                                        BlockState state,
+                                                                        StorageBlockProvider provider);
+
+    Block createStorageBlock(BlockBehaviour.Properties properties, StorageBlockProvider provider);
+
+    AbstractContainerMenu createStorageBlockContainerMenu(int syncId,
+                                                          Player player,
+                                                          StorageBlockData data,
+                                                          ResourceFactory resourceFactory,
+                                                          MenuType<?> menuType);
+
+    StreamCodec<RegistryFriendlyByteBuf, StorageBlockData> getStorageBlockDataStreamCodec();
 }

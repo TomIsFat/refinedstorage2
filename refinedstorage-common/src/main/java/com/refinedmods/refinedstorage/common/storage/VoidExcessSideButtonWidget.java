@@ -6,7 +6,10 @@ import com.refinedmods.refinedstorage.common.support.widget.AbstractYesNoSideBut
 import javax.annotation.Nullable;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createIdentifier;
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
 
 public class VoidExcessSideButtonWidget extends AbstractYesNoSideButtonWidget {
@@ -15,9 +18,12 @@ public class VoidExcessSideButtonWidget extends AbstractYesNoSideButtonWidget {
         "gui",
         "void_excess.allowlist_warning"
     );
+    private static final MutableComponent TITLE = createTranslation("gui", "void_excess");
+    private static final ResourceLocation YES = createIdentifier("widget/side_button/storage/void_excess/yes");
+    private static final ResourceLocation NO = createIdentifier("widget/side_button/storage/void_excess/no");
 
     public VoidExcessSideButtonWidget(final ClientProperty<Boolean> property) {
-        super(property, createTranslation("gui", "void_excess"));
+        super(property, TITLE, YES, NO);
     }
 
     public void setWarningVisible(final boolean visible) {
@@ -26,16 +32,6 @@ public class VoidExcessSideButtonWidget extends AbstractYesNoSideButtonWidget {
         } else {
             setWarning(null);
         }
-    }
-
-    @Override
-    protected int getXTexture() {
-        return Boolean.TRUE.equals(property.getValue()) ? 16 : 0;
-    }
-
-    @Override
-    protected int getYTexture() {
-        return 240 - 15;
     }
 
     @Override

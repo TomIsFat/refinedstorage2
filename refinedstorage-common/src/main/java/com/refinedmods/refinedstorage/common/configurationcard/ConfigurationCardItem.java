@@ -55,7 +55,7 @@ public class ConfigurationCardItem extends Item {
             stack.set(DataComponents.INSTANCE.getConfigurationCardState(), new ConfigurationCardState(
                 blockEntity.getType(),
                 createConfigTag(target, ctx.getLevel().registryAccess()),
-                target.getUpgradeItems()
+                target.getUpgrades()
             ));
             sendCopiedConfigurationMessage(ctx.getPlayer(), blockEntity.getType());
             return InteractionResult.CONSUME;
@@ -74,7 +74,7 @@ public class ConfigurationCardItem extends Item {
             return configurationCardIsConfiguredForDifferentType(player, state.blockEntityType());
         }
         target.readConfiguration(state.config(), provider);
-        tryTransferUpgrades(player, target, state.upgradeItems());
+        tryTransferUpgrades(player, target, state.upgrades());
         targetBlockEntity.setChanged();
         player.sendSystemMessage(createTranslation("item", "configuration_card.applied_configuration"));
         return InteractionResult.SUCCESS;
@@ -82,12 +82,10 @@ public class ConfigurationCardItem extends Item {
 
     private void tryTransferUpgrades(final Player player,
                                      final ConfigurationCardTarget target,
-                                     final List<Item> upgradeItems) {
-        for (final Item upgradeItem : upgradeItems) {
-            final int upgradeIndexInPlayerInventory = player.getInventory().findSlotMatchingItem(
-                new ItemStack(upgradeItem)
-            );
-            if (upgradeIndexInPlayerInventory >= 0 && target.addUpgradeItem(upgradeItem)) {
+                                     final List<ItemStack> upgrades) {
+        for (final ItemStack upgrade : upgrades) {
+            final int upgradeIndexInPlayerInventory = player.getInventory().findSlotMatchingItem(upgrade);
+            if (upgradeIndexInPlayerInventory >= 0 && target.addUpgrade(upgrade)) {
                 player.getInventory().removeItem(upgradeIndexInPlayerInventory, 1);
             }
         }

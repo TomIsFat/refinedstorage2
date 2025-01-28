@@ -13,7 +13,7 @@ public class ExternalStorageScreen extends AbstractStorageScreen<ExternalStorage
                                  final Component title) {
         super(menu, inventory, title);
         this.inventoryLabelY = 42;
-        this.imageWidth = 210;
+        this.imageWidth = 176;
         this.imageHeight = 137;
     }
 

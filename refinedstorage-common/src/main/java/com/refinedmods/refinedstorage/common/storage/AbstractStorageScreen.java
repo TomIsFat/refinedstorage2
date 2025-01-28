@@ -1,10 +1,10 @@
 package com.refinedmods.refinedstorage.common.storage;
 
-import com.refinedmods.refinedstorage.common.api.support.AmountFormatting;
 import com.refinedmods.refinedstorage.common.support.AbstractBaseScreen;
 import com.refinedmods.refinedstorage.common.support.containermenu.PropertyTypes;
 import com.refinedmods.refinedstorage.common.support.widget.FuzzyModeSideButtonWidget;
 import com.refinedmods.refinedstorage.common.support.widget.RedstoneModeSideButtonWidget;
+import com.refinedmods.refinedstorage.common.support.widget.StoragePrioritySideButtonWidget;
 
 import javax.annotation.Nullable;
 
@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTranslation;
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.format;
 
 public abstract class AbstractStorageScreen<T extends AbstractStorageContainerMenu> extends AbstractBaseScreen<T> {
     private static final Component ALLOW_FILTER_MODE_HELP = createTranslation("gui", "storage.filter_mode.allow.help");
@@ -47,8 +48,9 @@ public abstract class AbstractStorageScreen<T extends AbstractStorageContainerMe
             () -> FuzzyModeSideButtonWidget.Type.STORAGE
         ));
         addSideButton(new AccessModeSideButtonWidget(getMenu().getProperty(StoragePropertyTypes.ACCESS_MODE)));
-        addSideButton(new PrioritySideButtonWidget(
-            getMenu().getProperty(StoragePropertyTypes.PRIORITY),
+        addSideButton(new StoragePrioritySideButtonWidget(
+            getMenu().getProperty(StoragePropertyTypes.INSERT_PRIORITY),
+            getMenu().getProperty(StoragePropertyTypes.EXTRACT_PRIORITY),
             playerInventory,
             this
         ));
@@ -69,7 +71,7 @@ public abstract class AbstractStorageScreen<T extends AbstractStorageContainerMe
         }
     }
 
-    protected String formatQuantity(final long qty) {
-        return AmountFormatting.format(qty);
+    protected String formatAmount(final long qty) {
+        return format(qty);
     }
 }

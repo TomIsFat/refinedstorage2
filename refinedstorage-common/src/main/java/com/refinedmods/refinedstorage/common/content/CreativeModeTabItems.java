@@ -6,7 +6,6 @@ import com.refinedmods.refinedstorage.common.storage.ItemStorageVariant;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -22,26 +21,24 @@ public final class CreativeModeTabItems {
 
     private static void appendBlocks(final Consumer<ItemStack> consumer) {
         final Consumer<ItemLike> itemConsumer = item -> consumer.accept(new ItemStack(item));
-        Items.INSTANCE.getControllers().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getControllers().forEach(controllerItem -> consumer.accept(
-            controllerItem.get().createAtEnergyCapacity()
-        ));
-        Items.INSTANCE.getCreativeControllers().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getCables().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getImporters().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getExporters().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getExternalStorages().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getConstructors().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getDestructors().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getWirelessTransmitters().stream().map(Supplier::get).forEach(itemConsumer);
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getController());
+        consumer.accept(Items.INSTANCE.getControllers().getFirst().get().createAtEnergyCapacity());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getCreativeController());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getCable());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getImporter());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getExporter());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getExternalStorage());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getConstructor());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getDestructor());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getWirelessTransmitter());
         itemConsumer.accept(Blocks.INSTANCE.getDiskDrive());
-        appendBlockColors(consumer, Blocks.INSTANCE.getGrid());
-        appendBlockColors(consumer, Blocks.INSTANCE.getCraftingGrid());
-        appendBlockColors(consumer, Blocks.INSTANCE.getPatternGrid());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getGrid());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getCraftingGrid());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getPatternGrid());
         itemConsumer.accept(Items.INSTANCE.getPortableGrid());
         consumer.accept(Items.INSTANCE.getPortableGrid().createAtEnergyCapacity());
         itemConsumer.accept(Items.INSTANCE.getCreativePortableGrid());
-        Items.INSTANCE.getDetectors().stream().map(Supplier::get).forEach(itemConsumer);
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getDetector());
         itemConsumer.accept(Blocks.INSTANCE.getInterface());
         Arrays.stream(ItemStorageVariant.values()).forEach(variant -> itemConsumer.accept(
             Blocks.INSTANCE.getItemStorageBlock(variant)
@@ -50,18 +47,55 @@ public final class CreativeModeTabItems {
             Blocks.INSTANCE.getFluidStorageBlock(variant)
         ));
         itemConsumer.accept(Blocks.INSTANCE.getMachineCasing());
-        itemConsumer.accept(Blocks.INSTANCE.getQuartzEnrichedIronBlock());
-        itemConsumer.accept(Blocks.INSTANCE.getQuartzEnrichedCopperBlock());
         itemConsumer.accept(Blocks.INSTANCE.getStorageMonitor());
-        Items.INSTANCE.getNetworkTransmitters().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getNetworkReceivers().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getSecurityManagers().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getRelays().stream().map(Supplier::get).forEach(itemConsumer);
-        Items.INSTANCE.getDiskInterfaces().stream().map(Supplier::get).forEach(itemConsumer);
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getNetworkTransmitter());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getNetworkReceiver());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getSecurityManager());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getRelay());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getDiskInterface());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getAutocrafter());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getAutocrafterManager());
+        appendDefaultBlockColor(consumer, Blocks.INSTANCE.getAutocraftingMonitor());
     }
 
-    private static void appendBlockColors(final Consumer<ItemStack> consumer, final BlockColorMap<?, ?> map) {
-        map.values().forEach(block -> consumer.accept(new ItemStack(block)));
+    private static void appendDefaultBlockColor(final Consumer<ItemStack> consumer, final BlockColorMap<?, ?> map) {
+        consumer.accept(new ItemStack(map.getDefault()));
+    }
+
+    public static void appendColoredVariants(final Consumer<ItemStack> consumer) {
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getController());
+        final var controllers = Items.INSTANCE.getControllers();
+        for (int i = 1; i < controllers.size(); ++i) {
+            consumer.accept(controllers.get(i).get().createAtEnergyCapacity());
+        }
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getCreativeController());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getCable());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getImporter());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getExporter());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getExternalStorage());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getConstructor());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getDestructor());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getWirelessTransmitter());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getGrid());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getCraftingGrid());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getPatternGrid());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getDetector());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getNetworkTransmitter());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getNetworkReceiver());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getSecurityManager());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getRelay());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getDiskInterface());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getAutocrafter());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getAutocrafterManager());
+        appendColoredBlocks(consumer, Blocks.INSTANCE.getAutocraftingMonitor());
+    }
+
+    private static void appendColoredBlocks(final Consumer<ItemStack> consumer, final BlockColorMap<?, ?> map) {
+        map.forEach((color, id, block) -> {
+            if (!map.isDefaultColor(color)) {
+                consumer.accept(new ItemStack(block.get()));
+            }
+        });
     }
 
     private static void appendItems(final Consumer<ItemStack> consumer) {
@@ -112,5 +146,8 @@ public final class CreativeModeTabItems {
         itemConsumer.accept(Items.INSTANCE.getSecurityCard());
         itemConsumer.accept(Items.INSTANCE.getFallbackSecurityCard());
         itemConsumer.accept(Items.INSTANCE.getPattern());
+        itemConsumer.accept(Items.INSTANCE.getWirelessAutocraftingMonitor());
+        consumer.accept(Items.INSTANCE.getWirelessAutocraftingMonitor().createAtEnergyCapacity());
+        itemConsumer.accept(Items.INSTANCE.getCreativeWirelessAutocraftingMonitor());
     }
 }

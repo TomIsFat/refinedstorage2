@@ -4,8 +4,8 @@ import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.storage.StorageNetworkComponent;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
-import com.refinedmods.refinedstorage.api.storage.InMemoryStorageImpl;
+import com.refinedmods.refinedstorage.api.storage.Actor;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
 import com.refinedmods.refinedstorage.network.test.AddNetworkNode;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkEnergyComponent;
 import com.refinedmods.refinedstorage.network.test.InjectNetworkStorageComponent;
@@ -15,7 +15,7 @@ import com.refinedmods.refinedstorage.network.test.SetupNetwork;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.refinedmods.refinedstorage.network.test.fake.FakeResources.A;
+import static com.refinedmods.refinedstorage.network.test.fixtures.ResourceFixtures.A;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @NetworkTest
@@ -50,8 +50,8 @@ class InterfaceNetworkNodeTest {
         @InjectNetworkEnergyComponent final EnergyNetworkComponent energy
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, Long.MAX_VALUE, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, Long.MAX_VALUE, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, Long.MAX_VALUE);
 
@@ -72,8 +72,8 @@ class InterfaceNetworkNodeTest {
         @InjectNetworkEnergyComponent final EnergyNetworkComponent energy
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 1);
 
@@ -98,8 +98,8 @@ class InterfaceNetworkNodeTest {
         @InjectNetworkEnergyComponent final EnergyNetworkComponent energy
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         exportState.setRequestedResource(1, A, 1);
 
@@ -124,8 +124,8 @@ class InterfaceNetworkNodeTest {
         @InjectNetworkEnergyComponent final EnergyNetworkComponent energy
     ) {
         // Arrange
-        storage.addSource(new InMemoryStorageImpl());
-        storage.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        storage.addSource(new StorageImpl());
+        storage.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         sut.setExportState(null);
         sut.setTransferQuotaProvider(resource -> 2);

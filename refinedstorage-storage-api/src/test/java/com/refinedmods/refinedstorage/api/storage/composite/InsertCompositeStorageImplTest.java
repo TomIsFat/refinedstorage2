@@ -2,10 +2,9 @@ package com.refinedmods.refinedstorage.api.storage.composite;
 
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.ActorCapturingStorage;
-import com.refinedmods.refinedstorage.api.storage.EmptyActor;
 import com.refinedmods.refinedstorage.api.storage.Storage;
 import com.refinedmods.refinedstorage.api.storage.limited.LimitedStorageImpl;
 
@@ -22,7 +21,7 @@ class InsertCompositeStorageImplTest {
 
     @BeforeEach
     void setUp() {
-        sut = new CompositeStorageImpl(ResourceListImpl.create());
+        sut = new CompositeStorageImpl(MutableResourceListImpl.create());
     }
 
     @ParameterizedTest
@@ -65,7 +64,7 @@ class InsertCompositeStorageImplTest {
         sut.addSource(storage);
 
         // Act
-        final long inserted = sut.insert(A, 30, action, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(A, 30, action, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(20);
@@ -100,7 +99,7 @@ class InsertCompositeStorageImplTest {
         sut.addSource(storage3);
 
         // Act
-        final long inserted = sut.insert(A, 17, action, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(A, 17, action, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(17);
@@ -143,7 +142,7 @@ class InsertCompositeStorageImplTest {
         sut.addSource(storage3);
 
         // Act
-        final long inserted = sut.insert(A, 39, action, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(A, 39, action, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isEqualTo(35);
@@ -176,7 +175,7 @@ class InsertCompositeStorageImplTest {
     @Test
     void shouldNotInsertWithoutAnySourcesPresent() {
         // Act
-        final long inserted = sut.insert(A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        final long inserted = sut.insert(A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(inserted).isZero();
@@ -185,14 +184,14 @@ class InsertCompositeStorageImplTest {
     @Test
     void shouldRespectPriorityWhenInserting() {
         // Arrange
-        final PriorityStorage lowestPriority = PriorityStorage.of(new LimitedStorageImpl(10), 5);
-        final PriorityStorage highestPriority = PriorityStorage.of(new LimitedStorageImpl(10), 10);
+        final PriorityStorage lowestPriority = PriorityStorage.of(new LimitedStorageImpl(10), 5, 10);
+        final PriorityStorage highestPriority = PriorityStorage.of(new LimitedStorageImpl(10), 10, 5);
 
         sut.addSource(lowestPriority);
         sut.addSource(highestPriority);
 
         // Act
-        sut.insert(A, 11, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(A, 11, Action.EXECUTE, Actor.EMPTY);
 
         // Assert
         assertThat(highestPriority.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(

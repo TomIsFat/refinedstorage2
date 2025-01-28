@@ -21,7 +21,7 @@ final class ExporterTestPlots {
     static void preparePlot(final GameTestHelper helper,
                             final Block block,
                             final Direction direction,
-                            final TriConsumer<ExporterBlockEntity, BlockPos, GameTestSequence> consumer) {
+                            final TriConsumer<AbstractExporterBlockEntity, BlockPos, GameTestSequence> consumer) {
         helper.setBlock(ZERO.above(), RSBLOCKS.getCreativeController().getDefault());
         helper.setBlock(ZERO.above().above(), RSBLOCKS.getItemStorageBlock(ItemStorageVariant.ONE_K));
         helper.setBlock(
@@ -32,7 +32,7 @@ final class ExporterTestPlots {
         helper.setBlock(exporterPos, RSBLOCKS.getExporter().getDefault().rotated(direction));
         helper.setBlock(exporterPos.east(), block);
         consumer.accept(
-            requireBlockEntity(helper, exporterPos, ExporterBlockEntity.class),
+            requireBlockEntity(helper, exporterPos, AbstractExporterBlockEntity.class),
             exporterPos,
             helper.startSequence()
         );

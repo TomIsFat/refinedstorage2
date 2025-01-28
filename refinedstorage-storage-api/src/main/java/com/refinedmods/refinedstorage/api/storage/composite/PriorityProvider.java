@@ -9,9 +9,16 @@ import org.apiguardian.api.API;
 @API(status = API.Status.STABLE, since = "2.0.0-milestone.1.0")
 public interface PriorityProvider {
     /**
-     * The priority. Higher priority storages will be inserted into and extracted from first.
+     * The priority, higher priority storages will be inserted into first.
      *
      * @return the priority
      */
-    int getPriority();
+    int getInsertPriority();
+
+    /**
+     * The priority, higher priority storages will be extracted from first.
+     *
+     * @return the priority
+     */
+    int getExtractPriority();
 }

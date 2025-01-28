@@ -6,8 +6,7 @@ import com.refinedmods.refinedstorage.common.support.BlockItemProvider;
 import com.refinedmods.refinedstorage.common.support.ColorableBlock;
 import com.refinedmods.refinedstorage.common.support.DirectionalCableBlockShapes;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.Direction;
@@ -31,7 +30,8 @@ public abstract class AbstractConstructorDestructorBlock<T extends Block & Block
     implements ColorableBlock<T, I>, EntityBlock {
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
-    private static final Map<DirectionalCacheShapeCacheKey, VoxelShape> SHAPE_CACHE = new HashMap<>();
+    private static final ConcurrentHashMap<DirectionalCacheShapeCacheKey, VoxelShape> SHAPE_CACHE =
+        new ConcurrentHashMap<>();
 
     private final AbstractBlockEntityTicker<B> ticker;
     private final DyeColor color;

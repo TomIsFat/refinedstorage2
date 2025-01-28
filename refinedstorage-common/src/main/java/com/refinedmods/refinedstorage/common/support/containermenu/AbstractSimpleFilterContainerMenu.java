@@ -1,6 +1,5 @@
 package com.refinedmods.refinedstorage.common.support.containermenu;
 
-import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceContainer;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerData;
 import com.refinedmods.refinedstorage.common.support.resource.ResourceContainerImpl;
@@ -16,8 +15,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-public abstract class AbstractSimpleFilterContainerMenu<T extends BlockEntity>
-    extends AbstractResourceContainerMenu {
+public abstract class AbstractSimpleFilterContainerMenu<T extends BlockEntity> extends AbstractResourceContainerMenu {
     private static final int FILTER_SLOT_X = 8;
     private static final int FILTER_SLOT_Y = 20;
 
@@ -48,9 +46,7 @@ public abstract class AbstractSimpleFilterContainerMenu<T extends BlockEntity>
         addSlots(
             player,
             ResourceContainerImpl.createForFilter(resourceContainerData),
-            upgradeDestination == null
-                ? null
-                : new UpgradeContainer(upgradeDestination, RefinedStorageApi.INSTANCE.getUpgradeRegistry())
+            upgradeDestination == null ? null : new UpgradeContainer(upgradeDestination)
         );
     }
 

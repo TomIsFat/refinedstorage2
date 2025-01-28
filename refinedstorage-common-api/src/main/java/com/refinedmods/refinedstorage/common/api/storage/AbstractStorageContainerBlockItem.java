@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -33,6 +34,16 @@ public abstract class AbstractStorageContainerBlockItem extends BlockItem {
     ) {
         super(block, properties);
         this.helper = helper;
+    }
+
+    @Override
+    public void inventoryTick(final ItemStack stack,
+                              final Level level,
+                              final Entity entity,
+                              final int slotId,
+                              final boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        helper.transferStorageIfNecessary(stack, level, entity, this::createStorage);
     }
 
     @Override
@@ -76,12 +87,15 @@ public abstract class AbstractStorageContainerBlockItem extends BlockItem {
                                 final TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         final StorageRepository storageRepository = RefinedStorageApi.INSTANCE.getClientStorageRepository();
-        helper.appendToTooltip(stack, storageRepository, tooltip, flag, this::formatAmount, hasCapacity());
+        helper.appendToTooltip(stack, storageRepository, tooltip, flag, this::formatAmount, getCapacity());
     }
 
-    protected abstract boolean hasCapacity();
+    @Nullable
+    protected abstract Long getCapacity();
 
     protected abstract String formatAmount(long amount);
+
+    protected abstract SerializableStorage createStorage(StorageRepository storageRepository);
 
     protected abstract ItemStack createPrimaryDisassemblyByproduct(int count);
 

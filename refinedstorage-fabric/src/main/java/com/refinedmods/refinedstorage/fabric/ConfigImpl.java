@@ -1,9 +1,12 @@
 package com.refinedmods.refinedstorage.fabric;
 
 import com.refinedmods.refinedstorage.api.grid.view.GridSortingDirection;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerSearchMode;
+import com.refinedmods.refinedstorage.common.autocrafting.autocraftermanager.AutocrafterManagerViewType;
 import com.refinedmods.refinedstorage.common.content.DefaultEnergyUsage;
 import com.refinedmods.refinedstorage.common.grid.CraftingGridMatrixCloseBehavior;
 import com.refinedmods.refinedstorage.common.grid.GridSortingTypes;
+import com.refinedmods.refinedstorage.common.grid.GridViewType;
 import com.refinedmods.refinedstorage.common.support.stretching.ScreenSize;
 import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
 
@@ -21,6 +24,10 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
     private ScreenSize screenSize = ScreenSize.STRETCH;
 
     private boolean smoothScrolling = true;
+
+    private boolean autocraftingNotification = true;
+
+    private boolean searchBoxAutoSelected = false;
 
     @ConfigEntry.BoundedDiscrete(min = 3L, max = 256)
     private int maxRowsStretch = 256;
@@ -118,6 +125,21 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
     @ConfigEntry.Gui.CollapsibleObject
     private RelayEntryImpl relay = new RelayEntryImpl();
 
+    @ConfigEntry.Gui.CollapsibleObject
+    private AutocrafterEntryImpl autocrafter = new AutocrafterEntryImpl();
+
+    @ConfigEntry.Gui.CollapsibleObject
+    private AutocrafterManagerEntryImpl autocrafterManager = new AutocrafterManagerEntryImpl();
+
+    @ConfigEntry.Gui.CollapsibleObject
+    private SimpleEnergyUsageEntryImpl autocraftingMonitor = new SimpleEnergyUsageEntryImpl(
+        DefaultEnergyUsage.AUTOCRAFTING_MONITOR
+    );
+
+    @ConfigEntry.Gui.CollapsibleObject
+    private WirelessAutocraftingMonitorEntryImpl wirelessAutocraftingMonitor =
+        new WirelessAutocraftingMonitorEntryImpl();
+
     public static ConfigImpl get() {
         return AutoConfig.getConfigHolder(ConfigImpl.class).getConfig();
     }
@@ -139,8 +161,30 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
     }
 
     @Override
+    public boolean isSearchBoxAutoSelected() {
+        return searchBoxAutoSelected;
+    }
+
+    @Override
+    public void setSearchBoxAutoSelected(final boolean searchBoxAutoSelected) {
+        this.searchBoxAutoSelected = searchBoxAutoSelected;
+        AutoConfig.getConfigHolder(ConfigImpl.class).save();
+    }
+
+    @Override
     public int getMaxRowsStretch() {
         return maxRowsStretch;
+    }
+
+    @Override
+    public boolean isAutocraftingNotification() {
+        return autocraftingNotification;
+    }
+
+    @Override
+    public void setAutocraftingNotification(final boolean autocraftingNotification) {
+        this.autocraftingNotification = autocraftingNotification;
+        AutoConfig.getConfigHolder(ConfigImpl.class).save();
     }
 
     @Override
@@ -278,6 +322,26 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
         return relay;
     }
 
+    @Override
+    public AutocrafterEntry getAutocrafter() {
+        return autocrafter;
+    }
+
+    @Override
+    public AutocrafterManagerEntry getAutocrafterManager() {
+        return autocrafterManager;
+    }
+
+    @Override
+    public SimpleEnergyUsageEntry getAutocraftingMonitor() {
+        return autocraftingMonitor;
+    }
+
+    @Override
+    public WirelessAutocraftingMonitorEntry getWirelessAutocraftingMonitor() {
+        return wirelessAutocraftingMonitor;
+    }
+
     private static class GridEntryImpl implements GridEntry {
         private boolean largeFont = false;
 
@@ -289,8 +353,6 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
 
         private boolean rememberSearchQuery = false;
 
-        private boolean autoSelected = false;
-
         private String synchronizer = "";
 
         private String resourceType = "";
@@ -298,6 +360,8 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
         private GridSortingDirection sortingDirection = GridSortingDirection.ASCENDING;
 
         private GridSortingTypes sortingType = GridSortingTypes.QUANTITY;
+
+        private GridViewType viewType = GridViewType.ALL;
 
         @Override
         public boolean isLargeFont() {
@@ -322,17 +386,6 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
         @Override
         public long getEnergyUsage() {
             return energyUsage;
-        }
-
-        @Override
-        public boolean isAutoSelected() {
-            return autoSelected;
-        }
-
-        @Override
-        public void setAutoSelected(final boolean autoSelected) {
-            this.autoSelected = autoSelected;
-            save();
         }
 
         @Override
@@ -374,6 +427,17 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
         @Override
         public void setSortingType(final GridSortingTypes sortingType) {
             this.sortingType = sortingType;
+            save();
+        }
+
+        @Override
+        public GridViewType getViewType() {
+            return viewType;
+        }
+
+        @Override
+        public void setViewType(final GridViewType viewType) {
+            this.viewType = viewType;
             save();
         }
 
@@ -699,6 +763,91 @@ public class ConfigImpl implements ConfigData, com.refinedmods.refinedstorage.co
         @Override
         public long getOutputNetworkEnergyUsage() {
             return outputNetworkEnergyUsage;
+        }
+    }
+
+    private static class AutocrafterEntryImpl implements AutocrafterEntry {
+        private long energyUsage = DefaultEnergyUsage.AUTOCRAFTER;
+
+        private long energyUsagePerPattern = DefaultEnergyUsage.AUTOCRAFTER_PER_PATTERN;
+
+        @Override
+        public long getEnergyUsagePerPattern() {
+            return energyUsagePerPattern;
+        }
+
+        @Override
+        public long getEnergyUsage() {
+            return energyUsage;
+        }
+    }
+
+    private static class AutocrafterManagerEntryImpl implements AutocrafterManagerEntry {
+        private long energyUsage = DefaultEnergyUsage.AUTOCRAFTER_MANAGER;
+
+        private AutocrafterManagerSearchMode searchMode = AutocrafterManagerSearchMode.ALL;
+
+        private AutocrafterManagerViewType viewType = AutocrafterManagerViewType.VISIBLE;
+
+        @Override
+        public void setSearchMode(final AutocrafterManagerSearchMode searchMode) {
+            this.searchMode = searchMode;
+            save();
+        }
+
+        @Override
+        public AutocrafterManagerSearchMode getSearchMode() {
+            return searchMode;
+        }
+
+        @Override
+        public void setViewType(final AutocrafterManagerViewType viewType) {
+            this.viewType = viewType;
+            save();
+        }
+
+        @Override
+        public AutocrafterManagerViewType getViewType() {
+            return viewType;
+        }
+
+        @Override
+        public long getEnergyUsage() {
+            return energyUsage;
+        }
+
+        private static void save() {
+            AutoConfig.getConfigHolder(ConfigImpl.class).save();
+        }
+    }
+
+    private static class WirelessAutocraftingMonitorEntryImpl implements WirelessAutocraftingMonitorEntry {
+        private long energyCapacity = DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_CAPACITY;
+
+        private long openEnergyUsage = DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_OPEN;
+
+        private long cancelEnergyUsage = DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_CANCEL;
+
+        private long cancelAllEnergyUsage = DefaultEnergyUsage.WIRELESS_AUTOCRAFTING_MONITOR_CANCEL_ALL;
+
+        @Override
+        public long getEnergyCapacity() {
+            return energyCapacity;
+        }
+
+        @Override
+        public long getOpenEnergyUsage() {
+            return openEnergyUsage;
+        }
+
+        @Override
+        public long getCancelEnergyUsage() {
+            return cancelEnergyUsage;
+        }
+
+        @Override
+        public long getCancelAllEnergyUsage() {
+            return cancelAllEnergyUsage;
         }
     }
 }

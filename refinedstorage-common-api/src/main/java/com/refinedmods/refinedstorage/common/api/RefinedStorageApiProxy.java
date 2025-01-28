@@ -1,19 +1,17 @@
 package com.refinedmods.refinedstorage.common.api;
 
+import com.refinedmods.refinedstorage.api.autocrafting.Pattern;
 import com.refinedmods.refinedstorage.api.core.component.ComponentMapFactory;
 import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.NetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyStorage;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNode;
 import com.refinedmods.refinedstorage.api.network.security.SecurityPolicy;
-import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.common.api.autocrafting.Pattern;
+import com.refinedmods.refinedstorage.common.api.autocrafting.PatternProviderExternalPatternSinkFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.ConstructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.constructordestructor.DestructorStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.exporter.ExporterTransferStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.grid.Grid;
-import com.refinedmods.refinedstorage.common.api.grid.GridInsertionHint;
-import com.refinedmods.refinedstorage.common.api.grid.GridInsertionHints;
 import com.refinedmods.refinedstorage.common.api.grid.GridSynchronizer;
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridExtractionStrategy;
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridExtractionStrategyFactory;
@@ -23,6 +21,8 @@ import com.refinedmods.refinedstorage.common.api.grid.strategy.GridScrollingStra
 import com.refinedmods.refinedstorage.common.api.grid.strategy.GridScrollingStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.importer.ImporterTransferStrategyFactory;
 import com.refinedmods.refinedstorage.common.api.security.PlatformPermission;
+import com.refinedmods.refinedstorage.common.api.storage.StorageBlockData;
+import com.refinedmods.refinedstorage.common.api.storage.StorageBlockProvider;
 import com.refinedmods.refinedstorage.common.api.storage.StorageContainerItemHelper;
 import com.refinedmods.refinedstorage.common.api.storage.StorageRepository;
 import com.refinedmods.refinedstorage.common.api.storage.StorageType;
@@ -30,6 +30,7 @@ import com.refinedmods.refinedstorage.common.api.storage.externalstorage.Platfor
 import com.refinedmods.refinedstorage.common.api.storagemonitor.StorageMonitorExtractionStrategy;
 import com.refinedmods.refinedstorage.common.api.storagemonitor.StorageMonitorInsertionStrategy;
 import com.refinedmods.refinedstorage.common.api.support.energy.EnergyItemHelper;
+import com.refinedmods.refinedstorage.common.api.support.network.AbstractNetworkNodeContainerBlockEntity;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.api.support.network.NetworkNodeContainerProvider;
 import com.refinedmods.refinedstorage.common.api.support.network.item.NetworkItemHelper;
@@ -37,7 +38,6 @@ import com.refinedmods.refinedstorage.common.api.support.registry.PlatformRegist
 import com.refinedmods.refinedstorage.common.api.support.resource.RecipeModIngredientConverter;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceContainerInsertStrategy;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceFactory;
-import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceType;
 import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotReference;
 import com.refinedmods.refinedstorage.common.api.support.slotreference.SlotReferenceFactory;
@@ -51,16 +51,22 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RefinedStorageApiProxy implements RefinedStorageApi {
@@ -160,6 +166,17 @@ public class RefinedStorageApiProxy implements RefinedStorageApi {
     }
 
     @Override
+    public void addPatternProviderExternalPatternSinkFactory(
+        final PatternProviderExternalPatternSinkFactory factory) {
+        ensureLoaded().addPatternProviderExternalPatternSinkFactory(factory);
+    }
+
+    @Override
+    public PatternProviderExternalPatternSinkFactory getPatternProviderExternalPatternSinkFactory() {
+        return ensureLoaded().getPatternProviderExternalPatternSinkFactory();
+    }
+
+    @Override
     public ComponentMapFactory<NetworkComponent, Network> getNetworkComponentMapFactory() {
         return ensureLoaded().getNetworkComponentMapFactory();
     }
@@ -227,16 +244,6 @@ public class RefinedStorageApiProxy implements RefinedStorageApi {
     }
 
     @Override
-    public void addAlternativeGridInsertionHint(final GridInsertionHint hint) {
-        ensureLoaded().addAlternativeGridInsertionHint(hint);
-    }
-
-    @Override
-    public GridInsertionHints getGridInsertionHints() {
-        return ensureLoaded().getGridInsertionHints();
-    }
-
-    @Override
     public GridExtractionStrategy createGridExtractionStrategy(final AbstractContainerMenu containerMenu,
                                                                final ServerPlayer player,
                                                                final Grid grid) {
@@ -288,17 +295,6 @@ public class RefinedStorageApiProxy implements RefinedStorageApi {
     @Override
     public Set<ResourceFactory> getAlternativeResourceFactories() {
         return ensureLoaded().getAlternativeResourceFactories();
-    }
-
-    @Override
-    public <T extends ResourceKey> void registerResourceRendering(final Class<T> resourceClass,
-                                                                  final ResourceRendering rendering) {
-        ensureLoaded().registerResourceRendering(resourceClass, rendering);
-    }
-
-    @Override
-    public ResourceRendering getResourceRendering(final ResourceKey resource) {
-        return ensureLoaded().getResourceRendering(resource);
     }
 
     @Override
@@ -399,6 +395,42 @@ public class RefinedStorageApiProxy implements RefinedStorageApi {
     @Override
     public Optional<Pattern> getPattern(final ItemStack stack, final Level level) {
         return ensureLoaded().getPattern(stack, level);
+    }
+
+    @Override
+    public ResourceLocation getCreativeModeTabId() {
+        return ensureLoaded().getCreativeModeTabId();
+    }
+
+    @Override
+    public ResourceLocation getColoredCreativeModeTabId() {
+        return ensureLoaded().getColoredCreativeModeTabId();
+    }
+
+    @Override
+    public AbstractNetworkNodeContainerBlockEntity<?> createStorageBlockEntity(final BlockPos pos,
+                                                                               final BlockState state,
+                                                                               final StorageBlockProvider provider) {
+        return ensureLoaded().createStorageBlockEntity(pos, state, provider);
+    }
+
+    @Override
+    public Block createStorageBlock(final BlockBehaviour.Properties properties, final StorageBlockProvider provider) {
+        return ensureLoaded().createStorageBlock(properties, provider);
+    }
+
+    @Override
+    public AbstractContainerMenu createStorageBlockContainerMenu(final int syncId,
+                                                                 final Player player,
+                                                                 final StorageBlockData data,
+                                                                 final ResourceFactory resourceFactory,
+                                                                 final MenuType<?> menuType) {
+        return ensureLoaded().createStorageBlockContainerMenu(syncId, player, data, resourceFactory, menuType);
+    }
+
+    @Override
+    public StreamCodec<RegistryFriendlyByteBuf, StorageBlockData> getStorageBlockDataStreamCodec() {
+        return ensureLoaded().getStorageBlockDataStreamCodec();
     }
 
     private RefinedStorageApi ensureLoaded() {

@@ -1,6 +1,5 @@
 package com.refinedmods.refinedstorage.fabric;
 
-import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.AbstractClientModInitializer;
 import com.refinedmods.refinedstorage.common.api.support.HelpTooltipComponent;
 import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
@@ -20,23 +19,35 @@ import com.refinedmods.refinedstorage.common.security.SecurityCardItemPropertyFu
 import com.refinedmods.refinedstorage.common.storagemonitor.StorageMonitorBlockEntityRenderer;
 import com.refinedmods.refinedstorage.common.support.network.item.NetworkItemPropertyFunction;
 import com.refinedmods.refinedstorage.common.support.packet.PacketHandler;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterLockedUpdatePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterManagerActivePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocrafterNameUpdatePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorActivePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskAddedPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskRemovedPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingMonitorTaskStatusChangedPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewMaxAmountResponsePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingPreviewResponsePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingResponsePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.AutocraftingTaskCompletedPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.EnergyInfoPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridActivePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridClearPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.GridUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.NetworkTransmitterStatusPacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.NoPermissionPacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.PatternGridAllowedAlternativesUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.ResourceSlotUpdatePacket;
 import com.refinedmods.refinedstorage.common.support.packet.s2c.StorageInfoResponsePacket;
-import com.refinedmods.refinedstorage.common.support.packet.s2c.WirelessTransmitterRangePacket;
+import com.refinedmods.refinedstorage.common.support.packet.s2c.WirelessTransmitterDataPacket;
 import com.refinedmods.refinedstorage.common.support.tooltip.CompositeClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.support.tooltip.HelpClientTooltipComponent;
-import com.refinedmods.refinedstorage.common.support.tooltip.ResourceClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeItem;
 import com.refinedmods.refinedstorage.common.upgrade.UpgradeDestinationClientTooltipComponent;
 import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
 import com.refinedmods.refinedstorage.fabric.autocrafting.PatternUnbakedModel;
 import com.refinedmods.refinedstorage.fabric.mixin.ItemPropertiesAccessor;
+import com.refinedmods.refinedstorage.fabric.networking.CableUnbakedModel;
 import com.refinedmods.refinedstorage.fabric.storage.diskdrive.DiskDriveBlockEntityRendererImpl;
 import com.refinedmods.refinedstorage.fabric.storage.diskdrive.DiskDriveUnbakedModel;
 import com.refinedmods.refinedstorage.fabric.storage.diskinterface.DiskInterfaceBlockEntityRendererImpl;
@@ -61,10 +72,10 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -81,6 +92,7 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
 
     @Override
     public void onInitializeClient() {
+        initializeClientPlatformApi();
         setRenderLayers();
         registerEmissiveModels();
         registerPacketHandlers();
@@ -96,7 +108,7 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
                 MenuScreens.register(type, factory::create);
             }
         });
-        registerKeyBindings();
+        registerKeyMappings();
         registerModelPredicates();
         registerResourceRendering();
         registerAlternativeGridHints();
@@ -125,6 +137,9 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         setCutout(Blocks.INSTANCE.getSecurityManager());
         setCutout(Blocks.INSTANCE.getRelay());
         setCutout(Blocks.INSTANCE.getDiskInterface());
+        setCutout(Blocks.INSTANCE.getAutocrafter());
+        setCutout(Blocks.INSTANCE.getAutocrafterManager());
+        setCutout(Blocks.INSTANCE.getAutocraftingMonitor());
     }
 
     private void setCutout(final BlockColorMap<?, ?> blockMap) {
@@ -152,9 +167,10 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         Blocks.INSTANCE.getSecurityManager().forEach(
             (color, id, block) -> registerEmissiveSecurityManagerModels(color, id)
         );
-        Blocks.INSTANCE.getRelay().forEach(
-            (color, id, block) -> registerEmissiveRelayModels(color, id)
-        );
+        Blocks.INSTANCE.getRelay().forEach((color, id, block) -> registerEmissiveRelayModels(color, id));
+        Blocks.INSTANCE.getAutocrafter().forEach((color, id, block) -> registerEmissiveAutocrafterModels(color, id));
+        registerColoredEmissiveModels(Blocks.INSTANCE.getAutocrafterManager(), "autocrafter_manager");
+        registerColoredEmissiveModels(Blocks.INSTANCE.getAutocraftingMonitor(), "autocrafting_monitor");
     }
 
     private void registerColoredEmissiveModels(final BlockColorMap<?, ?> blockMap,
@@ -232,6 +248,19 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         );
     }
 
+    private void registerEmissiveAutocrafterModels(final DyeColor color, final ResourceLocation id) {
+        EmissiveModelRegistry.INSTANCE.register(
+            createIdentifier(BLOCK_PREFIX + "/autocrafter/" + color.getName()),
+            createIdentifier(BLOCK_PREFIX + "/autocrafter/cutouts/side/" + color.getName()),
+            createIdentifier(BLOCK_PREFIX + "/autocrafter/cutouts/top/" + color.getName())
+        );
+        EmissiveModelRegistry.INSTANCE.register(
+            createIdentifier(ITEM_PREFIX + "/" + id.getPath()),
+            createIdentifier(BLOCK_PREFIX + "/autocrafter/cutouts/side/" + color.getName()),
+            createIdentifier(BLOCK_PREFIX + "/autocrafter/cutouts/top/" + color.getName())
+        );
+    }
+
     private void registerPacketHandlers() {
         ClientPlayNetworking.registerGlobalReceiver(
             StorageInfoResponsePacket.PACKET_TYPE,
@@ -250,12 +279,16 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
             wrapHandler(GridActivePacket::handle)
         );
         ClientPlayNetworking.registerGlobalReceiver(
+            AutocrafterManagerActivePacket.PACKET_TYPE,
+            wrapHandler(AutocrafterManagerActivePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
             EnergyInfoPacket.PACKET_TYPE,
             wrapHandler(EnergyInfoPacket::handle)
         );
         ClientPlayNetworking.registerGlobalReceiver(
-            WirelessTransmitterRangePacket.PACKET_TYPE,
-            wrapHandler(WirelessTransmitterRangePacket::handle)
+            WirelessTransmitterDataPacket.PACKET_TYPE,
+            wrapHandler(WirelessTransmitterDataPacket::handle)
         );
         ClientPlayNetworking.registerGlobalReceiver(
             ResourceSlotUpdatePacket.PACKET_TYPE,
@@ -268,6 +301,50 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         ClientPlayNetworking.registerGlobalReceiver(
             NoPermissionPacket.PACKET_TYPE,
             wrapHandler((packet, ctx) -> NoPermissionPacket.handle(packet))
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            PatternGridAllowedAlternativesUpdatePacket.PACKET_TYPE,
+            wrapHandler(PatternGridAllowedAlternativesUpdatePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocrafterNameUpdatePacket.PACKET_TYPE,
+            wrapHandler(AutocrafterNameUpdatePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocrafterLockedUpdatePacket.PACKET_TYPE,
+            wrapHandler(AutocrafterLockedUpdatePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingPreviewResponsePacket.PACKET_TYPE,
+            wrapHandler((packet, ctx) -> AutocraftingPreviewResponsePacket.handle(packet))
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingPreviewMaxAmountResponsePacket.PACKET_TYPE,
+            wrapHandler((packet, ctx) -> AutocraftingPreviewMaxAmountResponsePacket.handle(packet))
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingResponsePacket.PACKET_TYPE,
+            wrapHandler((packet, ctx) -> AutocraftingResponsePacket.handle(packet))
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingMonitorTaskAddedPacket.PACKET_TYPE,
+            wrapHandler(AutocraftingMonitorTaskAddedPacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingMonitorTaskRemovedPacket.PACKET_TYPE,
+            wrapHandler(AutocraftingMonitorTaskRemovedPacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingMonitorTaskStatusChangedPacket.PACKET_TYPE,
+            wrapHandler(AutocraftingMonitorTaskStatusChangedPacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingMonitorActivePacket.PACKET_TYPE,
+            wrapHandler(AutocraftingMonitorActivePacket::handle)
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+            AutocraftingTaskCompletedPacket.PACKET_TYPE,
+            wrapHandler((packet, ctx) -> AutocraftingTaskCompletedPacket.handle(packet))
         );
     }
 
@@ -304,10 +381,28 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         registerDiskModels();
         final QuadRotators quadRotators = new QuadRotators();
         ModelLoadingPlugin.register(pluginContext -> {
+            registerCustomCableModels(pluginContext, quadRotators);
             registerCustomDiskDriveModels(pluginContext, quadRotators);
             registerCustomDiskInterfaceModels(pluginContext, quadRotators);
             registerCustomPortableGridModels(pluginContext, quadRotators);
             registerCustomPatternModel(pluginContext);
+        });
+    }
+
+    private void registerCustomCableModels(final ModelLoadingPlugin.Context pluginContext,
+                                           final QuadRotators quadRotators) {
+        pluginContext.resolveModel().register(context -> {
+            if (context.id().getNamespace().equals(IdentifierUtil.MOD_ID)
+                && context.id().getPath().startsWith(BLOCK_PREFIX + "/cable/")
+                && !context.id().getPath().startsWith(BLOCK_PREFIX + "/cable/core")
+                && !context.id().getPath().startsWith(BLOCK_PREFIX + "/cable/extension")) {
+                final DyeColor color = DyeColor.byName(
+                    context.id().getPath().replace(BLOCK_PREFIX + "/cable/", ""),
+                    Blocks.INSTANCE.getCable().getDefault().getColor()
+                );
+                return new CableUnbakedModel(quadRotators, color);
+            }
+            return null;
         });
     }
 
@@ -382,52 +477,43 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
     }
 
     private void registerCustomTooltips() {
-        TooltipComponentCallback.EVENT.register(data -> {
-            if (data instanceof AbstractUpgradeItem.UpgradeDestinationTooltipComponent component) {
-                return new UpgradeDestinationClientTooltipComponent(component.destinations());
+        TooltipComponentCallback.EVENT.register(d -> {
+            if (d instanceof AbstractUpgradeItem.UpgradeDestinationTooltipComponent(var destinations, var helpText)) {
+                return new CompositeClientTooltipComponent(List.of(
+                    new UpgradeDestinationClientTooltipComponent(destinations),
+                    HelpClientTooltipComponent.create(helpText)
+                ));
             }
             return null;
         });
         TooltipComponentCallback.EVENT.register(data -> {
-            if (data instanceof HelpTooltipComponent component) {
-                return HelpClientTooltipComponent.create(component.text());
+            if (data instanceof HelpTooltipComponent(Component text)) {
+                return HelpClientTooltipComponent.create(text);
             }
             return null;
         });
-        TooltipComponentCallback.EVENT.register(data -> {
-            if (data instanceof RegulatorUpgradeItem.RegulatorTooltipComponent component) {
-                final ClientTooltipComponent help = HelpClientTooltipComponent.create(component.helpText());
-                return component.configuredResource() == null
-                    ? help
-                    : createRegulatorUpgradeClientTooltipComponent(component.configuredResource(), help);
+        TooltipComponentCallback.EVENT.register(d -> {
+            if (d instanceof RegulatorUpgradeItem.RegulatorTooltipComponent(var destinations, var helpText, var r)) {
+                return createRegulatorUpgradeClientTooltipComponent(
+                    destinations,
+                    r,
+                    helpText
+                );
             }
             return null;
         });
-        TooltipComponentCallback.EVENT.register(data -> {
-            if (data instanceof PatternItem.CraftingPatternTooltipComponent component) {
-                return PatternTooltipCache.getComponent(component);
-            }
-            return null;
-        });
-        TooltipComponentCallback.EVENT.register(data -> {
-            if (data instanceof PatternItem.ProcessingPatternTooltipComponent component) {
-                return PatternTooltipCache.getComponent(component);
-            }
-            return null;
+        TooltipComponentCallback.EVENT.register(data -> switch (data) {
+            case PatternItem.CraftingPatternTooltipComponent component -> PatternTooltipCache.getComponent(component);
+            case PatternItem.ProcessingPatternTooltipComponent component -> PatternTooltipCache.getComponent(component);
+            case PatternItem.StonecutterPatternTooltipComponent component ->
+                PatternTooltipCache.getComponent(component);
+            case PatternItem.SmithingTablePatternTooltipComponent component ->
+                PatternTooltipCache.getComponent(component);
+            case null, default -> null;
         });
     }
 
-    private CompositeClientTooltipComponent createRegulatorUpgradeClientTooltipComponent(
-        final ResourceAmount configuredResource,
-        final ClientTooltipComponent help
-    ) {
-        return new CompositeClientTooltipComponent(List.of(
-            new ResourceClientTooltipComponent(configuredResource),
-            help
-        ));
-    }
-
-    private void registerKeyBindings() {
+    private void registerKeyMappings() {
         KeyMappings.INSTANCE.setFocusSearchBar(KeyBindingHelper.registerKeyBinding(new KeyMapping(
             ContentNames.FOCUS_SEARCH_BAR_TRANSLATION_KEY,
             InputConstants.Type.KEYSYM,
@@ -442,6 +528,12 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
         )));
         KeyMappings.INSTANCE.setOpenPortableGrid(KeyBindingHelper.registerKeyBinding(new KeyMapping(
             ContentNames.OPEN_PORTABLE_GRID_TRANSLATION_KEY,
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
+            ContentNames.MOD_TRANSLATION_KEY
+        )));
+        KeyMappings.INSTANCE.setOpenWirelessAutocraftingMonitor(KeyBindingHelper.registerKeyBinding(new KeyMapping(
+            ContentNames.OPEN_WIRELESS_AUTOCRAFTING_MONITOR_TRANSLATION_KEY,
             InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
             ContentNames.MOD_TRANSLATION_KEY
@@ -482,6 +574,16 @@ public class ClientModInitializerImpl extends AbstractClientModInitializer imple
             Items.INSTANCE.getSecurityCard(),
             SecurityCardItemPropertyFunction.NAME,
             new SecurityCardItemPropertyFunction()
+        );
+        ItemProperties.register(
+            Items.INSTANCE.getWirelessAutocraftingMonitor(),
+            NetworkItemPropertyFunction.NAME,
+            new NetworkItemPropertyFunction()
+        );
+        ItemProperties.register(
+            Items.INSTANCE.getCreativeWirelessAutocraftingMonitor(),
+            NetworkItemPropertyFunction.NAME,
+            new NetworkItemPropertyFunction()
         );
     }
 

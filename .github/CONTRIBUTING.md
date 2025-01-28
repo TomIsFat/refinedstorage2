@@ -265,19 +265,20 @@ Refined Storage is split up into various modules. Most modules aren't dependent 
 the `refinedstorage-common`, `refinedstorage-neoforge` and `refinedstorage-fabric` modules have dependencies on
 Minecraft.
 
-| Name                          | Use in addons | Description                                                                                              |
-|-------------------------------|---------------|----------------------------------------------------------------------------------------------------------|
-| `refinedstorage-core-api`     | ✔️            | Contains some utility classes and enums.                                                                 |
-| `refinedstorage-grid-api`     | ✔️            | Contains Grid related functionality.                                                                     |
-| `refinedstorage-network-api`  | ✔️            | Contains storage network related functionality.                                                          |
-| `refinedstorage-network`      | ❌             | Contains implementations of `refinedstorage-network-api`.                                                |
-| `refinedstorage-network-test` | ✔️            | JUnit extension which helps with setting up a network and a network node for testing.                    |
-| `refinedstorage-query-parser` | ✔️            | A query parser, contains a lexer and parser. Only used for Grid query parsing.                           |
-| `refinedstorage-resource-api` | ✔️            | Contains API for handling resources.                                                                     |
-| `refinedstorage-storage-api`  | ✔️            | Contains storage related functionality.                                                                  |
-| `refinedstorage-common-api`   | ✔️            | Implements the various Refined Storage API modules for use in Minecraft.                                 |
-| `refinedstorage-common`       | ❌             | Common mod code. Most gameplay code is in here.                                                          |
-| `refinedstorage-fabric-api`   | ✔️            | Additional API for the Fabric platform.                                                                  |
-| `refinedstorage-fabric`       | ❌             | The platform module for Fabric. This module contains Fabric specific code.                               |
-| `refinedstorage-neoforge-api` | ✔️            | Additional API for the NeoForge platform.                                                                |
-| `refinedstorage-neoforge`     | ❌             | The platform module for NeoForge. This module contains NeoForge specific code and the integration tests. |
+| Name                              | Use in addons | Description                                                                                              |
+|-----------------------------------|---------------|----------------------------------------------------------------------------------------------------------|
+| `refinedstorage-core-api`         | ✔️            | Contains some utility classes and enums.                                                                 |
+| `refinedstorage-grid-api`         | ✔️            | Contains Grid related functionality.                                                                     |
+| `refinedstorage-autocrafting-api` | ✔️            | Contains autocrafting related functionality.                                                             |
+| `refinedstorage-network-api`      | ✔️            | Contains storage network related functionality.                                                          |
+| `refinedstorage-network`          | ❌             | Contains implementations of `refinedstorage-network-api`.                                                |
+| `refinedstorage-network-test`     | ✔️            | JUnit extension which helps with setting up a network and a network node for testing.                    |
+| `refinedstorage-query-parser`     | ✔️            | A query parser, contains a lexer and parser. Only used for Grid query parsing.                           |
+| `refinedstorage-resource-api`     | ✔️            | Contains API for handling resources.                                                                     |
+| `refinedstorage-storage-api`      | ✔️            | Contains storage related functionality.                                                                  |
+| `refinedstorage-common-api`       | ✔️            | Implements the various Refined Storage API modules for use in Minecraft.                                 |
+| `refinedstorage-common`           | ❌             | Common mod code. Most gameplay code is in here.                                                          |
+| `refinedstorage-fabric-api`       | ✔️            | Additional API for the Fabric platform.                                                                  |
+| `refinedstorage-fabric`           | ❌             | The platform module for Fabric. This module contains Fabric specific code.                               |
+| `refinedstorage-neoforge-api`     | ✔️            | Additional API for the NeoForge platform.                                                                |
+| `refinedstorage-neoforge`         | ❌             | The platform module for NeoForge. This module contains NeoForge specific code and the integration tests. |

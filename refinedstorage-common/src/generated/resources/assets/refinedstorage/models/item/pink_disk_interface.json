@@ -1,3 +1,4 @@
 {
-  "loader": "refinedstorage:pink_disk_interface"
+  "color": "pink",
+  "loader": "refinedstorage:disk_interface"
 }

@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.fabric.storage.externalstorage;
 
 import com.refinedmods.refinedstorage.api.core.Action;
+import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
@@ -33,7 +34,7 @@ class FabricStorageExternalStorageProvider<P> implements ExternalStorageProvider
 
     FabricStorageExternalStorageProvider(final BlockApiLookup<Storage<P>, Direction> lookup,
                                          final Function<P, ResourceKey> fromPlatformMapper,
-                                         final Function<ResourceKey, P> toPlatformMapper,
+                                         final Function<ResourceKey, @NullableType P> toPlatformMapper,
                                          final ServerLevel serverLevel,
                                          final BlockPos pos,
                                          final Direction direction) {

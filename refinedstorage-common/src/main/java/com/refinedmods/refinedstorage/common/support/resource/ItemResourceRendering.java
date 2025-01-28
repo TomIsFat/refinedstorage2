@@ -1,7 +1,6 @@
 package com.refinedmods.refinedstorage.common.support.resource;
 
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
-import com.refinedmods.refinedstorage.common.api.support.AmountFormatting;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 
 import java.util.Collections;
@@ -23,8 +22,14 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.joml.Matrix4f;
 
-public class ItemResourceRendering implements ResourceRendering {
-    public static final Matrix4f IN_WORLD_SCALE = new Matrix4f().scale(0.3F, 0.3F, 0.001f);
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.format;
+import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.formatWithUnits;
+
+public enum ItemResourceRendering implements ResourceRendering {
+    INSTANCE;
+
+    public static final Matrix4f IN_WORLD_SCALE = new Matrix4f().scale(0.3F, 0.3F, 0.001F);
+
     private final Map<ItemResource, ItemStack> stackCache = new HashMap<>();
 
     private ItemStack getStack(final ItemResource itemResource) {
@@ -32,14 +37,11 @@ public class ItemResourceRendering implements ResourceRendering {
     }
 
     @Override
-    public String getDisplayedAmount(final long amount, final boolean withUnits) {
+    public String formatAmount(final long amount, final boolean withUnits) {
         if (!withUnits) {
-            return AmountFormatting.format(amount);
+            return format(amount);
         }
-        if (amount == 1) {
-            return "";
-        }
-        return AmountFormatting.formatWithUnits(amount);
+        return formatWithUnits(amount);
     }
 
     @Override

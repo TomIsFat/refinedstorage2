@@ -3,14 +3,13 @@ package com.refinedmods.refinedstorage.common.storage.diskdrive;
 import com.refinedmods.refinedstorage.api.network.impl.node.storage.StorageNetworkNode;
 import com.refinedmods.refinedstorage.common.content.BlockConstants;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.storage.DiskContainerBlockEntityTicker;
 import com.refinedmods.refinedstorage.common.support.AbstractDirectionalBlock;
 import com.refinedmods.refinedstorage.common.support.NetworkNodeBlockItem;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirection;
 import com.refinedmods.refinedstorage.common.support.direction.BiDirectionType;
 import com.refinedmods.refinedstorage.common.support.direction.DirectionType;
-
-import java.util.function.BiFunction;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -29,11 +28,11 @@ public class DiskDriveBlock extends AbstractDirectionalBlock<BiDirection> implem
     private static final DiskContainerBlockEntityTicker<StorageNetworkNode, AbstractDiskDriveBlockEntity> TICKER =
         new DiskContainerBlockEntityTicker<>(BlockEntities.INSTANCE::getDiskDrive);
 
-    private final BiFunction<BlockPos, BlockState, AbstractDiskDriveBlockEntity> blockEntityFactory;
+    private final BlockEntityProvider<AbstractDiskDriveBlockEntity> blockEntityProvider;
 
-    public DiskDriveBlock(final BiFunction<BlockPos, BlockState, AbstractDiskDriveBlockEntity> blockEntityFactory) {
+    public DiskDriveBlock(final BlockEntityProvider<AbstractDiskDriveBlockEntity> blockEntityProvider) {
         super(BlockConstants.PROPERTIES);
-        this.blockEntityFactory = blockEntityFactory;
+        this.blockEntityProvider = blockEntityProvider;
     }
 
     @Override
@@ -43,7 +42,7 @@ public class DiskDriveBlock extends AbstractDirectionalBlock<BiDirection> implem
 
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
-        return blockEntityFactory.apply(pos, state);
+        return blockEntityProvider.create(pos, state);
     }
 
     @Override

@@ -17,9 +17,10 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public abstract class AbstractResourceContainerMenu extends AbstractBaseContainerMenu {
-    private final List<ResourceSlot> resourceSlots = new ArrayList<>();
     @Nullable
-    private final Player player;
+    protected final Player player;
+
+    private final List<ResourceSlot> resourceSlots = new ArrayList<>();
 
     protected AbstractResourceContainerMenu(@Nullable final MenuType<?> type, final int syncId, final Player player) {
         super(type, syncId);

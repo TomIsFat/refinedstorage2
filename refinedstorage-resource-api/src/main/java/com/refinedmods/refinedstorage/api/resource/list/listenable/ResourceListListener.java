@@ -1,6 +1,6 @@
 package com.refinedmods.refinedstorage.api.resource.list.listenable;
 
-import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
 
 import org.apiguardian.api.API;
 
@@ -15,5 +15,5 @@ public interface ResourceListListener {
      *
      * @param change the change
      */
-    void onChanged(ResourceList.OperationResult change);
+    void changed(MutableResourceList.OperationResult change);
 }

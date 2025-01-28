@@ -1,11 +1,9 @@
 package com.refinedmods.refinedstorage.api.network.impl.node.exporter;
 
-import com.refinedmods.refinedstorage.api.network.Network;
 import com.refinedmods.refinedstorage.api.network.impl.node.AbstractNetworkNode;
 import com.refinedmods.refinedstorage.api.network.node.NetworkNodeActor;
+import com.refinedmods.refinedstorage.api.network.node.SchedulingMode;
 import com.refinedmods.refinedstorage.api.network.node.exporter.ExporterTransferStrategy;
-import com.refinedmods.refinedstorage.api.network.node.task.Task;
-import com.refinedmods.refinedstorage.api.network.node.task.TaskExecutor;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 
@@ -16,11 +14,11 @@ import javax.annotation.Nullable;
 public class ExporterNetworkNode extends AbstractNetworkNode {
     private long energyUsage;
     private final Actor actor = new NetworkNodeActor(this);
-    private final List<TaskImpl> tasks = new ArrayList<>();
+    private final List<ExporterTask> tasks = new ArrayList<>();
     @Nullable
     private ExporterTransferStrategy transferStrategy;
     @Nullable
-    private TaskExecutor<TaskContext> taskExecutor;
+    private SchedulingMode schedulingMode;
 
     public ExporterNetworkNode(final long energyUsage) {
         this.energyUsage = energyUsage;
@@ -30,23 +28,22 @@ public class ExporterNetworkNode extends AbstractNetworkNode {
         this.transferStrategy = transferStrategy;
     }
 
-    public void setTaskExecutor(@Nullable final TaskExecutor<TaskContext> taskExecutor) {
-        this.taskExecutor = taskExecutor;
+    public void setSchedulingMode(@Nullable final SchedulingMode schedulingMode) {
+        this.schedulingMode = schedulingMode;
     }
 
     @Override
     public void doWork() {
         super.doWork();
-        if (network == null || !isActive() || taskExecutor == null) {
+        if (network == null || !isActive() || schedulingMode == null) {
             return;
         }
-        final TaskContext context = new TaskContext(network, actor);
-        taskExecutor.execute(tasks, context);
+        schedulingMode.execute(tasks);
     }
 
     public void setFilters(final List<ResourceKey> filters) {
         tasks.clear();
-        tasks.addAll(filters.stream().map(TaskImpl::new).toList());
+        tasks.addAll(filters.stream().map(ExporterTask::new).toList());
     }
 
     public void setEnergyUsage(final long energyUsage) {
@@ -58,22 +55,19 @@ public class ExporterNetworkNode extends AbstractNetworkNode {
         return energyUsage;
     }
 
-    public record TaskContext(Network network, Actor actor) {
-    }
-
-    class TaskImpl implements Task<TaskContext> {
+    class ExporterTask implements SchedulingMode.ScheduledTask {
         private final ResourceKey filter;
 
-        TaskImpl(final ResourceKey filter) {
+        ExporterTask(final ResourceKey filter) {
             this.filter = filter;
         }
 
         @Override
-        public boolean run(final TaskContext context) {
-            if (transferStrategy == null) {
+        public boolean run() {
+            if (transferStrategy == null || network == null) {
                 return false;
             }
-            return transferStrategy.transfer(filter, context.actor, context.network);
+            return transferStrategy.transfer(filter, actor, network);
         }
     }
 }

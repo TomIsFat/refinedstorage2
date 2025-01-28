@@ -3,6 +3,7 @@ package com.refinedmods.refinedstorage.common.importer;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.filter.FilterMode;
 import com.refinedmods.refinedstorage.common.Platform;
+import com.refinedmods.refinedstorage.common.upgrade.RegulatorUpgradeItem;
 import com.refinedmods.refinedstorage.common.util.IdentifierUtil;
 
 import java.util.Set;
@@ -20,12 +21,13 @@ import static com.refinedmods.refinedstorage.common.GameTestUtil.RSITEMS;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.asResource;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.assertInterfaceEmpty;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.containerContainsExactly;
+import static com.refinedmods.refinedstorage.common.GameTestUtil.getItemAsDamaged;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.insert;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.interfaceContainsExactly;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.networkIsAvailable;
+import static com.refinedmods.refinedstorage.common.GameTestUtil.prepareChest;
+import static com.refinedmods.refinedstorage.common.GameTestUtil.prepareInterface;
 import static com.refinedmods.refinedstorage.common.GameTestUtil.storageContainsExactly;
-import static com.refinedmods.refinedstorage.common.importer.ImporterTestPlots.prepareChest;
-import static com.refinedmods.refinedstorage.common.importer.ImporterTestPlots.prepareInterface;
 import static com.refinedmods.refinedstorage.common.importer.ImporterTestPlots.preparePlot;
 import static net.minecraft.world.item.Items.COBBLESTONE;
 import static net.minecraft.world.item.Items.DIAMOND_CHESTPLATE;
@@ -87,11 +89,12 @@ public final class ImporterTest {
                 COBBLESTONE.getDefaultInstance().copyWithCount(64),
                 DIRT.getDefaultInstance()
             );
-            importer.addUpgradeItem(RSITEMS.getStackUpgrade());
+
+            importer.addUpgrade(RSITEMS.getStackUpgrade().getDefaultInstance());
 
             // Assert
             sequence
-                .thenExecute(() -> containerContainsExactly(
+                .thenExecute(containerContainsExactly(
                     helper,
                     pos.east(),
                     new ResourceAmount(asResource(DIRT), 1)
@@ -117,6 +120,48 @@ public final class ImporterTest {
     }
 
     @GameTest(template = "empty_15x15")
+    public static void shouldImportItemWithRegulatorUpgrade(final GameTestHelper helper) {
+        preparePlot(helper, Direction.EAST, (importer, pos, sequence) -> {
+            // Arrange
+            sequence.thenWaitUntil(networkIsAvailable(helper, pos, network -> {
+                insert(helper, network, DIRT, 10);
+                insert(helper, network, STONE, 15);
+            }));
+
+            // Act
+            prepareChest(
+                helper,
+                pos.east(),
+                COBBLESTONE.getDefaultInstance(),
+                DIRT.getDefaultInstance().copyWithCount(15)
+            );
+
+            final ItemStack upgrade = RSITEMS.getRegulatorUpgrade().getDefaultInstance();
+            if (upgrade.getItem() instanceof RegulatorUpgradeItem upgradeItem) {
+                upgradeItem.setAmount(upgrade, asResource(DIRT.getDefaultInstance()), 10);
+            }
+            importer.addUpgrade(upgrade);
+
+            // Assert
+            sequence
+                .thenIdle(95)
+                .thenExecute(containerContainsExactly(
+                    helper,
+                    pos.east(),
+                    new ResourceAmount(asResource(DIRT), 10)
+                ))
+                .thenExecute(storageContainsExactly(
+                    helper,
+                    pos,
+                    new ResourceAmount(asResource(DIRT), 15),
+                    new ResourceAmount(asResource(STONE), 15),
+                    new ResourceAmount(asResource(COBBLESTONE), 1)
+                ))
+                .thenSucceed();
+        });
+    }
+
+    @GameTest(template = "empty_15x15")
     public static void shouldImportItemBlocklist(final GameTestHelper helper) {
         preparePlot(helper, Direction.EAST, (importer, pos, sequence) -> {
             // Arrange
@@ -126,13 +171,13 @@ public final class ImporterTest {
             }));
 
             // Act
-            final ItemStack damagedDiamondChestplate = DIAMOND_CHESTPLATE.getDefaultInstance();
-            damagedDiamondChestplate.setDamageValue(500);
+            final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
             prepareChest(
                 helper,
                 pos.east(),
                 DIRT.getDefaultInstance(),
-                DIAMOND_CHESTPLATE.getDefaultInstance(), damagedDiamondChestplate
+                DIAMOND_CHESTPLATE.getDefaultInstance(),
+                damagedDiamondChestplate
             );
 
             importer.setFuzzyMode(false);
@@ -167,13 +212,13 @@ public final class ImporterTest {
             }));
 
             // Act
-            final ItemStack damagedDiamondChestplate = DIAMOND_CHESTPLATE.getDefaultInstance();
-            damagedDiamondChestplate.setDamageValue(500);
+            final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
             prepareChest(
                 helper,
                 pos.east(),
                 DIRT.getDefaultInstance(),
-                DIAMOND_CHESTPLATE.getDefaultInstance(), damagedDiamondChestplate
+                DIAMOND_CHESTPLATE.getDefaultInstance(),
+                damagedDiamondChestplate
             );
 
             importer.setFuzzyMode(true);
@@ -209,13 +254,13 @@ public final class ImporterTest {
             }));
 
             // Act
-            final ItemStack damagedDiamondChestplate = DIAMOND_CHESTPLATE.getDefaultInstance();
-            damagedDiamondChestplate.setDamageValue(500);
+            final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
             prepareChest(
                 helper,
                 pos.east(),
                 DIRT.getDefaultInstance(),
-                DIAMOND_CHESTPLATE.getDefaultInstance(), damagedDiamondChestplate
+                DIAMOND_CHESTPLATE.getDefaultInstance(),
+                damagedDiamondChestplate
             );
 
             importer.setFuzzyMode(false);
@@ -252,13 +297,13 @@ public final class ImporterTest {
             }));
 
             // Act
-            final ItemStack damagedDiamondChestplate = DIAMOND_CHESTPLATE.getDefaultInstance();
-            damagedDiamondChestplate.setDamageValue(500);
+            final ItemStack damagedDiamondChestplate = getItemAsDamaged(DIAMOND_CHESTPLATE.getDefaultInstance(), 500);
             prepareChest(
                 helper,
                 pos.east(),
                 DIRT.getDefaultInstance(),
-                DIAMOND_CHESTPLATE.getDefaultInstance(), damagedDiamondChestplate
+                DIAMOND_CHESTPLATE.getDefaultInstance(),
+                damagedDiamondChestplate
             );
 
             importer.setFuzzyMode(true);
@@ -326,7 +371,7 @@ public final class ImporterTest {
                 new ResourceAmount(asResource(WATER), Platform.INSTANCE.getBucketAmount() * 15),
                 new ResourceAmount(asResource(LAVA), Platform.INSTANCE.getBucketAmount())
             );
-            importer.addUpgradeItem(RSITEMS.getStackUpgrade());
+            importer.addUpgrade(RSITEMS.getStackUpgrade().getDefaultInstance());
 
             // Assert
             sequence

@@ -1,5 +1,6 @@
 package com.refinedmods.refinedstorage.common.support.resource;
 
+import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.common.api.support.resource.PlatformResourceKey;
 import com.refinedmods.refinedstorage.common.api.support.resource.RecipeModIngredientConverter;
 
@@ -14,6 +15,13 @@ public class CompositeRecipeModIngredientConverter implements RecipeModIngredien
     public Optional<PlatformResourceKey> convertToResource(final Object ingredient) {
         return converters.stream()
             .flatMap(converter -> converter.convertToResource(ingredient).stream())
+            .findFirst();
+    }
+
+    @Override
+    public Optional<ResourceAmount> convertToResourceAmount(final Object ingredient) {
+        return converters.stream()
+            .flatMap(converter -> converter.convertToResourceAmount(ingredient).stream())
             .findFirst();
     }
 

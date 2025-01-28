@@ -60,7 +60,7 @@ public class NetworkTransmitterContainerMenu extends AbstractBaseContainerMenu {
             return;
         }
         final NetworkTransmitterData newStatus = blockEntity.getStatus();
-        if (newStatus.message().equals(status.message())) {
+        if (newStatus.equals(status)) {
             return;
         }
         updateStatus(serverPlayer, newStatus);

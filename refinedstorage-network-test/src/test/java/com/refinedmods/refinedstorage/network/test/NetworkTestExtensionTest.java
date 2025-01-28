@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.network.test;
 
 import com.refinedmods.refinedstorage.api.network.Network;
+import com.refinedmods.refinedstorage.api.network.autocrafting.AutocraftingNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.node.SimpleNetworkNode;
 import com.refinedmods.refinedstorage.api.network.impl.node.storage.StorageNetworkNode;
@@ -155,6 +156,16 @@ class NetworkTestExtensionTest {
         // Assert
         assertThat(networkSecurityA).isSameAs(a.getComponent(SecurityNetworkComponent.class));
         assertThat(networkSecurityB).isSameAs(b.getComponent(SecurityNetworkComponent.class));
+    }
+
+    @Test
+    void shouldInjectNetworkAutocraftingComponent(
+        @InjectNetworkAutocraftingComponent(networkId = "a") final AutocraftingNetworkComponent networkAutocraftingA,
+        @InjectNetworkAutocraftingComponent(networkId = "b") final AutocraftingNetworkComponent networkAutocraftingB
+    ) {
+        // Assert
+        assertThat(networkAutocraftingA).isSameAs(a.getComponent(AutocraftingNetworkComponent.class));
+        assertThat(networkAutocraftingB).isSameAs(b.getComponent(AutocraftingNetworkComponent.class));
     }
 
     @Test

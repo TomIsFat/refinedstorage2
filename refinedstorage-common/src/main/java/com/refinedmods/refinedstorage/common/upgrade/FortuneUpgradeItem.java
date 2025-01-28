@@ -1,14 +1,10 @@
 package com.refinedmods.refinedstorage.common.upgrade;
 
 import com.refinedmods.refinedstorage.common.Platform;
-import com.refinedmods.refinedstorage.common.api.support.HelpTooltipComponent;
 import com.refinedmods.refinedstorage.common.api.upgrade.AbstractUpgradeItem;
 import com.refinedmods.refinedstorage.common.api.upgrade.UpgradeRegistry;
 
-import java.util.Optional;
-
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -21,7 +17,7 @@ public class FortuneUpgradeItem extends AbstractUpgradeItem {
     private final Component name;
 
     public FortuneUpgradeItem(final UpgradeRegistry registry, final int fortuneLevel) {
-        super(new Item.Properties(), registry);
+        super(new Item.Properties(), registry, HELP);
         this.fortuneLevel = fortuneLevel;
         this.name = createTranslation("item", "fortune_upgrade." + fortuneLevel);
     }
@@ -44,10 +40,5 @@ public class FortuneUpgradeItem extends AbstractUpgradeItem {
     @Override
     public Component getName(final ItemStack stack) {
         return name;
-    }
-
-    @Override
-    public Optional<TooltipComponent> getTooltipImage(final ItemStack stack) {
-        return Optional.of(new HelpTooltipComponent(HELP));
     }
 }

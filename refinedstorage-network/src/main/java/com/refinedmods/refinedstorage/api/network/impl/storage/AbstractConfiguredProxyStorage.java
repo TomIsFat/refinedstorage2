@@ -84,8 +84,13 @@ public abstract class AbstractConfiguredProxyStorage<S extends Storage>
     }
 
     @Override
-    public int getPriority() {
-        return config.getPriority();
+    public int getInsertPriority() {
+        return config.getInsertPriority();
+    }
+
+    @Override
+    public int getExtractPriority() {
+        return config.getExtractPriority();
     }
 
     protected S getDelegate() {

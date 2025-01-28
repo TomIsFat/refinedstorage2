@@ -18,7 +18,7 @@ class ProxyStorageTest {
 
     @BeforeEach
     void setUp() {
-        backed = new ActorCapturingStorage(new InMemoryStorageImpl());
+        backed = new ActorCapturingStorage(new StorageImpl());
         sut = new AbstractProxyStorage(backed) {
         };
     }
@@ -34,7 +34,7 @@ class ProxyStorageTest {
     @Test
     void shouldRetrieveAll() {
         // Arrange
-        sut.insert(TestResource.A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(TestResource.A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act & assert
         assertThat(sut.getAll()).usingRecursiveFieldByFieldElementComparator().containsExactly(
@@ -45,7 +45,7 @@ class ProxyStorageTest {
     @Test
     void shouldRetrieveStoredAmount() {
         // Arrange
-        sut.insert(TestResource.A, 10, Action.EXECUTE, EmptyActor.INSTANCE);
+        sut.insert(TestResource.A, 10, Action.EXECUTE, Actor.EMPTY);
 
         // Act & assert
         assertThat(sut.getStored()).isEqualTo(10);

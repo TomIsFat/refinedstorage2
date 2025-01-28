@@ -62,6 +62,12 @@ public final class CoreValidations {
         }
     }
 
+    public static <T> void validateNotEmpty(final Collection<T> collection, final String message) {
+        if (collection.isEmpty()) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
     public static <T> void validateContains(final Collection<T> collection, final T value, final String message) {
         if (!collection.contains(value)) {
             throw new IllegalArgumentException(message);

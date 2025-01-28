@@ -14,14 +14,13 @@ public class InterfacePlatformExternalStorageProviderFactory implements Platform
     public Optional<ExternalStorageProvider> create(final ServerLevel level,
                                                     final BlockPos pos,
                                                     final Direction direction) {
-        if (!(level.getBlockEntity(pos) instanceof InterfaceBlockEntity)) {
-            return Optional.empty();
-        }
-        return Optional.of(new InterfaceProxyExternalStorageProvider(level, pos));
+        return Optional.ofNullable(level.getBlockEntity(pos))
+            .filter(InterfaceBlockEntity.class::isInstance)
+            .map(blockEntity -> new InterfaceProxyExternalStorageProvider(level, pos));
     }
 
     @Override
     public int getPriority() {
-        return -1;
+        return Integer.MIN_VALUE;
     }
 }

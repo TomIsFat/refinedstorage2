@@ -13,7 +13,8 @@ import java.util.function.Supplier;
 import net.minecraft.nbt.CompoundTag;
 
 public final class StorageConfigurationContainerImpl implements StorageConfigurationContainer {
-    private static final String TAG_PRIORITY = "pri";
+    private static final String TAG_INSERT_PRIORITY = "pri";
+    private static final String TAG_EXTRACT_PRIORITY = "epri";
     private static final String TAG_FILTER_MODE = "fim";
     private static final String TAG_ACCESS_MODE = "am";
     private static final String TAG_VOID_EXCESS = "ve";
@@ -37,8 +38,13 @@ public final class StorageConfigurationContainerImpl implements StorageConfigura
     }
 
     public void load(final CompoundTag tag) {
-        if (tag.contains(TAG_PRIORITY)) {
-            config.setPriority(tag.getInt(TAG_PRIORITY));
+        if (tag.contains(TAG_INSERT_PRIORITY)) {
+            config.setInsertPriority(tag.getInt(TAG_INSERT_PRIORITY));
+        }
+        if (tag.contains(TAG_EXTRACT_PRIORITY)) {
+            config.setExtractPriority(tag.getInt(TAG_EXTRACT_PRIORITY));
+        } else {
+            config.setExtractPriority(config.getInsertPriority()); // bit of compat
         }
         if (tag.contains(TAG_FILTER_MODE)) {
             config.setFilterMode(FilterModeSettings.getFilterMode(tag.getInt(TAG_FILTER_MODE)));
@@ -53,19 +59,31 @@ public final class StorageConfigurationContainerImpl implements StorageConfigura
 
     public void save(final CompoundTag tag) {
         tag.putInt(TAG_FILTER_MODE, FilterModeSettings.getFilterMode(config.getFilterMode()));
-        tag.putInt(TAG_PRIORITY, config.getPriority());
+        tag.putInt(TAG_INSERT_PRIORITY, config.getInsertPriority());
+        tag.putInt(TAG_EXTRACT_PRIORITY, config.getExtractPriority());
         tag.putInt(TAG_ACCESS_MODE, AccessModeSettings.getAccessMode(config.getAccessMode()));
         tag.putBoolean(TAG_VOID_EXCESS, config.isVoidExcess());
     }
 
     @Override
-    public int getPriority() {
-        return config.getPriority();
+    public int getInsertPriority() {
+        return config.getInsertPriority();
     }
 
     @Override
-    public void setPriority(final int priority) {
-        config.setPriority(priority);
+    public void setInsertPriority(final int insertPriority) {
+        config.setInsertPriority(insertPriority);
+        listener.run();
+    }
+
+    @Override
+    public int getExtractPriority() {
+        return config.getExtractPriority();
+    }
+
+    @Override
+    public void setExtractPriority(final int extractPriority) {
+        config.setExtractPriority(extractPriority);
         listener.run();
     }
 

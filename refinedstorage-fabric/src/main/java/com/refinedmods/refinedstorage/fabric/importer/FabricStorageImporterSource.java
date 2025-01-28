@@ -1,6 +1,7 @@
 package com.refinedmods.refinedstorage.fabric.importer;
 
 import com.refinedmods.refinedstorage.api.core.Action;
+import com.refinedmods.refinedstorage.api.core.NullableType;
 import com.refinedmods.refinedstorage.api.network.impl.node.importer.ImporterSource;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.api.storage.Actor;
@@ -32,7 +33,7 @@ class FabricStorageImporterSource<T> implements ImporterSource {
 
     FabricStorageImporterSource(final BlockApiLookup<Storage<T>, Direction> lookup,
                                 final Function<T, ResourceKey> fromPlatformMapper,
-                                final Function<ResourceKey, T> toPlatformMapper,
+                                final Function<ResourceKey, @NullableType T> toPlatformMapper,
                                 final ServerLevel serverLevel,
                                 final BlockPos pos,
                                 final Direction direction,

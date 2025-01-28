@@ -2,6 +2,7 @@ package com.refinedmods.refinedstorage.common.storage.externalstorage;
 
 import com.refinedmods.refinedstorage.common.content.BlockColorMap;
 import com.refinedmods.refinedstorage.common.content.BlockEntities;
+import com.refinedmods.refinedstorage.common.content.BlockEntityProvider;
 import com.refinedmods.refinedstorage.common.content.Blocks;
 import com.refinedmods.refinedstorage.common.support.AbstractBlockEntityTicker;
 import com.refinedmods.refinedstorage.common.support.AbstractDirectionalCableBlock;
@@ -12,8 +13,7 @@ import com.refinedmods.refinedstorage.common.support.DirectionalCableBlockShapes
 import com.refinedmods.refinedstorage.common.support.NetworkNodeBlockItem;
 import com.refinedmods.refinedstorage.common.support.network.NetworkNodeBlockEntityTicker;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -38,18 +38,23 @@ import static com.refinedmods.refinedstorage.common.util.IdentifierUtil.createTr
 public class ExternalStorageBlock extends AbstractDirectionalCableBlock
     implements ColorableBlock<ExternalStorageBlock, BaseBlockItem>, EntityBlock, BlockItemProvider<BaseBlockItem> {
     private static final Component HELP = createTranslation("item", "external_storage.help");
-    private static final Map<DirectionalCacheShapeCacheKey, VoxelShape> SHAPE_CACHE = new HashMap<>();
-    private static final AbstractBlockEntityTicker<ExternalStorageBlockEntity> TICKER =
+    private static final ConcurrentHashMap<DirectionalCacheShapeCacheKey, VoxelShape> SHAPE_CACHE =
+        new ConcurrentHashMap<>();
+    private static final AbstractBlockEntityTicker<AbstractExternalStorageBlockEntity> TICKER =
         new NetworkNodeBlockEntityTicker<>(BlockEntities.INSTANCE::getExternalStorage);
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalStorageBlock.class);
 
     private final DyeColor color;
     private final MutableComponent name;
+    private final BlockEntityProvider<AbstractExternalStorageBlockEntity> blockEntityProvider;
 
-    public ExternalStorageBlock(final DyeColor color, final MutableComponent name) {
+    public ExternalStorageBlock(final DyeColor color,
+                                final MutableComponent name,
+                                final BlockEntityProvider<AbstractExternalStorageBlockEntity> blockEntityProvider) {
         super(SHAPE_CACHE);
         this.color = color;
         this.name = name;
+        this.blockEntityProvider = blockEntityProvider;
     }
 
     @Override
@@ -59,7 +64,7 @@ public class ExternalStorageBlock extends AbstractDirectionalCableBlock
 
     @Override
     public BlockEntity newBlockEntity(final BlockPos pos, final BlockState state) {
-        return new ExternalStorageBlockEntity(pos, state);
+        return blockEntityProvider.create(pos, state);
     }
 
     @Nullable
@@ -79,7 +84,7 @@ public class ExternalStorageBlock extends AbstractDirectionalCableBlock
                                 final boolean moving) {
         super.neighborChanged(state, level, pos, block, fromPos, moving);
         if (level instanceof ServerLevel serverLevel
-            && level.getBlockEntity(pos) instanceof ExternalStorageBlockEntity blockEntity) {
+            && level.getBlockEntity(pos) instanceof AbstractExternalStorageBlockEntity blockEntity) {
             LOGGER.debug("External storage neighbor has changed, reloading {}", pos);
             blockEntity.loadStorage(serverLevel);
         }

@@ -18,16 +18,22 @@ public class PatternItemOverrides extends ItemOverrides {
     private final BakedModel emptyModel;
     private final BakedModel craftingModel;
     private final BakedModel processingModel;
+    private final BakedModel stonecutterModel;
+    private final BakedModel smithingTableModel;
 
-    @SuppressWarnings({"DataFlowIssue"}) // null is allowed as long as we don't pass overrides
+    @SuppressWarnings({"DataFlowIssue", "deprecation"}) // null is allowed as long as we don't pass overrides
     public PatternItemOverrides(final ModelBaker modelBaker,
                                 final BakedModel emptyModel,
                                 final BakedModel craftingModel,
-                                final BakedModel processingModel) {
+                                final BakedModel processingModel,
+                                final BakedModel stonecutterModel,
+                                final BakedModel smithingTableModel) {
         super(modelBaker, null, List.of());
         this.emptyModel = emptyModel;
         this.craftingModel = craftingModel;
         this.processingModel = processingModel;
+        this.stonecutterModel = stonecutterModel;
+        this.smithingTableModel = smithingTableModel;
     }
 
     @Override
@@ -40,13 +46,12 @@ public class PatternItemOverrides extends ItemOverrides {
         if (state == null) {
             return emptyModel;
         }
-        if (state.type() == PatternType.CRAFTING) {
-            return getOutputModel(stack, level, entity, seed).orElse(craftingModel);
-        }
-        if (state.type() == PatternType.PROCESSING) {
-            return getOutputModel(stack, level, entity, seed).orElse(processingModel);
-        }
-        return emptyModel;
+        return switch (state.type()) {
+            case CRAFTING -> getOutputModel(stack, level, entity, seed).orElse(craftingModel);
+            case PROCESSING -> getOutputModel(stack, level, entity, seed).orElse(processingModel);
+            case STONECUTTER -> getOutputModel(stack, level, entity, seed).orElse(stonecutterModel);
+            case SMITHING_TABLE -> getOutputModel(stack, level, entity, seed).orElse(smithingTableModel);
+        };
     }
 
     private Optional<BakedModel> getOutputModel(final ItemStack stack,

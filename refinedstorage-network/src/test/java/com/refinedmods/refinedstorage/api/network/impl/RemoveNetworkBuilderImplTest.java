@@ -20,7 +20,7 @@ class RemoveNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
         final NetworkNodeContainer container = createContainer();
 
         // Act
-        final Executable action = () -> sut.remove(container, new FakeConnectionProvider());
+        final Executable action = () -> sut.remove(container, new ConnectionProviderImpl());
 
         // Assert
         assertThrows(IllegalStateException.class, action);
@@ -29,7 +29,7 @@ class RemoveNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldSplitNetwork() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
         final NetworkNodeContainer container2 =
@@ -70,7 +70,7 @@ class RemoveNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldSplitNetworkInTwo() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
         final NetworkNodeContainer container2 =
@@ -137,7 +137,7 @@ class RemoveNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldSplitNetworkInThree() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container1 = createContainerWithNetwork();
 
@@ -219,7 +219,7 @@ class RemoveNetworkBuilderImplTest extends AbstractNetworkBuilderImplTest {
     @Test
     void shouldRemoveNetwork() {
         // Arrange
-        final FakeConnectionProvider connectionProvider = new FakeConnectionProvider();
+        final ConnectionProviderImpl connectionProvider = new ConnectionProviderImpl();
 
         final NetworkNodeContainer container = createContainerWithNetwork();
         final NetworkNodeContainer unrelatedContainer = createContainerWithNetwork();

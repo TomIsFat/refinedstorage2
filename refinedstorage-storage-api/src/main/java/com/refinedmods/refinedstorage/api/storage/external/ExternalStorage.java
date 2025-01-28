@@ -3,8 +3,9 @@ package com.refinedmods.refinedstorage.api.storage.external;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.ResourceAmount;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceList;
+import com.refinedmods.refinedstorage.api.resource.list.MutableResourceListImpl;
 import com.refinedmods.refinedstorage.api.resource.list.ResourceList;
-import com.refinedmods.refinedstorage.api.resource.list.ResourceListImpl;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.composite.CompositeAwareChild;
 import com.refinedmods.refinedstorage.api.storage.composite.ParentComposite;
@@ -19,7 +20,7 @@ import org.apiguardian.api.API;
 public class ExternalStorage implements CompositeAwareChild {
     private final ExternalStorageProvider provider;
     private final Set<ParentComposite> parents = new HashSet<>();
-    private final ResourceList cache = ResourceListImpl.create();
+    private final MutableResourceList cache = MutableResourceListImpl.create();
     private final ExternalStorageListener listener;
 
     public ExternalStorage(final ExternalStorageProvider provider, final ExternalStorageListener listener) {
@@ -116,7 +117,7 @@ public class ExternalStorage implements CompositeAwareChild {
     }
 
     private ResourceList buildCache() {
-        final ResourceList list = ResourceListImpl.create();
+        final MutableResourceList list = MutableResourceListImpl.create();
         provider.iterator().forEachRemaining(list::add);
         return list;
     }

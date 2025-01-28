@@ -69,8 +69,8 @@ public abstract class AbstractPortableGridContainerMenu extends AbstractGridCont
     }
 
     @Override
-    public void onScreenReady(final int playerInventoryY) {
-        super.onScreenReady(playerInventoryY);
+    public void resized(final int playerInventoryY, final int topYStart, final int topYEnd) {
+        super.resized(playerInventoryY, topYStart, topYEnd);
         diskSlot = ValidatedSlot.forStorageContainer(diskInventory, 0, -19, 8);
         addSlot(diskSlot);
         transferManager.addBiTransfer(playerInventory, diskInventory);

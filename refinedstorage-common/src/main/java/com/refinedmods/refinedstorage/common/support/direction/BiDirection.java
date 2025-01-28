@@ -38,6 +38,17 @@ public enum BiDirection implements StringRepresentable {
         this.direction = direction;
     }
 
+    public static BiDirection forDirection(final Direction direction) {
+        return switch (direction) {
+            case NORTH -> NORTH;
+            case EAST -> EAST;
+            case SOUTH -> SOUTH;
+            case WEST -> WEST;
+            case UP -> UP_NORTH;
+            case DOWN -> DOWN_NORTH;
+        };
+    }
+
     public static BiDirection forHorizontal(final Direction horizontalDirection) {
         return switch (horizontalDirection) {
             case NORTH -> NORTH;
