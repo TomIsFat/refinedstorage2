@@ -44,7 +44,12 @@ public class SnapshotExtractTransaction implements ExtractTransaction {
         final ItemResource craftingMatrixResource = ItemResource.ofItemStack(craftingMatrixStack);
         // a single resource can occur multiple times in a recipe, only add it once
         if (!available.contains(craftingMatrixResource)) {
-            final long amount = rootStorage.get(craftingMatrixResource);
+            final long amount = rootStorage.extract(
+                craftingMatrixResource,
+                Long.MAX_VALUE,
+                Action.SIMULATE,
+                playerActor
+            );
             if (amount > 0) {
                 available.add(craftingMatrixResource, amount);
             }
