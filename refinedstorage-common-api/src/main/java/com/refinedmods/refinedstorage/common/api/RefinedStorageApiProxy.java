@@ -403,6 +403,11 @@ public class RefinedStorageApiProxy implements RefinedStorageApi {
     }
 
     @Override
+    public ResourceLocation getColoredCreativeModeTabId() {
+        return ensureLoaded().getColoredCreativeModeTabId();
+    }
+
+    @Override
     public AbstractNetworkNodeContainerBlockEntity<?> createStorageBlockEntity(final BlockPos pos,
                                                                                final BlockState state,
                                                                                final StorageBlockProvider provider) {

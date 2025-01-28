@@ -149,6 +149,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -466,6 +467,15 @@ public class ModInitializerImpl extends AbstractModInitializer implements ModIni
                 .title(ContentNames.MOD)
                 .icon(() -> new ItemStack(Blocks.INSTANCE.getCreativeController().getDefault()))
                 .displayItems((params, output) -> CreativeModeTabItems.append(output::accept))
+                .build()
+        );
+        Registry.register(
+            BuiltInRegistries.CREATIVE_MODE_TAB,
+            RefinedStorageApi.INSTANCE.getColoredCreativeModeTabId(),
+            CreativeModeTab.builder(CreativeModeTab.Row.TOP, 1)
+                .title(ContentNames.MOD_COLORIZED)
+                .icon(() -> new ItemStack(Blocks.INSTANCE.getCreativeController().get(DyeColor.LIME)))
+                .displayItems((params, output) -> CreativeModeTabItems.appendColoredVariants(output::accept))
                 .build()
         );
     }

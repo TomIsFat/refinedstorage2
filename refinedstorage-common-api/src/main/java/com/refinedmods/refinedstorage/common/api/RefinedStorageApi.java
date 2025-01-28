@@ -208,6 +208,8 @@ public interface RefinedStorageApi {
 
     ResourceLocation getCreativeModeTabId();
 
+    ResourceLocation getColoredCreativeModeTabId();
+
     AbstractNetworkNodeContainerBlockEntity<?> createStorageBlockEntity(BlockPos pos,
                                                                         BlockState state,
                                                                         StorageBlockProvider provider);

@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+###  Added
+
+-   Colored variants are now moved to a separate creative mode tab.
+
 ### Fixed
 
 -   Fixed Crafter and Security Manager bottom sides being lit on NeoForge.
